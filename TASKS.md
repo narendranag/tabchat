@@ -5,19 +5,21 @@
 
 ## Now
 
-- [ ] **Audit for Mac**: run it on this Mac (`npm install && npm start`), list everything Linux-only and what breaks — see `brief/mac-refactor.md` #mac
-- [ ] **Decide: stay on Electron or move** (DEV-GUIDELINES says Tauri v2 for desktop). Propose with the audit; default: stay on Electron and refactor in place. Narendra decides; record in `DECISIONS.md` #mac
-- [ ] **Refactor for macOS**: platform layer for tray/menu bar, dock badge, notifications, Do not disturb (Focus), login item, keyboard shortcuts (Cmd), app menu, window behaviour #mac
-- [ ] **Mac build**: `electron-builder --mac` → `.dmg` (arm64 + x64), running locally; signing/notarizing later #mac
+- [ ] **Engine spike** (`spike/`, throwaway): WKWebView per service; check sign-in persistence, separate accounts, shared Microsoft sign-in, notification shim, Teams/Discord calls and screen share, Brightspace SSO. Go/no-go into `DECISIONS.md` — see `brief/mac-rewrite.md` #mac
 
 ## Next
 
-- [ ] Decide what happens to the Linux targets, the snap workflow and the auto-updater feed (they point at MMV2408's releases) #mac
-- [ ] Docs to the fleet standard (`docs-build --init`) without clobbering upstream's `docs/index.html` site #docs
-- [ ] README for the fork: what's different, credit to upstream
+- [ ] **Skeleton**: XcodeGen project, `just` recipes, swiftformat/swiftlint, XCTest, Actions CI; tag `upstream-final` and remove the Electron code from `main` (dashboard first) #mac
+- [ ] **Core**: sidebar, service catalog, custom sites, profiles, persistence, navigation, find, downloads, external links, offline screen #mac
+- [ ] **Mac integration**: unread on tabs/Dock/menu bar, notifications → tab, pause, close keeps running, login item, app menu + shortcuts #mac
+- [ ] **The rest**: split view, `Cmd+K`, tab sleep, duplicate/incognito, card order, settings window #mac
+- [ ] **Packaging**: unsigned `.app`/`.dmg` (Apple Silicon) built locally #mac
+- [ ] Docs to the fleet standard (`docs-build --init`) and a README crediting MMV2408/tabchat #docs
 
 ## Later
 
-- [ ] Signed, notarized `.dmg` from GitHub Actions (needs an Apple Developer ID — costs money, Narendra decides)
+- [ ] Signed, notarized `.dmg` from GitHub Actions + Sparkle updates (needs an Apple Developer ID — costs money, Narendra decides)
 
 ## Done
+
+- [x] Plan and decisions for the Mac rewrite (`brief/mac-rewrite.md`) — 2026-10-13

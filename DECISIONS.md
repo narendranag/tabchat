@@ -2,3 +2,7 @@
 
 - [mini] [2026-10-13] Forked MMV2408/tabchat to narendranag/tabchat and set it up as a product in `~/products/tabchat` (not `~/projects`) — Narendra's call; it is an existing, working app being adapted, not a new idea.
 - [mini] [2026-10-13] Target: macOS desktop. Stays on Electron until the brain's audit proposes otherwise — it is a fork of an Electron app; DEV-GUIDELINES' Tauri default is the first open decision.
+- [mini] [2026-10-13] Rewrite from scratch in Swift + SwiftUI/AppKit + WKWebView instead of refactoring the Electron fork — Mac-only app made of OS hooks (DEV-GUIDELINES' Swift exception); system WebKit keeps memory low. Fallback to a clean Electron + TypeScript rewrite if the engine spike fails on calls or screen sharing. Supersedes the "stays on Electron" entry above.
+- [mini] [2026-10-13] Minimum macOS 14 Sonoma — `WKWebsiteDataStore(forIdentifier:)` gives each sign-in its own persistent store.
+- [mini] [2026-10-13] Keep the repo `narendranag/tabchat` and the name Tabchat; tag the Linux code `upstream-final` and remove it from `main`; credit MMV2408/tabchat (MIT) in the README.
+- [mini] [2026-10-13] Sidebar of service icons rather than a title-bar tab strip; English only; Apple Silicon only.
