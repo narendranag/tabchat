@@ -17,16 +17,21 @@ This brain follows the fleet's standard: how projects are built is in
 
 ## Status
 
-Planning done (2026-10-13): rewriting from scratch as a native Swift app (macOS 14+, sidebar,
-English only). Upstream's Linux code moved to the `Linux` branch; `main` is clean. The WKWebView engine spike
-passed (GO); phases 2–6 are built: v0.1.1 is released and installed on mini; `just dmg` packages it. Next: see `TASKS.md`.
+**v0.1.1 released** (2026-10-13), installed in `/Applications` on mini. A from-scratch native Swift
+app (macOS 14+, Apple Silicon, sidebar, English only); all six phases of `brief/mac-rewrite.md` are
+built. Upstream's Linux code is on the `Linux` branch; `main` holds only the Mac app. CI (lint →
+test → build on `macos-26`, Xcode 26.6) runs on every push. Upstream was told
+(MMV2408/tabchat#1, rename offered). Open items are in `TASKS.md`; what's left overall is in the
+README's "Still to do".
 
 ## Stack
 
 - Swift + SwiftUI/AppKit + WKWebView, macOS 14+, Apple Silicon. Xcode project defined in XcodeGen
   `project.yml`, `just build|run|test`. Uses DEV-GUIDELINES' "Swift for Mac-only apps with deep
   OS hooks" exception.
-- Fallback if the spike fails on calls or screen sharing: a clean Electron + TypeScript rewrite.
+- Local builds sign with the free Apple Development identity (team 4HL2424MH6) so Keychain keeps
+  trusting WebKit's WebCrypto key across rebuilds; CI signs ad-hoc (`TABCHAT_SIGN_IDENTITY=-`).
+- `gh` defaults to `narendranag/tabchat` in this clone (it had picked upstream); pass `-R` anyway.
 
 ## Release
 

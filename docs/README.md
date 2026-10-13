@@ -3,7 +3,7 @@ id: index
 title: "Tabchat documentation"
 order: 0
 summary: "Index of the documentation for Tabchat."
-status: design
+status: provisional
 updated: 2026-10-13
 audience: [everyone]
 depends_on: []
@@ -17,9 +17,9 @@ answers:
 
 # Tabchat documentation
 
-A native macOS app that brings WhatsApp, Discord, Teams, Outlook, OneDrive, Brightspace and any website into one window via a sidebar of service icons, all sharing the system's own web engine (WKWebView). Rewritten from scratch in Swift, macOS 14+, Apple Silicon only, targeting users who want a single native app instead of bouncing between browsers and standalone clients.
+A native macOS app that brings WhatsApp, Discord, Teams, Outlook, OneDrive, Brightspace, Reddit, X, GitHub and any website into one window via a sidebar of service icons, all sharing the system's own web engine (WKWebView). Rewritten from scratch in Swift, macOS 14+, Apple Silicon only, targeting users who want a single native app instead of bouncing between browsers and standalone clients.
 
-**Status:** design and early implementation. Early phases (Engine spike, Skeleton) are complete; Core integration is underway. See `TASKS.md` at the project root for current status.
+**Status:** v0.1.1 released (2026-10-13); all six planned phases are built. What's left is in the root `README.md` ("Still to do") and `TASKS.md`.
 
 ## Reading order
 

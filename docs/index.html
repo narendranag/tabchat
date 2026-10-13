@@ -127,22 +127,21 @@ tr:last-child td { border-bottom: 0; }
 
 <section class="doc" id="index" data-title="Tabchat documentation">
   <header class="doc-meta">
-    <div class="chips"><span class="chip status-design">design</span><span class="chip">everyone</span></div>
+    <div class="chips"><span class="chip status-provisional">provisional</span><span class="chip">everyone</span></div>
     <p class="summary">Index of the documentation for Tabchat.</p>
     <p class="meta-line">Updated 2026-10-13 &middot; Source <a href="README.md">README.md</a></p>
   </header>
   <div class="doc-grid">
     <article><h1 id="index-tabchat-documentation">Tabchat documentation</h1>
 <p>A native macOS app that brings WhatsApp, Discord, Teams, Outlook,
-OneDrive, Brightspace and any website into one window via a sidebar of
-service icons, all sharing the system's own web engine (WKWebView).
-Rewritten from scratch in Swift, macOS 14+, Apple Silicon only,
-targeting users who want a single native app instead of bouncing between
-browsers and standalone clients.</p>
-<p><strong>Status:</strong> design and early implementation. Early
-phases (Engine spike, Skeleton) are complete; Core integration is
-underway. See <code>TASKS.md</code> at the project root for current
-status.</p>
+OneDrive, Brightspace, Reddit, X, GitHub and any website into one window
+via a sidebar of service icons, all sharing the system's own web engine
+(WKWebView). Rewritten from scratch in Swift, macOS 14+, Apple Silicon
+only, targeting users who want a single native app instead of bouncing
+between browsers and standalone clients.</p>
+<p><strong>Status:</strong> v0.1.1 released (2026-10-13); all six
+planned phases are built. What's left is in the root
+<code>README.md</code> ("Still to do") and <code>TASKS.md</code>.</p>
 <h2 id="index-reading-order">Reading order</h2>
 <div class="table-wrap"><table>
 <thead>
@@ -250,7 +249,7 @@ documents</a></nav>
 
 <section class="doc" id="overview" data-title="Overview">
   <header class="doc-meta">
-    <div class="chips"><span class="chip status-design">design</span><span class="chip">everyone</span></div>
+    <div class="chips"><span class="chip status-provisional">provisional</span><span class="chip">everyone</span></div>
     <p class="summary">What Tabchat is, the ideas behind it, and what is in and out of scope.</p>
     <p class="meta-line">Updated 2026-10-13 &middot; Source <a href="01-overview.md">01-overview.md</a> &middot; Read first: <a href="#index">Tabchat documentation</a></p>
   </header>
@@ -290,29 +289,38 @@ bar when closed, updates Dock and menu bar badges, supports
 start-at-login via <code>SMAppService</code>, uses system theme
 (light/dark).</li>
 </ol>
-<h2 id="overview-scope-v1-features">Scope: v1 features</h2>
+<h2 id="overview-whats-built-v011">What's built (v0.1.1)</h2>
 <ul>
-<li>Sidebar of service icons, icon badges for unread</li>
-<li>Services: WhatsApp, Discord, Teams, Outlook, OneDrive, Brightspace,
-custom sites</li>
+<li>Sidebar of service icons with unread badges; drag to reorder;
+right-click menu</li>
+<li>Services: WhatsApp, Discord, Teams, Outlook (work and personal),
+OneDrive, Brightspace, Reddit, X, GitHub, custom sites</li>
 <li>Multiple accounts per service, each with its own sign-in; Teams,
 Outlook (work), OneDrive and Brightspace share one Microsoft sign-in by
 default</li>
 <li>One WKWebsiteDataStore per sign-in; sign-ins survive restart</li>
-<li>Unread counts in Dock badge and menu bar dot</li>
-<li>Native notifications via UNUserNotificationCenter; respects Focus;
-clicking opens the service</li>
-<li>Menu bar icon; app closes to menu bar, optional start-at-login</li>
-<li>Pause notifications (1 hour, until tomorrow 08:00, until off)</li>
-<li>Find on page, downloads, back/forward/reload/home buttons</li>
+<li>Unread counts on each tab, the Dock and the menu bar</li>
+<li>Native notifications that respect Focus; clicking one opens its
+service; pause (1 hour, until tomorrow 08:00, until off) and per-tab
+mute</li>
+<li>Closing the window keeps everything running; menu bar item; optional
+start at login, hidden</li>
+<li>Find on page, downloads, back/forward/reload/home, offline screen
+with retry</li>
+<li>Split view, <code>Cmd+K</code> quick switcher, tab sleep, duplicate
+and incognito tabs</li>
+<li>Hide and reorder catalog cards; choose which browser opens
+links</li>
 <li>Light/dark mode following the system</li>
 </ul>
-<h2 id="overview-out-of-scope-v1">Out of scope (v1)</h2>
+<h2 id="overview-not-built-or-not-planned">Not built, or not
+planned</h2>
 <ul>
-<li>Split view, <code>Cmd+K</code> quick switcher, tab sleep,
-duplicate/incognito tabs, card reorder/hide</li>
-<li>Linux packaging, GNOME D-Bus integration</li>
-<li>Upstream updater, Sparkle, donate/what's new screens</li>
+<li>Not yet: notarised build (Developer ID), Sparkle updates, Intel
+builds, unread counts for Reddit and GitHub (no count in their
+titles)</li>
+<li>Not planned: iMessage (no web version; macOS can't embed another
+app's window); Linux (use the original)</li>
 </ul>
 <h2 id="overview-what-stays-hard">What stays hard</h2>
 <ol type="1">
@@ -322,100 +330,116 @@ but edge cases (mute, camera, screen content) may need workarounds.</li>
 <li><strong>School SSO for Brightspace:</strong> Some institutions use
 OIDC or SAML flows that might not survive
 <code>WKWebsiteDataStore</code> boundaries.</li>
-<li><strong>Unread detection:</strong> Each service reports unread
-differently—count in tab title <code>(3) …</code>, favicon, or hidden
-DOM. Hardcoded CSS selectors and JS injection per service.</li>
+<li><strong>Unread detection:</strong> Tabchat reads counts from page
+titles (<code>(3) …</code>, or <code>•</code> for "something unread").
+Services that only show unread in a favicon or the page itself (Reddit,
+GitHub) would need per-service scripts, which are not built.</li>
 </ol>
 </article>
-    <nav class="toc" aria-label="On this page"><div class="toc-title">On this page</div><a href="#overview-what-it-is">What it is</a><a href="#overview-the-ideas-behind-it">The ideas behind it</a><a href="#overview-scope-v1-features">Scope: v1 features</a><a href="#overview-out-of-scope-v1">Out of scope (v1)</a><a href="#overview-what-stays-hard">What stays hard</a></nav>
+    <nav class="toc" aria-label="On this page"><div class="toc-title">On this page</div><a href="#overview-what-it-is">What it is</a><a href="#overview-the-ideas-behind-it">The ideas behind it</a><a href="#overview-whats-built-v011">What's built (v0.1.1)</a><a href="#overview-not-built-or-not-planned">Not built, or not
+planned</a><a href="#overview-what-stays-hard">What stays hard</a></nav>
   </div>
   <footer class="pager"><a class="prev" href="#index">&larr; Tabchat documentation</a><a class="next" href="#architecture">Architecture &rarr;</a></footer>
 </section>
 
 <section class="doc" id="architecture" data-title="Architecture">
   <header class="doc-meta">
-    <div class="chips"><span class="chip status-design">design</span><span class="chip">developers</span></div>
+    <div class="chips"><span class="chip status-provisional">provisional</span><span class="chip">developers</span></div>
     <p class="summary">System components, data flow, and design decisions.</p>
     <p class="meta-line">Updated 2026-10-13 &middot; Source <a href="02-architecture.md">02-architecture.md</a> &middot; Read first: <a href="#index">Tabchat documentation</a>, <a href="#overview">Overview</a></p>
   </header>
   <div class="doc-grid">
     <article><h1 id="architecture-architecture">Architecture</h1>
-<p>The app is built as a SwiftUI app with AppKit where needed for menu
-bar and system integration. WKWebView instances are created on demand
-per tab; the system persists sign-in state in
-<code>WKWebsiteDataStore</code> objects identified by profile name.</p>
-<h2 id="architecture-component-tree">Component tree</h2>
-<pre><code>TabchatApp (SwiftUI app entry point, menu bar extra, app menu with Cmd shortcuts)
-├── Store                    single source of truth: tabs, profiles, settings
-│                            persisted as JSON in ~/Library/Application Support/Tabchat
-├── Profile                  one WKWebsiteDataStore per sign-in
-│                            (&quot;microsoft-work&quot; shared by Teams/Outlook/OneDrive;
-│                            &quot;whatsapp-1&quot;, &quot;whatsapp-2&quot; separate)
-├── TabController            manages one WKWebView per tab; creates on demand, drops on sleep
-├── ServiceCatalog           per service: URL, icon, user agent, unread rule
-├── Bridge (JavaScript)      user script injected into each tab
-│                            • shims window.Notification
-│                            • reports unread count to native code via WKScriptMessageHandler
-├── Notifier                 UNUserNotificationCenter
-│                            • sends native notifications for new messages
-│                            • respects macOS Focus modes
-│                            • pause timer (1h, until 08:00 tomorrow, until off)
-│                            • notification click selects the service and brings window to front
-├── Badge                    Dock tile badge (sum of all unread) + menu bar dot indicator
-├── Sidebar                  icon + name per tab, drag-reorder, unread count
-├── TabView                  WKWebView instance and toolbar (back/forward/reload/home/find/downloads)
-└── LoginItem                SMAppService for start-at-login, optional hidden mode</code></pre>
-<h2 id="architecture-data-flow-opening-a-tab">Data flow: opening a
-tab</h2>
+<p>A SwiftUI app with AppKit where SwiftUI falls short (the main
+window's close behaviour, the web view container). Every tab is one
+<code>WKWebView</code>; every sign-in is one persistent
+<code>WKWebsiteDataStore</code>. Decision logic lives in plain types
+under <code>App/Model/</code> so it can be unit tested without a
+window.</p>
+<h2 id="architecture-source-layout">Source layout</h2>
+<pre><code>App/
+├── TabchatApp.swift         app entry: main Window, Settings scene, MenuBarExtra, AppDelegate
+│                            (notification permission and clicks, Dock reopen)
+├── Model/                   plain, testable types
+│   ├── AppModel(+Features)  the observable model: tabs, selection, unread, split, sleep, Cmd+K
+│   ├── AppState, AppSettings, Tab, Profile, Service   what is saved, and the service catalog
+│   ├── StateStore           state.json in ~/Library/Application Support/Tabchat (atomic writes,
+│   │                        schema v3, migrates v1 and v2)
+│   ├── StableUUID           profile name → stable UUID → WKWebsiteDataStore(forIdentifier:)
+│   ├── UnreadParser         &quot;(3) …&quot; → 3, &quot;• …&quot; → unread dot
+│   ├── NotificationPause    1 hour / until tomorrow 08:00 / until off; stored as an end date
+│   ├── SleepClock           which idle tabs to put to sleep
+│   ├── SplitState           the two panes, focused side, divider ratio (20–80%)
+│   ├── QuickSwitcher        Cmd+K ranking and actions
+│   ├── LinkPolicy, LinkTarget, Browsers   where a link opens (in-app, default or chosen browser)
+│   ├── CatalogLayout        hidden and reordered cards in the Add service sheet
+│   ├── LoginItem            SMAppService.mainApp
+│   └── DownloadNaming, IconCandidate, URLInput
+├── Web/
+│   ├── TabController        one WKWebView and all its delegates: popups for sign-in, camera and
+│   │                        microphone, file uploads, downloads, load errors
+│   ├── BridgeScript         injected JS: replaces window.Notification and reports title changes;
+│   │                        also holds the Safari user-agent constant
+│   ├── IconStore            site icons read from the page, cached in Application Support
+│   └── NetworkMonitor       retries failed tabs when the network returns
+└── Views/
+    ├── MainWindow           hides the window instead of closing it (keeps web views attached)
+    ├── WebHost              one container holding every tab&#39;s web view; only visible ones shown
+    ├── RootView, SidebarView, AddServiceSheet, FindBar, SplitOverlay, QuickSwitcherView
+    ├── MenuBarContent, MenuState, AppCommands   menu bar extra and the app menus
+    └── SettingsView         General, Notifications, Sleep, Links
+Tests/                       XCTest, one file per model type (77 tests)</code></pre>
+<h2 id="architecture-services-profiles-and-tabs">Services, profiles and
+tabs</h2>
+<ul>
+<li>A <strong>service</strong> is a catalog entry: WhatsApp, Discord,
+Teams, Outlook (work), Outlook (personal), OneDrive, Brightspace (asks
+for the school's address), Reddit, X, GitHub, or a custom website.</li>
+<li>A <strong>profile</strong> is one sign-in, backed by one persistent
+<code>WKWebsiteDataStore</code>. Teams, Outlook (work), OneDrive and
+Brightspace share the "Microsoft (work)" profile by default; "Add
+another account" creates a new profile.</li>
+<li>A <strong>tab</strong> is a service opened in a profile, with its
+own name, colour, mute and sleep settings. Incognito tabs use a
+non-persistent store and are never saved.</li>
+</ul>
+<h2 id="architecture-why-one-container">Why one container</h2>
+<p>Every tab's web view stays a subview of one container in the main
+window, and closing the window only hides it. A web view taken out of
+its window is throttled by WebKit, which would stop notifications and
+unread counts from background tabs. For the same reason all tabs load at
+launch; only tabs that are allowed to sleep (not WhatsApp, Discord,
+Teams or Outlook by default) are released after the idle time, and a
+sleeping tab posts no notifications.</p>
+<h2 id="architecture-data-flow-a-new-message">Data flow: a new
+message</h2>
 <ol type="1">
-<li>User clicks a service in the sidebar.</li>
-<li><code>TabController</code> checks if a <code>WKWebView</code> exists
-for that profile; if not, creates one.</li>
-<li><code>WKWebView</code> loads the URL for that service, using the
-profile's <code>WKWebsiteDataStore</code> for cookies and site
-data.</li>
-<li>JavaScript Bridge is injected; it replaces
-<code>window.Notification</code> with a callback to native code.</li>
-<li>User signs in. Cookies and session storage are persisted in the
-profile's <code>WKWebsiteDataStore</code>.</li>
-</ol>
-<h2 id="architecture-data-flow-new-message-notification">Data flow: new
-message notification</h2>
-<ol type="1">
-<li>Web page script (e.g. Discord) displays a notification via
-<code>window.Notification("3 new messages")</code>.</li>
-<li>Injected Bridge script intercepts it and posts to
-<code>WKScriptMessageHandler</code>.</li>
-<li><code>Notifier</code> receives the message, extracts count, and
-shows a native <code>UNUserNotification</code>.</li>
-<li>User clicks the notification; <code>Notifier</code> selects the
-service tab and brings the window to front.</li>
+<li>The page calls <code>new Notification(…)</code>; the injected bridge
+posts it to the <code>WKScriptMessageHandler</code>.</li>
+<li>Unless notifications are paused or the tab is muted, a
+<code>UNNotificationRequest</code> is posted with the tab's name as
+subtitle and a per-tab thread. macOS applies Focus.</li>
+<li>The page's title changes to "(3) …"; <code>UnreadParser</code>
+updates the tab's badge, the Dock badge (the total) and the menu bar
+icon.</li>
+<li>Clicking the notification shows the window and selects that
+tab.</li>
 </ol>
 <h2 id="architecture-persistence">Persistence</h2>
 <ul>
-<li><strong>Profiles and tabs:</strong>
-<code>~/Library/Application Support/Tabchat/state.json</code> holds open
-tabs, profile names, and user settings (theme, pause state,
-start-at-login).</li>
-<li><strong>Sign-in state:</strong> Each profile's
-<code>WKWebsiteDataStore</code> holds cookies, session storage, and site
-data, persisted by WKWebView.</li>
-</ul>
-<h2 id="architecture-planned-but-not-yet-built-v2">Planned but not yet
-built (v2+)</h2>
-<ul>
-<li>Split view (two tabs side by side)</li>
-<li>Tab sleep: unload a tab's WKWebView after idle time to save memory;
-reload on next use</li>
-<li>Duplicate tab, incognito tab</li>
-<li>Card reorder and hide</li>
-<li><code>Cmd+K</code> quick switcher palette</li>
+<li><code>~/Library/Application Support/Tabchat/state.json</code>: tabs,
+profiles, settings, pause end date, split layout, catalog order.
+Versioned; older files migrate on load.</li>
+<li><code>~/Library/WebKit/com.narendranag.tabchat/</code>: the data
+stores (cookies, storage) per profile.</li>
+<li>Login keychain: "Tabchat WebCrypto Master Key", created by WebKit;
+readable across rebuilds because local builds keep the same signing
+identity (see <a href="#building">03 Building</a>).</li>
 </ul>
 </article>
-    <nav class="toc" aria-label="On this page"><div class="toc-title">On this page</div><a href="#architecture-component-tree">Component tree</a><a href="#architecture-data-flow-opening-a-tab">Data flow: opening a
-tab</a><a href="#architecture-data-flow-new-message-notification">Data flow: new
-message notification</a><a href="#architecture-persistence">Persistence</a><a href="#architecture-planned-but-not-yet-built-v2">Planned but not yet
-built (v2+)</a></nav>
+    <nav class="toc" aria-label="On this page"><div class="toc-title">On this page</div><a href="#architecture-source-layout">Source layout</a><a href="#architecture-services-profiles-and-tabs">Services, profiles and
+tabs</a><a href="#architecture-why-one-container">Why one container</a><a href="#architecture-data-flow-a-new-message">Data flow: a new
+message</a><a href="#architecture-persistence">Persistence</a></nav>
   </div>
   <footer class="pager"><a class="prev" href="#overview">&larr; Overview</a><a class="next" href="#building">Building &rarr;</a></footer>
 </section>
@@ -575,9 +599,10 @@ just test</code></pre></li>
 <pre class="sh"><code>log show --predicate &#39;process == &quot;Tabchat&quot;&#39; --level debug</code></pre>
 <h2 id="building-planned-not-yet-built">Planned (not yet built)</h2>
 <ul>
-<li>Release build with Developer ID signing and notarization</li>
-<li>Sparkle updates</li>
-<li>Auto-formatting in CI (optional, on PR review)</li>
+<li>Developer ID signing and notarisation in CI (needs the paid Apple
+Developer Program)</li>
+<li>Sparkle automatic updates, once builds are notarised</li>
+<li>Intel (x86_64) builds</li>
 </ul>
 </article>
     <nav class="toc" aria-label="On this page"><div class="toc-title">On this page</div><a href="#building-requirements">Requirements</a><a href="#building-development-environment">Development environment</a><a href="#building-build-commands">Build commands</a><a href="#building-code-signing">Code signing</a><a href="#building-development-workflow">Development workflow</a><a href="#building-debugging">Debugging</a><a href="#building-planned-not-yet-built">Planned (not yet built)</a></nav>

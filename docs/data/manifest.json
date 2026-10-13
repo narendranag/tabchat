@@ -8,7 +8,7 @@
       "title": "Tabchat documentation",
       "order": 0,
       "summary": "Index of the documentation for Tabchat.",
-      "status": "design",
+      "status": "provisional",
       "updated": "2026-10-13",
       "audience": [
         "everyone"
@@ -47,7 +47,7 @@
       "title": "Overview",
       "order": 1,
       "summary": "What Tabchat is, the ideas behind it, and what is in and out of scope.",
-      "status": "design",
+      "status": "provisional",
       "updated": "2026-10-13",
       "audience": [
         "everyone"
@@ -75,13 +75,13 @@
         },
         {
           "level": 2,
-          "title": "Scope: v1 features",
-          "anchor": "scope-v1-features"
+          "title": "What's built (v0.1.1)",
+          "anchor": "whats-built-v011"
         },
         {
           "level": 2,
-          "title": "Out of scope (v1)",
-          "anchor": "out-of-scope-v1"
+          "title": "Not built, or not planned",
+          "anchor": "not-built-or-not-planned"
         },
         {
           "level": 2,
@@ -95,7 +95,7 @@
       "title": "Architecture",
       "order": 2,
       "summary": "System components, data flow, and design decisions.",
-      "status": "design",
+      "status": "provisional",
       "updated": "2026-10-13",
       "audience": [
         "developers"
@@ -115,28 +115,28 @@
       "sections": [
         {
           "level": 2,
-          "title": "Component tree",
-          "anchor": "component-tree"
+          "title": "Source layout",
+          "anchor": "source-layout"
         },
         {
           "level": 2,
-          "title": "Data flow: opening a tab",
-          "anchor": "data-flow-opening-a-tab"
+          "title": "Services, profiles and tabs",
+          "anchor": "services-profiles-and-tabs"
         },
         {
           "level": 2,
-          "title": "Data flow: new message notification",
-          "anchor": "data-flow-new-message-notification"
+          "title": "Why one container",
+          "anchor": "why-one-container"
+        },
+        {
+          "level": 2,
+          "title": "Data flow: a new message",
+          "anchor": "data-flow-a-new-message"
         },
         {
           "level": 2,
           "title": "Persistence",
           "anchor": "persistence"
-        },
-        {
-          "level": 2,
-          "title": "Planned but not yet built (v2+)",
-          "anchor": "planned-but-not-yet-built-v2"
         }
       ]
     },

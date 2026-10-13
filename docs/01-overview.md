@@ -3,7 +3,7 @@ id: overview
 title: Overview
 order: 1
 summary: "What Tabchat is, the ideas behind it, and what is in and out of scope."
-status: design
+status: provisional
 updated: 2026-10-13
 audience: [everyone]
 depends_on: [index]
@@ -31,27 +31,27 @@ The app reuses the system's WebKit engine (WKWebView), so it stays lightweight a
 3. **Unified notifications:** Notifications arrive in one place, respect your Focus modes, and clicking one opens the right service in the window instead of a new window or tab.
 4. **Deep macOS integration:** The app lives in the menu bar when closed, updates Dock and menu bar badges, supports start-at-login via `SMAppService`, uses system theme (light/dark).
 
-## Scope: v1 features
+## What's built (v0.1.1)
 
-- Sidebar of service icons, icon badges for unread
-- Services: WhatsApp, Discord, Teams, Outlook, OneDrive, Brightspace, custom sites
+- Sidebar of service icons with unread badges; drag to reorder; right-click menu
+- Services: WhatsApp, Discord, Teams, Outlook (work and personal), OneDrive, Brightspace, Reddit, X, GitHub, custom sites
 - Multiple accounts per service, each with its own sign-in; Teams, Outlook (work), OneDrive and Brightspace share one Microsoft sign-in by default
 - One WKWebsiteDataStore per sign-in; sign-ins survive restart
-- Unread counts in Dock badge and menu bar dot
-- Native notifications via UNUserNotificationCenter; respects Focus; clicking opens the service
-- Menu bar icon; app closes to menu bar, optional start-at-login
-- Pause notifications (1 hour, until tomorrow 08:00, until off)
-- Find on page, downloads, back/forward/reload/home buttons
+- Unread counts on each tab, the Dock and the menu bar
+- Native notifications that respect Focus; clicking one opens its service; pause (1 hour, until tomorrow 08:00, until off) and per-tab mute
+- Closing the window keeps everything running; menu bar item; optional start at login, hidden
+- Find on page, downloads, back/forward/reload/home, offline screen with retry
+- Split view, `Cmd+K` quick switcher, tab sleep, duplicate and incognito tabs
+- Hide and reorder catalog cards; choose which browser opens links
 - Light/dark mode following the system
 
-## Out of scope (v1)
+## Not built, or not planned
 
-- Split view, `Cmd+K` quick switcher, tab sleep, duplicate/incognito tabs, card reorder/hide
-- Linux packaging, GNOME D-Bus integration
-- Upstream updater, Sparkle, donate/what's new screens
+- Not yet: notarised build (Developer ID), Sparkle updates, Intel builds, unread counts for Reddit and GitHub (no count in their titles)
+- Not planned: iMessage (no web version; macOS can't embed another app's window); Linux (use the original)
 
 ## What stays hard
 
 1. **WebRTC in WKWebView on macOS:** Teams and Discord calls, and Teams screen share. The engine spike confirmed these work, but edge cases (mute, camera, screen content) may need workarounds.
 2. **School SSO for Brightspace:** Some institutions use OIDC or SAML flows that might not survive `WKWebsiteDataStore` boundaries.
-3. **Unread detection:** Each service reports unread differently—count in tab title `(3) …`, favicon, or hidden DOM. Hardcoded CSS selectors and JS injection per service.
+3. **Unread detection:** Tabchat reads counts from page titles (`(3) …`, or `•` for "something unread"). Services that only show unread in a favicon or the page itself (Reddit, GitHub) would need per-service scripts, which are not built.

@@ -10,3 +10,5 @@
 - [mini] [2026-10-13] Engine spike: GO — Narendra ran the spike and reports it works; Swift + WKWebView confirmed, no Electron fallback. The 2026-10-13 research claim that WebRTC calls can't work in WKWebView on macOS was not borne out.
 - [mini] [2026-10-13] Reddit and X added to the built-in catalog. iMessage skipped: it has no web version, Apple doesn't allow embedding another app's window, and Messages.app already has its own Dock badge.
 - [mini] [2026-10-13] Local builds sign with the free Apple Development identity (Personal Team 4HL2424MH6) instead of ad-hoc — a stable signature stops Keychain re-prompting for WebKit's WebCrypto master key after every rebuild. CI stays ad-hoc via `TABCHAT_SIGN_IDENTITY=-`.
+- [mini] [2026-10-13] GitHub added to the built-in catalog (released as v0.1.1). Releases: bump `MARKETING_VERSION`, `just dmg`, notes in `brief/release-<version>.md`, tag `v<version>`, `gh release create` — documented in `docs/03-building.md`.
+- [mini] [2026-10-13] Told upstream through an issue (MMV2408/tabchat#1) rather than a PR or email — no code flows back (different language); offered to rename if Mike wants to keep the name.

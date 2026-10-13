@@ -1,6 +1,6 @@
 # Brief — Tabchat for Mac, rewritten in Swift
 
-Replaces `brief/mac-refactor.md` (the Electron refactor). Agreed with Narendra on 2026-10-13.
+Replaces `brief/mac-refactor.superseded.md` (the Electron refactor). Agreed with Narendra on 2026-10-13. **Done:** all six phases built; v0.1.1 released the same day.
 
 ## Decisions
 

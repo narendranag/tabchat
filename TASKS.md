@@ -5,7 +5,9 @@
 
 ## Now
 
-- [ ] Install v0.1.0 on air (air was unreachable 2026-10-13; mini done) #mac
+- [ ] Post the Reddit comment (draft in `brief/reddit-comment.md`, from Narendra's account) #community
+- [ ] Watch MMV2408/tabchat#1 for Mike's reply; if he wants the name back, rename app, README, release and repo #community
+- [ ] Install v0.1.1 on air from the release dmg (air was unreachable 2026-10-13; mini done) #mac
 
 ## Next
 
@@ -13,6 +15,8 @@
 
 ## Later
 
+- [ ] Unread counts for Reddit and GitHub (per-service script; their titles carry no count) #mac
+- [ ] Intel (x86_64) builds, if anyone asks #mac
 - [ ] Signed, notarized `.dmg` from GitHub Actions + Sparkle updates (needs an Apple Developer ID — costs money, Narendra decides)
 
 ## Done

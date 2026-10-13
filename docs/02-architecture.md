@@ -3,7 +3,7 @@ id: architecture
 title: Architecture
 order: 2
 summary: "System components, data flow, and design decisions."
-status: design
+status: provisional
 updated: 2026-10-13
 audience: [developers]
 depends_on: [index, overview]
@@ -17,57 +17,80 @@ answers:
 
 # Architecture
 
-The app is built as a SwiftUI app with AppKit where needed for menu bar and system integration. WKWebView instances are created on demand per tab; the system persists sign-in state in `WKWebsiteDataStore` objects identified by profile name.
+A SwiftUI app with AppKit where SwiftUI falls short (the main window's close behaviour, the web
+view container). Every tab is one `WKWebView`; every sign-in is one persistent
+`WKWebsiteDataStore`. Decision logic lives in plain types under `App/Model/` so it can be unit
+tested without a window.
 
-## Component tree
+## Source layout
 
 ```
-TabchatApp (SwiftUI app entry point, menu bar extra, app menu with Cmd shortcuts)
-├── Store                    single source of truth: tabs, profiles, settings
-│                            persisted as JSON in ~/Library/Application Support/Tabchat
-├── Profile                  one WKWebsiteDataStore per sign-in
-│                            ("microsoft-work" shared by Teams/Outlook/OneDrive;
-│                            "whatsapp-1", "whatsapp-2" separate)
-├── TabController            manages one WKWebView per tab; creates on demand, drops on sleep
-├── ServiceCatalog           per service: URL, icon, user agent, unread rule
-├── Bridge (JavaScript)      user script injected into each tab
-│                            • shims window.Notification
-│                            • reports unread count to native code via WKScriptMessageHandler
-├── Notifier                 UNUserNotificationCenter
-│                            • sends native notifications for new messages
-│                            • respects macOS Focus modes
-│                            • pause timer (1h, until 08:00 tomorrow, until off)
-│                            • notification click selects the service and brings window to front
-├── Badge                    Dock tile badge (sum of all unread) + menu bar dot indicator
-├── Sidebar                  icon + name per tab, drag-reorder, unread count
-├── TabView                  WKWebView instance and toolbar (back/forward/reload/home/find/downloads)
-└── LoginItem                SMAppService for start-at-login, optional hidden mode
+App/
+├── TabchatApp.swift         app entry: main Window, Settings scene, MenuBarExtra, AppDelegate
+│                            (notification permission and clicks, Dock reopen)
+├── Model/                   plain, testable types
+│   ├── AppModel(+Features)  the observable model: tabs, selection, unread, split, sleep, Cmd+K
+│   ├── AppState, AppSettings, Tab, Profile, Service   what is saved, and the service catalog
+│   ├── StateStore           state.json in ~/Library/Application Support/Tabchat (atomic writes,
+│   │                        schema v3, migrates v1 and v2)
+│   ├── StableUUID           profile name → stable UUID → WKWebsiteDataStore(forIdentifier:)
+│   ├── UnreadParser         "(3) …" → 3, "• …" → unread dot
+│   ├── NotificationPause    1 hour / until tomorrow 08:00 / until off; stored as an end date
+│   ├── SleepClock           which idle tabs to put to sleep
+│   ├── SplitState           the two panes, focused side, divider ratio (20–80%)
+│   ├── QuickSwitcher        Cmd+K ranking and actions
+│   ├── LinkPolicy, LinkTarget, Browsers   where a link opens (in-app, default or chosen browser)
+│   ├── CatalogLayout        hidden and reordered cards in the Add service sheet
+│   ├── LoginItem            SMAppService.mainApp
+│   └── DownloadNaming, IconCandidate, URLInput
+├── Web/
+│   ├── TabController        one WKWebView and all its delegates: popups for sign-in, camera and
+│   │                        microphone, file uploads, downloads, load errors
+│   ├── BridgeScript         injected JS: replaces window.Notification and reports title changes;
+│   │                        also holds the Safari user-agent constant
+│   ├── IconStore            site icons read from the page, cached in Application Support
+│   └── NetworkMonitor       retries failed tabs when the network returns
+└── Views/
+    ├── MainWindow           hides the window instead of closing it (keeps web views attached)
+    ├── WebHost              one container holding every tab's web view; only visible ones shown
+    ├── RootView, SidebarView, AddServiceSheet, FindBar, SplitOverlay, QuickSwitcherView
+    ├── MenuBarContent, MenuState, AppCommands   menu bar extra and the app menus
+    └── SettingsView         General, Notifications, Sleep, Links
+Tests/                       XCTest, one file per model type (77 tests)
 ```
 
-## Data flow: opening a tab
+## Services, profiles and tabs
 
-1. User clicks a service in the sidebar.
-2. `TabController` checks if a `WKWebView` exists for that profile; if not, creates one.
-3. `WKWebView` loads the URL for that service, using the profile's `WKWebsiteDataStore` for cookies and site data.
-4. JavaScript Bridge is injected; it replaces `window.Notification` with a callback to native code.
-5. User signs in. Cookies and session storage are persisted in the profile's `WKWebsiteDataStore`.
+- A **service** is a catalog entry: WhatsApp, Discord, Teams, Outlook (work), Outlook (personal),
+  OneDrive, Brightspace (asks for the school's address), Reddit, X, GitHub, or a custom website.
+- A **profile** is one sign-in, backed by one persistent `WKWebsiteDataStore`. Teams, Outlook
+  (work), OneDrive and Brightspace share the "Microsoft (work)" profile by default; "Add another
+  account" creates a new profile.
+- A **tab** is a service opened in a profile, with its own name, colour, mute and sleep settings.
+  Incognito tabs use a non-persistent store and are never saved.
 
-## Data flow: new message notification
+## Why one container
 
-1. Web page script (e.g. Discord) displays a notification via `window.Notification("3 new messages")`.
-2. Injected Bridge script intercepts it and posts to `WKScriptMessageHandler`.
-3. `Notifier` receives the message, extracts count, and shows a native `UNUserNotification`.
-4. User clicks the notification; `Notifier` selects the service tab and brings the window to front.
+Every tab's web view stays a subview of one container in the main window, and closing the window
+only hides it. A web view taken out of its window is throttled by WebKit, which would stop
+notifications and unread counts from background tabs. For the same reason all tabs load at
+launch; only tabs that are allowed to sleep (not WhatsApp, Discord, Teams or Outlook by default)
+are released after the idle time, and a sleeping tab posts no notifications.
+
+## Data flow: a new message
+
+1. The page calls `new Notification(…)`; the injected bridge posts it to the
+   `WKScriptMessageHandler`.
+2. Unless notifications are paused or the tab is muted, a `UNNotificationRequest` is posted with
+   the tab's name as subtitle and a per-tab thread. macOS applies Focus.
+3. The page's title changes to "(3) …"; `UnreadParser` updates the tab's badge, the Dock badge
+   (the total) and the menu bar icon.
+4. Clicking the notification shows the window and selects that tab.
 
 ## Persistence
 
-- **Profiles and tabs:** `~/Library/Application Support/Tabchat/state.json` holds open tabs, profile names, and user settings (theme, pause state, start-at-login).
-- **Sign-in state:** Each profile's `WKWebsiteDataStore` holds cookies, session storage, and site data, persisted by WKWebView.
-
-## Planned but not yet built (v2+)
-
-- Split view (two tabs side by side)
-- Tab sleep: unload a tab's WKWebView after idle time to save memory; reload on next use
-- Duplicate tab, incognito tab
-- Card reorder and hide
-- `Cmd+K` quick switcher palette
+- `~/Library/Application Support/Tabchat/state.json`: tabs, profiles, settings, pause end date,
+  split layout, catalog order. Versioned; older files migrate on load.
+- `~/Library/WebKit/com.narendranag.tabchat/`: the data stores (cookies, storage) per profile.
+- Login keychain: "Tabchat WebCrypto Master Key", created by WebKit; readable across rebuilds
+  because local builds keep the same signing identity (see [03 Building](03-building.md)).

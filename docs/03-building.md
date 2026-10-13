@@ -201,6 +201,6 @@ log show --predicate 'process == "Tabchat"' --level debug
 
 ## Planned (not yet built)
 
-- Release build with Developer ID signing and notarization
-- Sparkle updates
-- Auto-formatting in CI (optional, on PR review)
+- Developer ID signing and notarisation in CI (needs the paid Apple Developer Program)
+- Sparkle automatic updates, once builds are notarised
+- Intel (x86_64) builds
