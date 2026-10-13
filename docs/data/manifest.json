@@ -220,6 +220,11 @@
           "anchor": "packaging"
         },
         {
+          "level": 3,
+          "title": "Publishing a release",
+          "anchor": "publishing-a-release"
+        },
+        {
           "level": 2,
           "title": "Code signing",
           "anchor": "code-signing"

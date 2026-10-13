@@ -19,7 +19,7 @@ This brain follows the fleet's standard: how projects are built is in
 
 Planning done (2026-10-13): rewriting from scratch as a native Swift app (macOS 14+, sidebar,
 English only). Upstream's Linux code moved to the `Linux` branch; `main` is clean. The WKWebView engine spike
-passed (GO); phases 2–6 are built: v0.1.0 runs on mini and `just dmg` packages it. Next: see `TASKS.md`.
+passed (GO); phases 2–6 are built: v0.1.1 is released and installed on mini; `just dmg` packages it. Next: see `TASKS.md`.
 
 ## Stack
 
@@ -27,6 +27,12 @@ passed (GO); phases 2–6 are built: v0.1.0 runs on mini and `just dmg` packages
   `project.yml`, `just build|run|test`. Uses DEV-GUIDELINES' "Swift for Mac-only apps with deep
   OS hooks" exception.
 - Fallback if the spike fails on calls or screen sharing: a clean Electron + TypeScript rewrite.
+
+## Release
+
+Bump `MARKETING_VERSION` (and `CURRENT_PROJECT_VERSION`) in `project.yml`, `just dmg`, write
+`brief/release-<version>.md`, then tag `v<version>` and `gh release create … --notes-file …`.
+Publishing is Narendra's call.
 
 ## Run
 

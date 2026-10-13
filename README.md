@@ -3,13 +3,13 @@
 WhatsApp, Discord, Teams, Outlook, OneDrive, Brightspace and any website in one Mac window,
 in a sidebar, sharing the system's own web engine.
 
-**Status: v0.1.0, works, built in public.** Every feature below is built and in daily use on
+**Status: v0.1.1, works, built in public.** Every feature below is built and in daily use on
 the author's Mac. [`TASKS.md`](TASKS.md) and [`DECISIONS.md`](DECISIONS.md) are kept up to date as the
 work goes; the original plan is in [`brief/mac-rewrite.md`](brief/mac-rewrite.md).
 
 ## Download
 
-Get `Tabchat-0.1.0.dmg` from [Releases](https://github.com/narendranag/tabchat/releases/latest).
+Get the latest `Tabchat-<version>.dmg` from [Releases](https://github.com/narendranag/tabchat/releases/latest).
 Needs macOS 14 Sonoma or later on Apple Silicon.
 
 This build is **not notarised** yet, so the first time macOS blocks a normal double-click: drag
@@ -53,6 +53,7 @@ The Linux code as it was forked lives on the [`Linux`](https://github.com/narend
 4. Mac integration: unread badges, notifications, pause and mute, menu bar, login item, shortcuts
 5. Split view, `Cmd+K` quick switcher, sleeping services, settings
 6. App icon and a `.dmg` (v0.1.0)
+7. GitHub as a built-in service (v0.1.1)
 
 ## Still to do
 

@@ -114,6 +114,22 @@ The app is signed with the local `Apple Development` identity (team `4HL2424MH6`
 - Right-click the app and select "Open"
 - Or go to System Settings → Privacy & Security → Open Anyway
 
+### Publishing a release
+
+1. Bump `MARKETING_VERSION` (and `CURRENT_PROJECT_VERSION`) in `project.yml`.
+2. `just lint && just test && just dmg`, then `hdiutil verify build/Tabchat-<version>.dmg`.
+3. Write `brief/release-<version>.md`: what's new, requirements, the first-open step, and the
+   dmg's SHA-256 (`shasum -a 256`).
+4. Tag and publish:
+
+```sh
+git tag -a v<version> -m "Tabchat for Mac <version>" && git push origin v<version>
+gh release create v<version> build/Tabchat-<version>.dmg -R narendranag/tabchat \
+  --title "Tabchat for Mac <version>" --notes-file brief/release-<version>.md
+```
+
+Releases so far: `v0.1.0` (first release), `v0.1.1` (GitHub service).
+
 ## Code signing
 
 Local builds sign with the `Apple Development` identity of team `4HL2424MH6` (a free Personal Team
