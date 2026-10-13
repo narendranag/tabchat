@@ -27,6 +27,8 @@ targets:
       - path: App
         excludes:
           - "Resources/*.entitlements"
+    resources:
+      - path: App/Resources/Assets.xcassets
     entitlements:
       path: App/Resources/Tabchat.entitlements
       properties:
@@ -44,6 +46,7 @@ targets:
         INFOPLIST_KEY_NSCameraUsageDescription: Tabchat needs the camera for video calls in the sites you open.
         INFOPLIST_KEY_NSMicrophoneUsageDescription: Tabchat needs the microphone for calls in the sites you open.
         INFOPLIST_KEY_NSHumanReadableCopyright: Fork of MMV2408/tabchat, MIT licence.
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
   TabchatTests:
     type: bundle.unit-test
     platform: macOS

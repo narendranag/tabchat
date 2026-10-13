@@ -30,3 +30,20 @@ run: build
 release: gen
     {{xb}} -configuration Release build
     @echo "build/DerivedData/Build/Products/Release/Tabchat.app"
+
+dmg: release
+    #!/bin/bash
+    set -e
+    APP="{{derived}}/Build/Products/Release/Tabchat.app"
+    VERSION=$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" "$APP/Contents/Info.plist")
+    DMG="build/Tabchat-$VERSION.dmg"
+    STAGE=$(mktemp -d)
+    trap "rm -rf $STAGE" EXIT
+
+    # Stage the app and Applications symlink
+    cp -r "$APP" "$STAGE/"
+    ln -s /Applications "$STAGE/Applications"
+
+    # Create the DMG
+    hdiutil create -volname Tabchat -srcfolder "$STAGE" -ov -format UDZO "$DMG"
+    echo "$DMG"
