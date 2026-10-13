@@ -14,7 +14,10 @@ settings:
     ARCHS: arm64
     ONLY_ACTIVE_ARCH: YES
     CODE_SIGN_STYLE: Manual
-    CODE_SIGN_IDENTITY: "-"
+    # A stable identity keeps Keychain items (WebKit's WebCrypto master key) readable across
+    # rebuilds. The justfile overrides it with ad-hoc signing where the certificate is absent (CI).
+    CODE_SIGN_IDENTITY: Apple Development
+    DEVELOPMENT_TEAM: 4HL2424MH6
     ENABLE_HARDENED_RUNTIME: NO
 targets:
   Tabchat:

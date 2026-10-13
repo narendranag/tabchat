@@ -1,7 +1,9 @@
 # CI calls these recipe names; keep them stable.
 project := "Tabchat.xcodeproj"
 derived := "build/DerivedData"
-xb := "xcodebuild -project " + project + " -scheme Tabchat -derivedDataPath " + derived
+# Signing identity; CI sets TABCHAT_SIGN_IDENTITY=- (ad-hoc) because it has no certificate.
+sign := env_var_or_default("TABCHAT_SIGN_IDENTITY", "Apple Development")
+xb := "xcodebuild -project " + project + " -scheme Tabchat -derivedDataPath " + derived + " CODE_SIGN_IDENTITY='" + sign + "'"
 
 default:
     @just --list

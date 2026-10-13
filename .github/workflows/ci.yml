@@ -9,6 +9,9 @@ on:
 permissions:
   contents: read
 
+env:
+  TABCHAT_SIGN_IDENTITY: "-"
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
