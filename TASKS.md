@@ -5,11 +5,10 @@
 
 ## Now
 
-- [ ] **Mac integration**: unread on tabs/Dock/menu bar, notifications → tab, pause, close keeps running, login item, app menu + shortcuts #mac
+- [ ] **The rest**: split view, `Cmd+K`, tab sleep, duplicate/incognito, card order, settings window #mac
 
 ## Next
 
-- [ ] **The rest**: split view, `Cmd+K`, tab sleep, duplicate/incognito, card order, settings window #mac
 - [ ] **Packaging**: unsigned `.app`/`.dmg` (Apple Silicon) built locally #mac
 
 ## Later
@@ -18,6 +17,7 @@
 
 ## Done
 
+- [x] Phase 4 Mac integration (Dock/menu bar unread, notifications, pause, mute, login item, settings, menus) + Reddit and X — 2026-10-13
 - [x] Phase 2 skeleton (XcodeGen, just, lint, XCTest, CI) and phase 3 core — 2026-10-13
 - [x] Docs to the fleet standard (`docs/`) — 2026-10-13
 - [x] Engine spike: GO (`spike/`) — 2026-10-13
