@@ -36,7 +36,7 @@ The Linux code as it was forked lives on the [`Linux`](https://github.com/narend
 - Pause notifications for an hour, until tomorrow, or until you turn it back on
 - Find on page, downloads, back/forward/reload, light and dark mode
 - Split view, a `Cmd+K` quick switcher, and sleeping services to save memory
-- WhatsApp, Discord, Teams, Outlook, OneDrive, Brightspace, Reddit, X, or any site you add
+- WhatsApp, Discord, Teams, Outlook, OneDrive, Brightspace, Reddit, X, GitHub, or any site you add
 
 ## How it's built
 
@@ -60,7 +60,7 @@ The Linux code as it was forked lives on the [`Linux`](https://github.com/narend
   in CI, so the app opens anywhere without the right-click step
 - **Automatic updates** (Sparkle), once builds are notarised
 - **Unread for every service**: counts come from page titles; Reddit doesn't put one there, so its
-  badge stays empty
+  badge stays empty; GitHub's notification count isn't in its title either
 - **Intel Macs**: builds are Apple Silicon only for now
 
 Not planned: iMessage. It has no web version, and macOS doesn't let one app show another app's window.
