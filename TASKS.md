@@ -17,7 +17,7 @@
 
 ## Done
 
-- [x] GitHub added to the catalog; v0.1.1 built — 2026-10-13
+- [x] v0.1.1 released with GitHub: https://github.com/narendranag/tabchat/releases/tag/v0.1.1 — 2026-10-13
 - [x] Told MMV2408 about the Mac version: https://github.com/MMV2408/tabchat/issues/1 (offered a rename) — 2026-10-13
 - [x] v0.1.0 published: https://github.com/narendranag/tabchat/releases/tag/v0.1.0 — 2026-10-13
 - [x] v0.1.0 installed in `/Applications` on mini; spike sign-in data deleted (343 MB) — 2026-10-13
