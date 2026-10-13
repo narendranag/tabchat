@@ -9,8 +9,12 @@ struct SettingsView: View {
                 .tabItem { Label("General", systemImage: "gearshape") }
             NotificationSettings()
                 .tabItem { Label("Notifications", systemImage: "bell") }
+            SleepSettings()
+                .tabItem { Label("Sleep", systemImage: "moon.zzz") }
+            LinkSettings()
+                .tabItem { Label("Links", systemImage: "link") }
         }
-        .frame(width: 440, height: 360)
+        .frame(width: 460, height: 420)
         .onAppear { model.refreshLoginItem() }
     }
 }
@@ -68,5 +72,62 @@ private struct NotificationSettings: View {
             }
         }
         .formStyle(.grouped)
+    }
+}
+
+private struct SleepSettings: View {
+    @Environment(AppModel.self) private var model
+
+    var body: some View {
+        Form {
+            Section {
+                Picker("Sleep after", selection: Binding(
+                    get: { model.state.settings.sleepAfterMinutes }, set: { model.setSleepAfter($0) }
+                )) {
+                    ForEach(SleepAfter.options, id: \.self) { Text(SleepAfter.label($0)).tag($0) }
+                }
+                Text("A service you have not looked at for this long gives up its page to free memory. "
+                    + "It shows dimmed with a moon, and comes back where you left it when you select it.")
+                    .font(.caption).foregroundStyle(.secondary)
+                Text("A sleeping service posts no notifications and its unread count stops updating. "
+                    + "That is why WhatsApp, Discord, Teams and Outlook start with sleep off.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            Section("Allow sleep per service") {
+                ForEach(model.tabs.filter { !$0.isEphemeral }) { tab in
+                    Toggle(tab.displayName, isOn: Binding(
+                        get: { tab.allowSleep }, set: { model.setAllowSleep(tab.id, $0) }
+                    ))
+                }
+            }
+        }
+        .formStyle(.grouped)
+    }
+}
+
+private struct LinkSettings: View {
+    @Environment(AppModel.self) private var model
+    @State private var browsers: [BrowserApp] = []
+
+    var body: some View {
+        let current = model.state.settings.linkTarget
+        Form {
+            Section("Open links to other sites in") {
+                Picker("Open in", selection: Binding(get: { current }, set: { model.setLinkTarget($0) })) {
+                    Text("Default browser").tag(LinkTarget.defaultBrowser)
+                    ForEach(browsers) { Text($0.name).tag(LinkTarget.browser($0.id)) }
+                    if case let .browser(id) = current, !browsers.contains(where: { $0.id == id }) {
+                        Text("Unavailable browser").tag(current)
+                    }
+                    Text("In Tabchat").tag(LinkTarget.inTabchat)
+                }
+                Text("\"In Tabchat\" opens a temporary tab with the same sign-in, next to the page. "
+                    + "It is not saved. Links within a service, and sign-in pages, always stay in the service. "
+                    + "mailto: and similar links go to their usual app.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+        }
+        .formStyle(.grouped)
+        .onAppear { browsers = Browsers.installed() }
     }
 }

@@ -10,15 +10,21 @@ struct RootView: View {
             SidebarView(showingAdd: showingAdd)
                 .frame(width: 56)
             Divider()
-            ZStack(alignment: .top) {
+            ZStack(alignment: .topLeading) {
                 WebHost()
-                if let controller = model.selectedController {
-                    TabOverlay(controller: controller)
-                } else {
+                if model.tabs.isEmpty {
                     EmptyStateView(showingAdd: showingAdd)
+                } else {
+                    PaneOverlays()
                 }
             }
+            .coordinateSpace(name: "panes")
             .overlay(alignment: .bottom) { ToastView() }
+            .overlay {
+                if model.showingPalette {
+                    QuickSwitcherView()
+                }
+            }
         }
         .navigationTitle(model.selectedTab?.displayName ?? "Tabchat")
         .toolbar { NavigationToolbar() }
@@ -29,7 +35,7 @@ struct RootView: View {
 }
 
 /// Error screen and find bar for the selected tab, drawn above the web views.
-private struct TabOverlay: View {
+struct TabOverlay: View {
     let controller: TabController
 
     var body: some View {

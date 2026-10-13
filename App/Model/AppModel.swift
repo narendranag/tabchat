@@ -13,23 +13,28 @@ enum AppEnvironment {
 final class AppModel {
     static let shared = AppModel()
 
-    private(set) var state = AppState()
-    private(set) var controllers: [UUID: TabController] = [:]
+    var state = AppState()
+    var controllers: [UUID: TabController] = [:]
     private(set) var unread: [UUID: Unread] = [:]
     /// Tabs removed this session, newest last, for Reopen Closed Service. Not saved.
     private(set) var closedTabs: [ClosedTab] = []
     private(set) var startAtLogin = LoginItem.isEnabled
     private(set) var loginError: String?
     var showingAdd = false
+    var showingPalette = false
+    /// Tabs whose web view was released by sleep; they come back when selected.
+    var sleeping: Set<UUID> = []
     private(set) var icons: [String: NSImage] = [:]
     var toast: String?
     /// The tab list as the Services menu sees it; see `MenuState`.
     let menuState = MenuState()
 
+    @ObservationIgnored var sleepClock = SleepClock()
+    @ObservationIgnored var now: () -> Date = { Date() }
     @ObservationIgnored private let stateStore = StateStore()
     @ObservationIgnored private let iconStore = IconStore()
     @ObservationIgnored private let network = NetworkMonitor()
-    @ObservationIgnored private var dataStores: [String: WKWebsiteDataStore] = [:]
+    @ObservationIgnored var dataStores: [String: WKWebsiteDataStore] = [:]
     @ObservationIgnored private var toastTask: Task<Void, Never>?
     @ObservationIgnored private var pauseTask: Task<Void, Never>?
     @ObservationIgnored private var started = false
@@ -75,6 +80,8 @@ final class AppModel {
         for tab in state.tabs {
             createController(for: tab)
         }
+        sleepClock.touch(state.tabs.map(\.id), at: now())
+        startSleepTimer()
         network.start { [weak self] in
             Task { @MainActor in self?.retryFailedTabs() }
         }
@@ -92,39 +99,53 @@ final class AppModel {
         }
     }
 
-    private func save() {
+    func save() {
         menuState.update(from: state.tabs)
-        try? stateStore.save(state)
+        try? stateStore.save(state.persisted())
     }
 
-    private func mutate(_ change: (inout AppState) -> Void) {
+    func mutate(_ change: (inout AppState) -> Void) {
+        let before = state.visibleIds
         change(&state)
+        // Whatever was or is on screen counts as just used, so the idle timer starts when a tab is left.
+        sleepClock.touch(before + state.visibleIds, at: now())
+        for id in state.visibleIds where sleeping.contains(id) {
+            wake(id)
+        }
         save()
     }
 
     // MARK: Tabs
 
-    func dataStore(for profileId: String) -> WKWebsiteDataStore {
-        if let existing = dataStores[profileId] {
+    /// One persistent store per profile; an incognito tab gets a store of its own that leaves no trace.
+    func dataStore(for tab: Tab) -> WKWebsiteDataStore {
+        let key = tab.incognito ? "incognito-\(tab.id.uuidString)" : tab.profileId
+        if let existing = dataStores[key] {
             return existing
         }
-        let store = WKWebsiteDataStore(forIdentifier: StableUUID.make(profileId))
-        dataStores[profileId] = store
+        let store = tab.incognito ? WKWebsiteDataStore.nonPersistent() : WKWebsiteDataStore(forIdentifier: StableUUID.make(key))
+        dataStores[key] = store
         return store
     }
 
-    private func createController(for tab: Tab) {
-        let controller = TabController(tab: tab, dataStore: dataStore(for: tab.profileId), model: self)
+    func createController(for tab: Tab) {
+        let controller = TabController(tab: tab, dataStore: dataStore(for: tab), model: self)
         controllers[tab.id] = controller
         if let icon = iconStore.cached(key: tab.iconKey) {
             icons[tab.iconKey] = icon
         }
         controller.loadStartPage()
+        // The saved address was used once; from now on the page's own history is the truth.
+        if let index = state.tabs.firstIndex(where: { $0.id == tab.id }) {
+            state.tabs[index].lastURL = nil
+        }
     }
 
-    func addTab(service: Service, name: String? = nil, url: String? = nil, newAccount: Bool = false) {
+    func addTab(
+        service: Service, name: String? = nil, url: String? = nil, newAccount: Bool = false, incognito: Bool = false
+    ) {
         var tab: Tab?
-        mutate { tab = $0.addTab(service: service, name: name, url: url, newAccount: newAccount) }
+        mutate { tab = $0.addTab(service: service, name: name, url: url, newAccount: newAccount, incognito: incognito) }
         if let tab {
             createController(for: tab)
         }
@@ -140,10 +161,16 @@ final class AppModel {
 
     func removeTab(_ id: UUID) {
         guard let index = state.tabs.firstIndex(where: { $0.id == id }) else { return }
-        closedTabs.append(ClosedTab(tab: state.tabs[index], index: index))
+        let tab = state.tabs[index]
+        if !tab.isEphemeral {
+            closedTabs.append(ClosedTab(tab: tab, index: index))
+        }
         controllers[id]?.tearDown()
         controllers[id] = nil
         unread[id] = nil
+        sleeping.remove(id)
+        sleepClock.forget(id)
+        dataStores["incognito-\(id.uuidString)"] = nil
         mutate { $0.removeTab(id) }
         updateBadges()
     }
@@ -167,7 +194,7 @@ final class AppModel {
 
     func select(_ id: UUID) {
         guard state.tabs.contains(where: { $0.id == id }) else { return }
-        mutate { $0.selectedTabId = id }
+        mutate { $0.select(id) }
     }
 
     func select(index: Int) {

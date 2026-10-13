@@ -6,16 +6,31 @@ struct AddServiceSheet: View {
     @State private var picked: Service?
     @State private var name = ""
     @State private var address = ""
+    @State private var editing = false
+    @State private var incognito = false
 
     private let columns = [GridItem(.adaptive(minimum: 110), spacing: 12)]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text(picked.map { "Add \($0.name)" } ?? "Add a service").font(.title3.bold())
+            HStack {
+                Text(picked.map { "Add \($0.name)" } ?? "Add a service").font(.title3.bold())
+                Spacer()
+                if picked == nil {
+                    Button(editing ? "Done" : "Edit") { editing.toggle() }
+                        .help("Hide services you don't use and drag cards into your own order")
+                }
+            }
             if let service = picked {
                 form(for: service)
             } else {
                 catalog
+                if editing {
+                    Text("Drag cards to reorder. Click the eye to hide a service you don't use.")
+                        .font(.caption).foregroundStyle(.secondary)
+                } else {
+                    incognitoToggle
+                }
             }
             HStack {
                 if picked != nil {
@@ -29,21 +44,53 @@ struct AddServiceSheet: View {
         .frame(width: 460)
     }
 
+    private var incognitoToggle: some View {
+        Toggle("Open once in incognito", isOn: $incognito)
+            .help("A tab with no saved sign-in or history; it is gone when you quit Tabchat")
+    }
+
     private var catalog: some View {
-        LazyVGrid(columns: columns, spacing: 12) {
-            ForEach(ServiceCatalog.all + [ServiceCatalog.custom]) { service in
-                Button { choose(service) } label: {
-                    VStack(spacing: 6) {
-                        LetterTile(name: service.name, colorHex: Self.color(for: service), size: 44)
-                        Text(service.kind == .custom ? "Custom website" : service.name)
-                            .font(.callout).lineLimit(1)
-                    }
-                    .frame(maxWidth: .infinity).padding(8)
-                    .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 10))
-                }
-                .buttonStyle(.plain)
+        let settings = model.state.settings
+        let cards = CatalogLayout.visible(
+            ServiceCatalog.all, order: settings.serviceOrder, hidden: settings.hiddenServices, editing: editing
+        )
+        return LazyVGrid(columns: columns, spacing: 12) {
+            ForEach(cards + [ServiceCatalog.custom]) { service in
+                card(service, hidden: settings.hiddenServices.contains(service.id))
             }
         }
+    }
+
+    @ViewBuilder
+    private func card(_ service: Service, hidden: Bool) -> some View {
+        let movable = editing && service.kind != .custom
+        Button {
+            if !editing {
+                choose(service)
+            }
+        } label: {
+            VStack(spacing: 6) {
+                LetterTile(name: service.name, colorHex: Self.color(for: service), size: 44)
+                Text(service.kind == .custom ? "Custom website" : service.name)
+                    .font(.callout).lineLimit(1)
+            }
+            .frame(maxWidth: .infinity).padding(8)
+            .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 10))
+            .opacity(hidden ? 0.4 : 1)
+        }
+        .buttonStyle(.plain)
+        .overlay(alignment: .topTrailing) {
+            if movable {
+                Button { model.toggleServiceHidden(service.id) } label: {
+                    Image(systemName: hidden ? "eye.slash" : "eye").padding(4)
+                }
+                .buttonStyle(.plain)
+                .help(hidden ? "Show this service" : "Hide this service")
+            }
+        }
+        .modifier(CardDrag(enabled: movable, id: service.id) { dragged in
+            model.moveService(dragged, before: service.id)
+        })
     }
 
     private func form(for service: Service) -> some View {
@@ -53,6 +100,7 @@ struct AddServiceSheet: View {
             }
             TextField(service.kind == .custom ? "Address (example.com)" : "https://yourschool.brightspace.com", text: $address)
                 .onSubmit { submit(service) }
+            incognitoToggle
             HStack {
                 Spacer()
                 Button("Add") { submit(service) }
@@ -67,19 +115,48 @@ struct AddServiceSheet: View {
         if service.asksForURL {
             picked = service
         } else {
-            model.addTab(service: service)
+            model.addTab(service: service, name: incognito ? Self.incognitoName(service.name) : nil, incognito: incognito)
             dismiss()
         }
     }
 
     private func submit(_ service: Service) {
         guard let url = URLInput.normalize(address), service.kind != .custom || !name.isEmpty else { return }
-        model.addTab(service: service, name: service.kind == .custom ? name : nil, url: url.absoluteString)
+        let label = service.kind == .custom ? name : nil
+        model.addTab(
+            service: service, name: incognito ? Self.incognitoName(label ?? service.name) : label,
+            url: url.absoluteString, incognito: incognito
+        )
         dismiss()
+    }
+
+    private static func incognitoName(_ name: String) -> String {
+        "\(name) (incognito)"
     }
 
     private static func color(for service: Service) -> String {
         let index = ServiceCatalog.all.firstIndex(of: service) ?? TabPalette.colors.count - 1
         return TabPalette.colors[index % TabPalette.colors.count]
+    }
+}
+
+/// Makes a card draggable onto other cards while the sheet is in Edit mode.
+private struct CardDrag: ViewModifier {
+    let enabled: Bool
+    let id: String
+    let onDrop: (String) -> Void
+
+    func body(content: Content) -> some View {
+        if enabled {
+            content
+                .draggable(id)
+                .dropDestination(for: String.self) { items, _ in
+                    guard let dragged = items.first else { return false }
+                    onDrop(dragged)
+                    return true
+                }
+        } else {
+            content
+        }
     }
 }

@@ -34,6 +34,11 @@ struct AppCommands: Commands {
             Button("Find Previous") { model.selectedController?.find(backwards: true) }
                 .keyboardShortcut("g", modifiers: [.command, .shift])
             Divider()
+            Button("Split View") { model.toggleSplit() }
+                .keyboardShortcut("d", modifiers: [.command, .shift])
+            Button("Quick Switcher…") { model.showPalette() }
+                .keyboardShortcut("k", modifiers: .command)
+            Divider()
         }
 
         CommandMenu("Services") {

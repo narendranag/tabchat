@@ -85,6 +85,13 @@ enum ServiceCatalog {
 
     static let custom = Service(id: "custom", name: "Website", url: nil, kind: .custom, asksForURL: true)
 
+    /// Chat and mail tabs must stay loaded to deliver notifications, so they do not sleep unless asked.
+    private static let alwaysOn: Set<String> = ["whatsapp", "discord", "teams", "outlook-work", "outlook-personal"]
+
+    static func allowsSleepByDefault(serviceId: String) -> Bool {
+        !alwaysOn.contains(serviceId)
+    }
+
     static func service(id: String) -> Service? {
         all.first { $0.id == id } ?? (id == custom.id ? custom : nil)
     }

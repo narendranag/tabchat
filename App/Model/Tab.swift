@@ -9,6 +9,17 @@ struct Tab: Codable, Identifiable, Hashable, Sendable {
     var colorHex: String
     /// Muted tabs never post notifications (their unread count still shows).
     var muted = false
+    /// Whether the idle timer may release this tab's web view (off for chat tabs, so notifications keep working).
+    var allowSleep = true
+    /// Where a sleeping tab was when it slept (or a duplicate was made); the next load starts there.
+    var lastURL: String?
+    /// Incognito and temporary tabs live for this run only: they are never written to `state.json`.
+    var incognito = false
+    var temporary = false
+
+    var isEphemeral: Bool {
+        incognito || temporary
+    }
 
     var service: Service {
         ServiceCatalog.service(id: serviceId) ?? ServiceCatalog.custom
@@ -32,8 +43,13 @@ enum TabPalette {
     static let colors = ["2F80ED", "27AE60", "E2574C", "F2994A", "9B51E0", "00A3A3", "D6336C", "5C7CFA"]
 }
 
-/// Files from before schema 2 have no `muted` key.
+/// Files from before schema 2 have no `muted` key, and before schema 3 no `allowSleep` or `lastURL`.
+/// `incognito` and `temporary` are deliberately not coded.
 extension Tab {
+    enum CodingKeys: String, CodingKey {
+        case id, serviceId, profileId, customName, customURL, colorHex, muted, allowSleep, lastURL
+    }
+
     init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
         id = try values.decode(UUID.self, forKey: .id)
@@ -43,5 +59,8 @@ extension Tab {
         customURL = try values.decodeIfPresent(String.self, forKey: .customURL)
         colorHex = try values.decode(String.self, forKey: .colorHex)
         muted = try values.decodeIfPresent(Bool.self, forKey: .muted) ?? false
+        allowSleep = try values.decodeIfPresent(Bool.self, forKey: .allowSleep)
+            ?? ServiceCatalog.allowsSleepByDefault(serviceId: serviceId)
+        lastURL = try values.decodeIfPresent(String.self, forKey: .lastURL)
     }
 }

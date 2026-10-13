@@ -68,6 +68,7 @@ final class TabController: NSObject {
     }
 
     func tearDown() {
+        observers.removeAll()
         webView.configuration.userContentController.removeAllScriptMessageHandlers()
         webView.stopLoading()
         webView.removeFromSuperview()
@@ -79,13 +80,15 @@ final class TabController: NSObject {
 
     // MARK: Navigation
 
+    /// The saved address (a tab that slept or was duplicated) if there is one, else the start page.
     func loadStartPage() {
-        guard let url = tab.startURL else { return }
+        guard let url = tab.lastURL.flatMap(URLInput.normalize) ?? tab.startURL else { return }
         webView.load(URLRequest(url: url))
     }
 
     func goHome() {
-        loadStartPage()
+        guard let url = tab.startURL else { return }
+        webView.load(URLRequest(url: url))
     }
 
     func goBack() {
@@ -216,9 +219,13 @@ extension TabController: WKUIDelegate {
         _ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration,
         for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures
     ) -> WKWebView? {
-        if let url = navigationAction.request.url, LinkPolicy.decision(for: url, tabURLs: referenceURLs) == .external {
-            NSWorkspace.shared.open(url)
-            return nil
+        if let url = navigationAction.request.url {
+            let preference = model?.state.settings.linkTarget ?? .defaultBrowser
+            let route = LinkPolicy.route(for: url, tabURLs: referenceURLs, preference: preference)
+            if route != .popup {
+                model?.openExternal(url, route: route, from: tab)
+                return nil
+            }
         }
         // Sign-in popups share the opener's configuration (and so its data store), which OAuth needs.
         let popup = WKWebView(frame: NSRect(x: 0, y: 0, width: 520, height: 700), configuration: configuration)

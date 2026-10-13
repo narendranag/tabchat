@@ -38,13 +38,27 @@ private struct SidebarItem: View {
 
     var body: some View {
         let selected = model.selection == tab.id
+        let inSplit = model.split?.contains(tab.id) ?? false
+        let asleep = model.sleeping.contains(tab.id)
         ZStack(alignment: .topTrailing) {
             ServiceIcon(tab: tab, size: 36)
                 .padding(4)
+                .opacity(asleep ? 0.45 : 1)
                 .background(selected ? Color.accentColor.opacity(0.25) : .clear, in: RoundedRectangle(cornerRadius: 12))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 12).stroke(selected ? Color.accentColor : .clear, lineWidth: 2)
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(selected ? Color.accentColor : (inSplit ? Color.accentColor.opacity(0.4) : .clear), lineWidth: 2)
                 )
+                .overlay(alignment: .bottomTrailing) {
+                    if asleep {
+                        Image(systemName: "moon.zzz.fill").font(.system(size: 10)).foregroundStyle(.secondary).padding(2)
+                    }
+                }
+                .overlay(alignment: .bottomLeading) {
+                    if tab.incognito {
+                        Image(systemName: "eye.slash.fill").font(.system(size: 10)).foregroundStyle(.secondary).padding(2)
+                    }
+                }
             if let unread = model.unread[tab.id], unread.hasUnread {
                 if unread.count >= 1 {
                     Text(unread.count > 99 ? "99+" : "\(unread.count)")
@@ -59,7 +73,7 @@ private struct SidebarItem: View {
         }
         .contentShape(Rectangle())
         .onTapGesture { model.select(tab.id) }
-        .help(tab.displayName)
+        .help(tab.displayName + (tab.incognito ? " (incognito)" : "") + (asleep ? " (asleep)" : ""))
         .draggable(tab.id.uuidString)
         .dropDestination(for: String.self) { items, _ in
             guard let dragged = items.first.flatMap(UUID.init) else { return false }
@@ -70,6 +84,15 @@ private struct SidebarItem: View {
             Button("Rename…") { renaming = tab }
             Button("Reload") { model.controllers[tab.id]?.reload() }
             Button("Add Another Account") { model.addAnotherAccount(of: tab) }
+            Button("Duplicate") { model.duplicate(tab.id) }
+            Button("Open in Split View") { model.openSplit(with: tab.id) }
+                .disabled(model.tabs.count < 2)
+            Divider()
+            if !tab.isEphemeral {
+                Toggle("Allow Sleep", isOn: Binding(get: { tab.allowSleep }, set: { model.setAllowSleep(tab.id, $0) }))
+                Button("Sleep Now") { model.sleepNow(tab.id) }
+                    .disabled(!model.canSleepNow(tab.id))
+            }
             Toggle("Mute Notifications", isOn: Binding(get: { tab.muted }, set: { model.setMuted(tab.id, $0) }))
             Divider()
             Button("Remove", role: .destructive) { model.removeTab(tab.id) }

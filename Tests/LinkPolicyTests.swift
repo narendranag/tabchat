@@ -63,3 +63,36 @@ final class SocialServiceTests: XCTestCase {
         XCTAssertEqual(try state.addTab(service: XCTUnwrap(ServiceCatalog.service(id: "x"))).profileId, "x")
     }
 }
+
+final class LinkRouteTests: XCTestCase {
+    private let tab = [URL(string: "https://web.whatsapp.com")!]
+
+    private func route(_ url: String, _ preference: LinkTarget) -> LinkPolicy.Route {
+        LinkPolicy.route(for: URL(string: url)!, tabURLs: tab, preference: preference)
+    }
+
+    func testSameSiteAndSignInAlwaysPopUpInApp() {
+        XCTAssertEqual(route("https://web.whatsapp.com/x", .inTabchat), .popup)
+        XCTAssertEqual(route("https://login.live.com/", .browser("org.mozilla.firefox")), .popup)
+    }
+
+    func testOtherSitesFollowThePreference() {
+        XCTAssertEqual(route("https://example.com", .defaultBrowser), .defaultBrowser)
+        XCTAssertEqual(route("https://example.com", .inTabchat), .temporaryTab)
+        XCTAssertEqual(route("https://example.com", .browser("org.mozilla.firefox")), .browser("org.mozilla.firefox"))
+    }
+
+    func testNonWebLinksIgnoreThePreference() {
+        XCTAssertEqual(route("mailto:a@b.com", .inTabchat), .defaultBrowser)
+        XCTAssertEqual(route("tel:123", .browser("org.mozilla.firefox")), .defaultBrowser)
+    }
+
+    func testLinkTargetStorage() throws {
+        for target in [LinkTarget.defaultBrowser, .inTabchat, .browser("com.apple.Safari")] {
+            XCTAssertEqual(LinkTarget(storage: target.storage), target)
+            let data = try JSONEncoder().encode([target])
+            XCTAssertEqual(try JSONDecoder().decode([LinkTarget].self, from: data), [target])
+        }
+        XCTAssertEqual(LinkTarget(storage: ""), .defaultBrowser)
+    }
+}
