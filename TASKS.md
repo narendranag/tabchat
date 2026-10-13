@@ -5,8 +5,8 @@
 
 ## Now
 
+- [ ] Tell MMV2408 about the Mac version: friendly issue on MMV2408/tabchat, from Narendra's account (draft offered 2026-10-13) #community
 - [ ] Install v0.1.0 on air (air was unreachable 2026-10-13; mini done) #mac
-- [ ] **Publish the v0.1.0 release** (Narendra runs it; publishing is his step): `git tag -a v0.1.0 -m "Tabchat for Mac 0.1.0" && git push origin v0.1.0 && gh release create v0.1.0 build/Tabchat-0.1.0.dmg -R narendranag/tabchat --title "Tabchat for Mac 0.1.0" --notes-file brief/release-0.1.0.md` #release
 
 ## Next
 
@@ -18,6 +18,7 @@
 
 ## Done
 
+- [x] v0.1.0 published: https://github.com/narendranag/tabchat/releases/tag/v0.1.0 — 2026-10-13
 - [x] v0.1.0 installed in `/Applications` on mini; spike sign-in data deleted (343 MB) — 2026-10-13
 - [x] Phase 6: app icon and `just dmg` → `build/Tabchat-0.1.0.dmg` (signed with Apple Development, not notarised) — 2026-10-13
 - [x] Phase 5: split view, `Cmd+K`, tab sleep, duplicate/incognito, card order, link browser choice — 2026-10-13
