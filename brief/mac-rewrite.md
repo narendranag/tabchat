@@ -18,7 +18,7 @@ Replaces `brief/mac-refactor.md` (the Electron refactor). Agreed with Narendra o
 
 | v1 | Later | Dropped |
 | --- | --- | --- |
-| Services: WhatsApp, Discord, Teams, Outlook, OneDrive, Brightspace, custom sites | Split view | Linux packaging, D-Bus, GNOME DND |
+| Services: WhatsApp, Discord, Teams, Outlook, OneDrive, Brightspace, Reddit, X, custom sites | Split view | Linux packaging, D-Bus, GNOME DND |
 | Several accounts per service, each its own sign-in | `Cmd+K` palette | Upstream updater, donate, changelog, what's new |
 | One Microsoft sign-in shared by Teams, Outlook, OneDrive | Duplicate tab, incognito tab | Dutch |
 | Unread per tab, Dock badge, menu bar dot | Tab sleep | |
