@@ -1,0 +1,27 @@
+included:
+  - App
+  - Tests
+excluded:
+  - spike
+  - build
+line_length:
+  warning: 130
+  error: 160
+  ignores_urls: true
+  ignores_comments: true
+file_length:
+  warning: 500
+function_body_length:
+  warning: 60
+type_body_length:
+  warning: 300
+identifier_name:
+  min_length: 2
+  excluded: [id, ok, wv, n, h, a, b, s]
+disabled_rules:
+  - trailing_comma
+  - todo
+opt_in_rules:
+  - empty_count
+  - first_where
+  - sorted_first_last

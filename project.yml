@@ -1,0 +1,65 @@
+name: Tabchat
+options:
+  bundleIdPrefix: com.narendranag
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    SWIFT_TREAT_WARNINGS_AS_ERRORS: YES
+    GCC_TREAT_WARNINGS_AS_ERRORS: YES
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
+    ARCHS: arm64
+    ONLY_ACTIVE_ARCH: YES
+    CODE_SIGN_STYLE: Manual
+    CODE_SIGN_IDENTITY: "-"
+    ENABLE_HARDENED_RUNTIME: NO
+targets:
+  Tabchat:
+    type: application
+    platform: macOS
+    sources:
+      - path: App
+        excludes:
+          - "Resources/*.entitlements"
+    entitlements:
+      path: App/Resources/Tabchat.entitlements
+      properties:
+        com.apple.security.device.camera: true
+        com.apple.security.device.audio-input: true
+    settings:
+      base:
+        PRODUCT_NAME: Tabchat
+        PRODUCT_BUNDLE_IDENTIFIER: com.narendranag.tabchat
+        GENERATE_INFOPLIST_FILE: YES
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        INFOPLIST_KEY_CFBundleDisplayName: Tabchat
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.productivity
+        INFOPLIST_KEY_NSCameraUsageDescription: Tabchat needs the camera for video calls in the sites you open.
+        INFOPLIST_KEY_NSMicrophoneUsageDescription: Tabchat needs the microphone for calls in the sites you open.
+        INFOPLIST_KEY_NSHumanReadableCopyright: Fork of MMV2408/tabchat, MIT licence.
+  TabchatTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - Tests
+    dependencies:
+      - target: Tabchat
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.narendranag.tabchat.tests
+        GENERATE_INFOPLIST_FILE: YES
+schemes:
+  Tabchat:
+    build:
+      targets:
+        Tabchat: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - TabchatTests
