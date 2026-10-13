@@ -1,0 +1,5 @@
+build:
+    ./build.sh
+
+run: build
+    open "build/Tabchat Spike.app"
