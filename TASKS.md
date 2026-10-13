@@ -5,15 +5,12 @@
 
 ## Now
 
-- [ ] **Skeleton**: XcodeGen project, `just` recipes, swiftformat/swiftlint, XCTest, Actions CI #mac
+- [ ] **Mac integration**: unread on tabs/Dock/menu bar, notifications → tab, pause, close keeps running, login item, app menu + shortcuts #mac
 
 ## Next
 
-- [ ] **Core**: sidebar, service catalog, custom sites, profiles, persistence, navigation, find, downloads, external links, offline screen #mac
-- [ ] **Mac integration**: unread on tabs/Dock/menu bar, notifications → tab, pause, close keeps running, login item, app menu + shortcuts #mac
 - [ ] **The rest**: split view, `Cmd+K`, tab sleep, duplicate/incognito, card order, settings window #mac
 - [ ] **Packaging**: unsigned `.app`/`.dmg` (Apple Silicon) built locally #mac
-- [ ] Docs to the fleet standard (`docs-build --init`) #docs
 
 ## Later
 
@@ -21,6 +18,8 @@
 
 ## Done
 
+- [x] Phase 2 skeleton (XcodeGen, just, lint, XCTest, CI) and phase 3 core — 2026-10-13
+- [x] Docs to the fleet standard (`docs/`) — 2026-10-13
 - [x] Engine spike: GO (`spike/`) — 2026-10-13
 - [x] Linux code to the `Linux` branch, clean `main`, README for building in public — 2026-10-13
 - [x] Plan and decisions for the Mac rewrite (`brief/mac-rewrite.md`) — 2026-10-13

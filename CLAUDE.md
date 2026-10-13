@@ -19,7 +19,7 @@ This brain follows the fleet's standard: how projects are built is in
 
 Planning done (2026-10-13): rewriting from scratch as a native Swift app (macOS 14+, sidebar,
 English only). Upstream's Linux code moved to the `Linux` branch; `main` is clean. The WKWebView engine spike
-passed (GO); now: the skeleton (phase 2).
+passed (GO); phases 2 (skeleton) and 3 (core) are built; now: phase 4 (Mac integration).
 
 ## Stack
 
@@ -30,5 +30,12 @@ passed (GO); now: the skeleton (phase 2).
 
 ## Run
 
-Not yet — the Swift project arrives with the skeleton phase. The spike has its own instructions
-in `spike/README.md`.
+```sh
+just gen     # xcodegen → Tabchat.xcodeproj (generated, not committed)
+just lint    # swiftformat --lint + swiftlint --strict
+just test    # XCTest
+just run     # build and open
+```
+
+Details: `docs/03-building.md`. First run on a new Mac needs `sudo xcodebuild -runFirstLaunch`
+(Narendra, in Terminal.app). The throwaway spike is in git history (commit 520499b).
