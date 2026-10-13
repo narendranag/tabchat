@@ -3,11 +3,18 @@
 WhatsApp, Discord, Teams, Outlook, OneDrive, Brightspace and any website in one Mac window,
 in a sidebar, sharing the system's own web engine.
 
-**Status: v0.1.0 runs, built in public.** Every feature below is built and in daily use on the
-author's Mac; there's no public download yet (`just dmg` builds one, see
-[`docs/03-building.md`](docs/03-building.md)). This README, [`TASKS.md`](TASKS.md)
-and [`DECISIONS.md`](DECISIONS.md) are kept up to date as the work goes; the full plan is in
-[`brief/mac-rewrite.md`](brief/mac-rewrite.md).
+**Status: v0.1.0, works, built in public.** Every feature below is built and in daily use on
+the author's Mac. [`TASKS.md`](TASKS.md) and [`DECISIONS.md`](DECISIONS.md) are kept up to date as the
+work goes; the original plan is in [`brief/mac-rewrite.md`](brief/mac-rewrite.md).
+
+## Download
+
+Get `Tabchat-0.1.0.dmg` from [Releases](https://github.com/narendranag/tabchat/releases/latest).
+Needs macOS 14 Sonoma or later on Apple Silicon.
+
+This build is **not notarised** yet, so the first time macOS blocks a normal double-click: drag
+Tabchat to Applications, then right-click it → **Open** → **Open** (or System Settings → Privacy &
+Security → **Open Anyway**).
 
 ## Where this comes from
 
@@ -38,15 +45,25 @@ The Linux code as it was forked lives on the [`Linux`](https://github.com/narend
 - macOS 14 Sonoma or later, Apple Silicon
 - Each account gets its own `WKWebsiteDataStore`, so sign-ins stay separate and survive restarts
 
-## Roadmap
+## Done
 
-1. ~~Engine spike~~: every service works in `WKWebView`, calls and screen sharing included
-2. ~~Skeleton~~: Xcode project, build and test commands, CI
-3. ~~Core~~: sidebar, services, accounts, navigation, find, downloads
-4. ~~Mac integration~~: unread badges, notifications, menu bar, login item, shortcuts
-5. ~~Split view, quick switcher, sleeping services, settings~~
-6. ~~A `.dmg`~~ (`just dmg`), not yet published
-7. Next: a public download, then signing and notarisation so it opens anywhere without warnings
+1. Engine spike: every service works in `WKWebView`, calls and screen sharing included
+2. Skeleton: Xcode project, build and test commands, CI on every push
+3. Core: sidebar, services, accounts, navigation, find, downloads, offline retry
+4. Mac integration: unread badges, notifications, pause and mute, menu bar, login item, shortcuts
+5. Split view, `Cmd+K` quick switcher, sleeping services, settings
+6. App icon and a `.dmg` (v0.1.0)
+
+## Still to do
+
+- **Notarised build**: a Developer ID certificate (paid Apple Developer Program) and notarisation
+  in CI, so the app opens anywhere without the right-click step
+- **Automatic updates** (Sparkle), once builds are notarised
+- **Unread for every service**: counts come from page titles; Reddit doesn't put one there, so its
+  badge stays empty
+- **Intel Macs**: builds are Apple Silicon only for now
+
+Not planned: iMessage. It has no web version, and macOS doesn't let one app show another app's window.
 
 ## Building
 
