@@ -3,8 +3,10 @@
 WhatsApp, Discord, Teams, Outlook, OneDrive, Brightspace and any website as tabs in one window,
 sharing one browser engine. For Narendra, on his Macs.
 
-A fork of [MMV2408/tabchat](https://github.com/MMV2408/tabchat) (MIT, Electron, built for Linux).
-Repo: github.com/narendranag/tabchat (public fork). Remotes: `origin` = the fork, `upstream` = MMV2408.
+A from-scratch native rewrite of [MMV2408/tabchat](https://github.com/MMV2408/tabchat) (MIT,
+Electron, Linux). Repo: github.com/narendranag/tabchat (public fork, built in public — keep the
+README, `TASKS.md` and `DECISIONS.md` current). Remotes: `origin` = the fork, `upstream` = MMV2408.
+The forked Linux code is on the `Linux` branch (tag `upstream-final`); `main` holds only the Mac app.
 Keep the MIT licence and the credit to the original author.
 
 This brain follows the fleet's standard: how projects are built is in
@@ -16,8 +18,8 @@ This brain follows the fleet's standard: how projects are built is in
 ## Status
 
 Planning done (2026-10-13): rewriting from scratch as a native Swift app (macOS 14+, sidebar,
-English only). The Electron/Linux code in `src/` is upstream's and will be tagged `upstream-final`
-and removed from `main` in the skeleton phase. Next: the WKWebView engine spike.
+English only). Upstream's Linux code moved to the `Linux` branch; `main` is clean. Now: the
+WKWebView engine spike in `spike/`.
 
 ## Stack
 
@@ -28,5 +30,5 @@ and removed from `main` in the skeleton phase. Next: the WKWebView engine spike.
 
 ## Run
 
-Not yet — the Swift project arrives with the skeleton phase. Until then `npm start` runs
-upstream's Linux-oriented Electron app.
+Not yet — the Swift project arrives with the skeleton phase. The spike has its own instructions
+in `spike/README.md`.

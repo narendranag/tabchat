@@ -6,3 +6,4 @@
 - [mini] [2026-10-13] Minimum macOS 14 Sonoma — `WKWebsiteDataStore(forIdentifier:)` gives each sign-in its own persistent store.
 - [mini] [2026-10-13] Keep the repo `narendranag/tabchat` and the name Tabchat; tag the Linux code `upstream-final` and remove it from `main`; credit MMV2408/tabchat (MIT) in the README.
 - [mini] [2026-10-13] Sidebar of service icons rather than a title-bar tab strip; English only; Apple Silicon only.
+- [mini] [2026-10-13] Forked Linux code kept on the `Linux` branch (and tag `upstream-final`, both at upstream's 8d5f9c2); `main` holds only the Mac rewrite. Built in public: README, TASKS and DECISIONS kept current on GitHub.

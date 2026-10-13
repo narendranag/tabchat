@@ -1,5 +1,5 @@
-node_modules/
-dist/
-packaging/flatpak/repo/
-packaging/flatpak/build/
-packaging/flatpak/.flatpak-builder/
+.dashboard/
+.DS_Store
+build/
+DerivedData/
+*.xcodeproj/xcuserdata/

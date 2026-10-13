@@ -8,7 +8,7 @@ Replaces `brief/mac-refactor.md` (the Electron refactor). Agreed with Narendra o
 | --- | --- |
 | Stack | Swift + SwiftUI/AppKit + WKWebView (DEV-GUIDELINES' "Mac-only, deep OS hooks" exception). Fallback: clean Electron + TypeScript rewrite if the engine spike fails. |
 | Minimum macOS | 14 Sonoma (`WKWebsiteDataStore(forIdentifier:)` for separate sign-ins) |
-| Repo | Keep `narendranag/tabchat`; tag the Linux code `upstream-final`, remove it from `main` |
+| Repo | Keep `narendranag/tabchat`; Linux code on the `Linux` branch (tag `upstream-final`), `main` clean; built in public |
 | Name | Tabchat (credit MMV2408/tabchat, MIT, in the README) |
 | Layout | Sidebar of service icons (Ferdium/Rambox style), not a title-bar tab strip |
 | Languages | English only |
@@ -54,7 +54,7 @@ TabchatApp (SwiftUI app, menu bar extra, app menu with Cmd shortcuts)
    share; Discord voice and screen share; Brightspace school SSO. Result → `DECISIONS.md`.
    Narendra does every sign-in.
 2. **Skeleton**: XcodeGen `project.yml`, `just build|run|test`, swiftformat + swiftlint, XCTest,
-   GitHub Actions lint → test → build. Tag `upstream-final`, remove the Electron code from `main`.
+   GitHub Actions lint → test → build.
    Dashboard before this phase.
 3. **Core**: sidebar, catalog, custom sites, profiles, persistence, navigation, find, downloads,
    external links, offline error screen with retry.

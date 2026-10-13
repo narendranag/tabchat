@@ -9,12 +9,12 @@
 
 ## Next
 
-- [ ] **Skeleton**: XcodeGen project, `just` recipes, swiftformat/swiftlint, XCTest, Actions CI; tag `upstream-final` and remove the Electron code from `main` (dashboard first) #mac
+- [ ] **Skeleton**: XcodeGen project, `just` recipes, swiftformat/swiftlint, XCTest, Actions CI #mac
 - [ ] **Core**: sidebar, service catalog, custom sites, profiles, persistence, navigation, find, downloads, external links, offline screen #mac
 - [ ] **Mac integration**: unread on tabs/Dock/menu bar, notifications → tab, pause, close keeps running, login item, app menu + shortcuts #mac
 - [ ] **The rest**: split view, `Cmd+K`, tab sleep, duplicate/incognito, card order, settings window #mac
 - [ ] **Packaging**: unsigned `.app`/`.dmg` (Apple Silicon) built locally #mac
-- [ ] Docs to the fleet standard (`docs-build --init`) and a README crediting MMV2408/tabchat #docs
+- [ ] Docs to the fleet standard (`docs-build --init`) #docs
 
 ## Later
 

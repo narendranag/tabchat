@@ -1,250 +1,51 @@
-<p align="center">
-  <img src="assets/icon.png" width="112" alt="Tabchat logo">
-</p>
+# Tabchat for Mac
 
-<h1 align="center">Tabchat</h1>
+WhatsApp, Discord, Teams, Outlook, OneDrive, Brightspace and any website in one Mac window,
+in a sidebar, sharing the system's own web engine.
 
-<p align="center">
-  <b>WhatsApp, Discord, Teams, Outlook, Brightspace and any website in one window — made for Linux.</b><br>
-  Light, keyboard-friendly and built to keep you signed in.
-</p>
+**Status: early, built in public.** Nothing to download yet. This README, [`TASKS.md`](TASKS.md)
+and [`DECISIONS.md`](DECISIONS.md) are kept up to date as the work goes; the full plan is in
+[`brief/mac-rewrite.md`](brief/mac-rewrite.md).
 
-<p align="center">
-  <a href="https://github.com/MMV2408/tabchat/releases/latest"><img src="https://img.shields.io/github/v/release/MMV2408/tabchat?label=download&color=5865F2" alt="Latest release"></a>
-  <img src="https://img.shields.io/badge/platform-Linux-informational" alt="Linux">
-  <a href="LICENSE"><img src="https://img.shields.io/github/license/MMV2408/tabchat" alt="MIT license"></a>
-  <a href="https://github.com/sponsors/MMV2408"><img src="https://img.shields.io/badge/sponsor-%E2%9D%A4-db61a2?logo=githubsponsors&logoColor=white" alt="Sponsor"></a>
-</p>
+## Where this comes from
 
-<p align="center">
-  🇬🇧 English · <a href="README.nl.md">🇳🇱 Nederlands</a>
-</p>
+Tabchat started as [MMV2408/tabchat](https://github.com/MMV2408/tabchat) by Mike Vijverberg: an
+Electron app for Linux (MIT). This fork is a from-scratch rewrite as a native macOS app. It
+keeps the idea, the name and the feature list, not the code.
 
----
+The Linux code as it was forked lives on the [`Linux`](https://github.com/narendranag/tabchat/tree/Linux) branch (tag
+`upstream-final`). For Linux, use [the original](https://github.com/MMV2408/tabchat).
 
-<p align="center">
-  <img src="docs/demo.gif" alt="Switching between WhatsApp, Discord, Teams, Outlook and OneDrive in Tabchat" width="860">
-</p>
+## What it will do
 
-## Why Tabchat?
+- Each service in a sidebar: WhatsApp, Discord, Teams, Outlook, OneDrive, Brightspace, and your own sites
+- Several accounts of the same service, each with its own sign-in; one Microsoft sign-in shared
+  by Teams, Outlook and OneDrive
+- Unread counts on each service, on the Dock icon and in the menu bar
+- Native notifications that respect Focus; clicking one opens the right service
+- Keeps running in the menu bar when the window is closed; optional start at login
+- Pause notifications for an hour, until tomorrow, or until you turn it back on
+- Find on page, downloads, back/forward/reload, light and dark mode
+- Later: split view, a `Cmd+K` quick switcher, sleeping services to save memory
 
-Most chat apps on Linux are separate Electron apps, each running its own copy of Chromium. With WhatsApp, Discord and Teams open, that easily adds up to 3–4 GB of memory.
+## How it's built
 
-Tabchat puts them all in **one window with tabs**, sharing a single browser engine. On top of that it adds the things you miss in the web versions: a tray icon, unread counters, Do not disturb, keyboard shortcuts and a sleep mode for tabs you are not using.
-
-## Features
-
-**Tabs**
-- 💬 WhatsApp, Discord, Teams, Outlook, OneDrive and Brightspace — add only what you need
-- 👥 Multiple accounts of the same service, each with its own sign-in
-- ↔️ Drag tabs to reorder them, right-click for more options
-- 🔐 One shared Microsoft sign-in for Teams, Outlook and OneDrive (school and work accounts too), and it **stays signed in** after a restart
-- 🪟 **Split view**: two tabs side by side, with a divider you can drag
-- 🧭 Back, forward, reload and home buttons on the active tab, find on page (`Ctrl+F`), and downloads go straight to your Downloads folder
-- 👯 Duplicate a tab with the same sign-in (right-click)
-- 🌐 **Your own websites** as tabs (name, icon and color), or open one once in **incognito**
-- 🧩 Hide the built-in services you don't use and drag the cards into your own order
-- 🎓 **Brightspace** from your school (any school: you enter its address), signed in with the same school account as Teams and Outlook
-- 🏫 Work/school and **personal** Microsoft accounts (Outlook.com, Hotmail, Live) side by side, each with its own sign-in
-
-<img align="right" src="docs/screenshots/tray.png" alt="Tray menu" width="210">
-
-**Never miss a message**
-- 🔴 Unread counters on every tab, a red dot on the tray icon and a number on the dock icon
-- 🔔 Click a notification to jump straight to the right tab
-- 🖥️ Keeps running in the background when you close the window, with a tray icon at the top right
-- 🚀 Optionally starts hidden in the tray when you log in
-
-**Peace and quiet**
-- 🌙 Do not disturb for 1 hour, until tomorrow 08:00 or until you turn it off — blocks all notifications and sound. Also follows Ubuntu's own Do not disturb
-- 💤 Tab sleep: tabs you have not used for a while are removed from memory and come back with one click. You choose per tab which ones may sleep
-
-**Keyboard first**
-- ⌨️ `Ctrl+K` quick search for every service and action
-- `Alt+1…9`, `Ctrl+Tab`, `Ctrl+W`, `Ctrl+Shift+T` and more — just like a browser
-
-**The rest**
-- 🖼️ Screen sharing in Discord and Teams with a screen/window picker
-- ⚠️ A clear error screen with automatic retry when you are offline
-- 🔄 Automatic updates from GitHub Releases
-- 🇬🇧 🇳🇱 English and Dutch
-- ☀️ Light and dark theme that follows your system
-- 🔗 Choose where links open: your default browser, another browser or Tabchat itself
-- 🎨 Colored or white tray icon
-- 🧹 Minimal window: the tab bar is the title bar, with a compact (icons only) or auto-hide option
-
-<p align="center">
-  <img src="docs/screenshots/quick-search.png" alt="Quick search with Ctrl+K" width="860">
-</p>
-
-## Installation
-
-Download the latest version from the **[Releases page](https://github.com/MMV2408/tabchat/releases/latest)**.
-
-### Ubuntu, Debian, Linux Mint, Pop!_OS (`.deb`)
-
-Double-click the downloaded file, or run:
-
-```bash
-sudo apt install ./tabchat_*_amd64.deb
-```
-
-Then open **Tabchat** from your app menu.
-
-### Other distributions (`.AppImage`)
-
-```bash
-chmod +x Tabchat-*.AppImage
-./Tabchat-*.AppImage
-```
-
-### Raspberry Pi and other ARM computers (64-bit)
-
-Use the files with `arm64` in the name: `tabchat_*_arm64.deb` (Raspberry Pi OS, Ubuntu) or `Tabchat-*-arm64.AppImage`. You need a 64-bit system; a Raspberry Pi 4 or 5 with at least 4 GB of memory works best.
-
-### Updates
-
-Tabchat checks for new versions by itself and downloads them in the background. When an update is ready, a green button appears in the tab bar — click it and Tabchat restarts on the new version. You can turn this off on the **+** screen.
-
-## Getting started
-
-1. Open Tabchat and click **+** (or press `Alt+T`).
-2. Add the services you use. Each one opens in its own tab. For Teams, Outlook and OneDrive, pick **Work/school** or **Personal**. For Brightspace, enter your school's Brightspace address once (you can change it on the + screen; a green check shows it works).
-3. Sign in once — Tabchat remembers it.
-4. Missing a website? Click **Your own website**, paste the address and it becomes a tab. Turn on **Incognito** to open it just once.
-
-Everything else — language, tab sleep, start at login, white tray icon — is on the same **+** screen.
-
-<p align="center">
-  <img src="docs/screenshots/settings.png" alt="The + screen: add services, your own websites and a work/school or personal choice for Microsoft" width="860">
-  <img src="docs/screenshots/own-website.png" alt="Add your own website, or open it once in incognito" width="860">
-</p>
-
-## Keyboard shortcuts
-
-| Shortcut | Action |
-|---|---|
-| `Ctrl+K` | Quick search: find a service or action |
-| `Alt+T` | Open the + screen (services and settings) |
-| `Alt+1` … `Alt+8` | Go to that tab |
-| `Alt+9` | Go to the last tab |
-| `Ctrl+Tab` / `Ctrl+Shift+Tab` | Next / previous tab |
-| `Ctrl+W` | Close tab (your sign-in is kept) |
-| `Ctrl+Shift+T` | Reopen closed tab |
-| `Ctrl+Shift+PageUp` / `PageDown` | Move tab left / right |
-| `F5` | Reload |
-| `Alt+M` | Mute / unmute tab |
-| `Alt+←` / `Alt+→` | Back / forward (also the side buttons on your mouse) |
-| `Ctrl+F` | Find on page |
-| `Ctrl+\` | Two tabs side by side (on/off) |
-| `Ctrl` + `+` / `-` / `0` | Zoom in / out / reset (saved per tab) |
-| `F11` | Full screen |
-| `Ctrl+Q` | Really quit Tabchat |
-
-On the + screen, `Alt` + the underlined letter adds a service (`W`hatsApp, `D`iscord, `T`eams, `O`utlook, O`n`eDrive, `B`rightspace).
-
-## Privacy
-
-- Tabchat **collects nothing**. No analytics, no tracking, no account.
-- Your sign-ins stay on your own computer, in `~/.config/Tabchat`.
-- Tabchat only talks to the services you add, and to GitHub to check for updates.
-- To stay signed in to Microsoft, Tabchat keeps Microsoft's session cookies for 14 days. You are asked about this the first time, and you can turn it off on the + screen.
-
-## FAQ
-
-**Is this an official app?**
-No. Tabchat is an independent open-source project and is not affiliated with WhatsApp, Meta, Discord or Microsoft. It shows the official web versions of these services.
-
-**Why do I see Ubuntu's own picker when sharing my screen?**
-On Wayland (the default on Ubuntu), apps are not allowed to look at your screen themselves; the system always asks. Tabchat detects this and skips its own picker. Sharing audio is not possible on Linux.
-
-**A sleeping tab did not show my new messages.**
-That is expected: a sleeping tab is fully unloaded. Turn off **May sleep** for that tab on the + screen to keep it awake. WhatsApp, Discord and Teams stay awake by default.
-
-**Can I add other websites?**
-Yes: click **Your own website** on the + screen and paste the address. Google services (Gmail, Drive) usually block signing in from apps like Tabchat, so those may not work.
-
-**Something doesn't work. How do I report it?**
-Open an [issue](https://github.com/MMV2408/tabchat/issues) and attach the log files from `~/.config/tabchat/`: `tabchat.log` (general) and `updater.log` (updates).
-
-## Building from source
-
-Requirements: [Node.js](https://nodejs.org) 20 or newer.
-
-```bash
-git clone https://github.com/MMV2408/tabchat.git
-cd tabchat
-npm install
-npm start          # run in development
-npm run dist       # build .deb and .AppImage into dist/
-```
-
-### Project structure
-
-```
-src/
-  main/              The app itself (Electron main process)
-    index.js         Entry point
-    window.js        Builds the window
-    store.js         Shared runtime state
-    config.js        Saves and loads settings (~/.config/Tabchat/config.json)
-    catalog.js       List of services and their addresses
-    views.js         Creates, shows and hides tabs; error screen
-    actions.js       Everything you can do: add, close, zoom, …
-    shortcuts.js     All keyboard shortcuts
-    palette.js       Quick search (Ctrl+K)
-    microsoft.js     Microsoft sign-in (shared login, staying signed in)
-    unread.js        Unread counters
-    dnd.js           Do not disturb
-    sleep.js         Tab sleep
-    tray.js          Tray icon and running in the background
-    autostart.js     Start at login
-    share.js         Screen sharing picker
-    updater.js       Automatic updates
-    i18n.js          All texts in English and Dutch
-    ipc.js           Messages from the screens to the app
-  preload/
-    preload.js       Bridge between Tabchat's own screens and the app
-    service.js       Runs inside each service tab (unread badge, Do not disturb)
-  renderer/          Tabchat's own screens (HTML)
-assets/              Logo and tray icons
-```
-
-### Adding things
-
-| What | Where |
-|---|---|
-| A service | One line in `CATALOG` in `src/main/catalog.js`, plus a description in `i18n.js` |
-| A setting | `DEFAULT_SETTINGS` in `config.js`, `FEATURES` in `home.html`, texts in `i18n.js` |
-| A shortcut | `shortcuts.js` and the list in `home.html` |
-| A language | A new block in `i18n.js` and an option in `home.html` |
-
-### Releasing a new version
-
-1. Raise `version` in `package.json`.
-2. `npm run dist`
-3. Create a release with the `.deb`, `.AppImage` **and `latest-linux.yml`** (needed for automatic updates):
-
-```bash
-gh release create v1.2.3 dist/tabchat_1.2.3_amd64.deb dist/Tabchat-1.2.3.AppImage dist/latest-linux.yml \
-  --title "Tabchat 1.2.3" --generate-notes
-```
+- Swift, SwiftUI and AppKit, with `WKWebView`: the same engine as Safari, so the app itself stays
+  a few megabytes and doesn't bundle a browser
+- macOS 14 Sonoma or later, Apple Silicon
+- Each account gets its own `WKWebsiteDataStore`, so sign-ins stay separate and survive restarts
 
 ## Roadmap
 
-- [x] Add your own websites (name + web address)
-- [x] Snap Store
-- [ ] Flathub
-- [ ] Profiles (e.g. "School" and "Personal")
-
-Ideas and bug reports are welcome in [Issues](https://github.com/MMV2408/tabchat/issues).
-
-## Support Tabchat
-
-Tabchat is free and stays free. If it saves you time, you can support development via **[GitHub Sponsors](https://github.com/sponsors/MMV2408)**. Starring the repo or reporting bugs helps too!
+1. **Engine spike** (now): a throwaway app that checks every service works in `WKWebView`,
+   including calls and screen sharing in Teams and Discord. If it doesn't, the fallback is a
+   clean Electron rewrite.
+2. Skeleton: Xcode project, build and test commands, CI
+3. Core: sidebar, services, accounts, navigation, find, downloads
+4. Mac integration: unread badges, notifications, menu bar, login item, shortcuts
+5. Split view, quick switcher, sleeping services, settings
+6. A `.dmg` you can download
 
 ## License
 
-[MIT](LICENSE) © Mike Vijverberg
-
-WhatsApp, Discord, Microsoft Teams, Outlook and OneDrive are trademarks of their respective owners. Tabchat is not affiliated with or endorsed by them.
+MIT, see [LICENSE](LICENSE). Original work © Mike Vijverberg.
