@@ -1,0 +1,245 @@
+{
+  "title": "Tabchat documentation",
+  "summary": "Index of the documentation for Tabchat.",
+  "source_of_truth": "markdown",
+  "documents": [
+    {
+      "id": "index",
+      "title": "Tabchat documentation",
+      "order": 0,
+      "summary": "Index of the documentation for Tabchat.",
+      "status": "design",
+      "updated": "2026-10-13",
+      "audience": [
+        "everyone"
+      ],
+      "depends_on": [],
+      "related": [
+        "overview"
+      ],
+      "defines": [],
+      "answers": [
+        "Which document covers which topic?",
+        "What do the core terms mean?",
+        "Where are the machine-readable versions of these documents?"
+      ],
+      "file": "README.md",
+      "sections": [
+        {
+          "level": 2,
+          "title": "Reading order",
+          "anchor": "reading-order"
+        },
+        {
+          "level": 2,
+          "title": "Terms used throughout",
+          "anchor": "terms-used-throughout"
+        },
+        {
+          "level": 2,
+          "title": "Ways to read these documents",
+          "anchor": "ways-to-read-these-documents"
+        }
+      ]
+    },
+    {
+      "id": "overview",
+      "title": "Overview",
+      "order": 1,
+      "summary": "What Tabchat is, the ideas behind it, and what is in and out of scope.",
+      "status": "design",
+      "updated": "2026-10-13",
+      "audience": [
+        "everyone"
+      ],
+      "depends_on": [
+        "index"
+      ],
+      "related": [],
+      "defines": [],
+      "answers": [
+        "What is Tabchat for?",
+        "What is deliberately out of scope?"
+      ],
+      "file": "01-overview.md",
+      "sections": [
+        {
+          "level": 2,
+          "title": "What it is",
+          "anchor": "what-it-is"
+        },
+        {
+          "level": 2,
+          "title": "The ideas behind it",
+          "anchor": "the-ideas-behind-it"
+        },
+        {
+          "level": 2,
+          "title": "Scope: v1 features",
+          "anchor": "scope-v1-features"
+        },
+        {
+          "level": 2,
+          "title": "Out of scope (v1)",
+          "anchor": "out-of-scope-v1"
+        },
+        {
+          "level": 2,
+          "title": "What stays hard",
+          "anchor": "what-stays-hard"
+        }
+      ]
+    },
+    {
+      "id": "architecture",
+      "title": "Architecture",
+      "order": 2,
+      "summary": "System components, data flow, and design decisions.",
+      "status": "design",
+      "updated": "2026-10-13",
+      "audience": [
+        "developers"
+      ],
+      "depends_on": [
+        "index",
+        "overview"
+      ],
+      "related": [],
+      "defines": [],
+      "answers": [
+        "How is the app structured?",
+        "What are the main components?",
+        "How do services, profiles, and tabs relate?"
+      ],
+      "file": "02-architecture.md",
+      "sections": [
+        {
+          "level": 2,
+          "title": "Component tree",
+          "anchor": "component-tree"
+        },
+        {
+          "level": 2,
+          "title": "Data flow: opening a tab",
+          "anchor": "data-flow-opening-a-tab"
+        },
+        {
+          "level": 2,
+          "title": "Data flow: new message notification",
+          "anchor": "data-flow-new-message-notification"
+        },
+        {
+          "level": 2,
+          "title": "Persistence",
+          "anchor": "persistence"
+        },
+        {
+          "level": 2,
+          "title": "Planned but not yet built (v2+)",
+          "anchor": "planned-but-not-yet-built-v2"
+        }
+      ]
+    },
+    {
+      "id": "building",
+      "title": "Building",
+      "order": 3,
+      "summary": "Requirements, development environment, and build commands.",
+      "status": "provisional",
+      "updated": "2026-10-13",
+      "audience": [
+        "developers"
+      ],
+      "depends_on": [
+        "index"
+      ],
+      "related": [
+        "architecture"
+      ],
+      "defines": [],
+      "answers": [
+        "What do I need to build Tabchat?",
+        "How do I build, test and run it?",
+        "What is the development workflow?"
+      ],
+      "file": "03-building.md",
+      "sections": [
+        {
+          "level": 2,
+          "title": "Requirements",
+          "anchor": "requirements"
+        },
+        {
+          "level": 2,
+          "title": "Development environment",
+          "anchor": "development-environment"
+        },
+        {
+          "level": 2,
+          "title": "Build commands",
+          "anchor": "build-commands"
+        },
+        {
+          "level": 3,
+          "title": "Generate Xcode project",
+          "anchor": "generate-xcode-project"
+        },
+        {
+          "level": 3,
+          "title": "Build",
+          "anchor": "build"
+        },
+        {
+          "level": 3,
+          "title": "Run",
+          "anchor": "run"
+        },
+        {
+          "level": 3,
+          "title": "Test",
+          "anchor": "test"
+        },
+        {
+          "level": 3,
+          "title": "Lint",
+          "anchor": "lint"
+        },
+        {
+          "level": 3,
+          "title": "Format",
+          "anchor": "format"
+        },
+        {
+          "level": 3,
+          "title": "Release (planned)",
+          "anchor": "release-planned"
+        },
+        {
+          "level": 2,
+          "title": "Development workflow",
+          "anchor": "development-workflow"
+        },
+        {
+          "level": 2,
+          "title": "Debugging",
+          "anchor": "debugging"
+        },
+        {
+          "level": 3,
+          "title": "In Xcode",
+          "anchor": "in-xcode"
+        },
+        {
+          "level": 3,
+          "title": "App logs",
+          "anchor": "app-logs"
+        },
+        {
+          "level": 2,
+          "title": "Planned (not yet built)",
+          "anchor": "planned-not-yet-built"
+        }
+      ]
+    }
+  ]
+}

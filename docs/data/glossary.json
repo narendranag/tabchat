@@ -1,0 +1,26 @@
+[
+  {
+    "term": "WKWebView",
+    "definition": "The system WebKit browser engine (same as Safari); used by Tabchat to display services"
+  },
+  {
+    "term": "Service",
+    "definition": "A web app or website (WhatsApp, Discord, Teams, etc.) shown in a sidebar tab"
+  },
+  {
+    "term": "Tab",
+    "definition": "One instance of a service; the app can have multiple tabs of the same service (e.g. two WhatsApp accounts)"
+  },
+  {
+    "term": "Profile",
+    "definition": "A `WKWebsiteDataStore` for one sign-in; shared by related services (e.g. Teams, Outlook, OneDrive via \"microsoft-work\")"
+  },
+  {
+    "term": "Unread",
+    "definition": "A count badge on a service tab, the Dock icon and menu bar"
+  },
+  {
+    "term": "Focus",
+    "definition": "macOS notification Focus modes; Tabchat respects them before showing notifications"
+  }
+]
