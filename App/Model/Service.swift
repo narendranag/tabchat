@@ -73,6 +73,14 @@ enum ServiceCatalog {
             defaultProfileName: "X"
         ),
         Service(
+            id: "github",
+            name: "GitHub",
+            url: "https://github.com/",
+            kind: .builtIn,
+            defaultProfile: "github",
+            defaultProfileName: "GitHub"
+        ),
+        Service(
             id: "brightspace",
             name: "Brightspace",
             url: nil,

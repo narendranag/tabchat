@@ -118,7 +118,8 @@ final class CatalogLayoutTests: XCTestCase {
         let order = CatalogLayout.ordered(all, order: ["x", "gone", "reddit"]).map(\.id)
         XCTAssertEqual(Array(order.prefix(2)), ["x", "reddit"])
         XCTAssertEqual(order.count, all.count)
-        XCTAssertEqual(Array(order.suffix(2)), ["onedrive", "brightspace"])
+        // The rest keep catalog order.
+        XCTAssertEqual(Array(order.dropFirst(2)), all.map(\.id).filter { !["x", "reddit"].contains($0) })
     }
 
     func testHiddenCardsShowOnlyWhileEditing() {

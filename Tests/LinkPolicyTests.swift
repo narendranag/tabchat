@@ -62,6 +62,17 @@ final class SocialServiceTests: XCTestCase {
         XCTAssertNotEqual(first.profileId, second.profileId)
         XCTAssertEqual(try state.addTab(service: XCTUnwrap(ServiceCatalog.service(id: "x"))).profileId, "x")
     }
+
+    func testGitHubGroupAndProfile() throws {
+        let home = try url("https://github.com/")
+        let raw = try url("https://raw.githubusercontent.com/a/b/main/README.md")
+        XCTAssertEqual(LinkPolicy.decision(for: raw, tabURLs: [home]), .inApp)
+        XCTAssertEqual(try LinkPolicy.decision(for: url("https://example.com"), tabURLs: [home]), .external)
+        var state = AppState()
+        let github = try XCTUnwrap(ServiceCatalog.service(id: "github"))
+        XCTAssertEqual(state.addTab(service: github).profileId, "github")
+        XCTAssertTrue(ServiceCatalog.allowsSleepByDefault(serviceId: "github"))
+    }
 }
 
 final class LinkRouteTests: XCTestCase {
