@@ -56,7 +56,7 @@ Generates `Tabchat.xcodeproj` from `project.yml`. Run this after any change to `
 just build
 ```
 
-Builds the app for release (Ad-hoc code signing, no provisioning profile needed for local testing). Output: `build/Release/Tabchat.app`.
+Builds the app for release. Output: `build/DerivedData/Build/Products/Release/Tabchat.app`.
 
 ### Run
 
@@ -97,6 +97,21 @@ just release
 ```
 
 Packages the app as a `.app` and unsigned `.dmg` in `dist/`. Later, with Developer ID signing and notarization: a signed, notarized `.dmg` ready to share.
+
+## Code signing
+
+Local builds sign with the `Apple Development` identity of team `4HL2424MH6` (a free Personal Team
+certificate in the login keychain). A stable identity matters: WebKit keeps a "Tabchat WebCrypto
+Master Key" in the keychain, and an ad-hoc signature changes on every build, so Keychain would ask
+for permission after each rebuild.
+
+Without the certificate (CI, another Mac), sign ad-hoc:
+
+```sh
+TABCHAT_SIGN_IDENTITY=- just build
+```
+
+CI sets `TABCHAT_SIGN_IDENTITY=-`. Distribution signing (Developer ID, notarisation) is planned.
 
 ## Development workflow
 

@@ -5,11 +5,10 @@
 
 ## Now
 
-- [ ] **The rest**: split view, `Cmd+K`, tab sleep, duplicate/incognito, card order, settings window #mac
+- [ ] **Packaging**: unsigned `.app`/`.dmg` (Apple Silicon) built locally #mac
 
 ## Next
 
-- [ ] **Packaging**: unsigned `.app`/`.dmg` (Apple Silicon) built locally #mac
 
 ## Later
 
@@ -17,6 +16,8 @@
 
 ## Done
 
+- [x] Phase 5: split view, `Cmd+K`, tab sleep, duplicate/incognito, card order, link browser choice — 2026-10-13
+- [x] Stable Apple Development signing for local builds — 2026-10-13
 - [x] Phase 4 Mac integration (Dock/menu bar unread, notifications, pause, mute, login item, settings, menus) + Reddit and X — 2026-10-13
 - [x] Phase 2 skeleton (XcodeGen, just, lint, XCTest, CI) and phase 3 core — 2026-10-13
 - [x] Docs to the fleet standard (`docs/`) — 2026-10-13

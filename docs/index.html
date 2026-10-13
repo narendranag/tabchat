@@ -462,9 +462,8 @@ simpler; recipes in <code>justfile</code>)</li>
 <code>project.yml</code> or when syncing from remote.</p>
 <h3 id="building-build">Build</h3>
 <pre class="sh"><code>just build</code></pre>
-<p>Builds the app for release (Ad-hoc code signing, no provisioning
-profile needed for local testing). Output:
-<code>build/Release/Tabchat.app</code>.</p>
+<p>Builds the app for release. Output:
+<code>build/DerivedData/Build/Products/Release/Tabchat.app</code>.</p>
 <h3 id="building-run">Run</h3>
 <pre class="sh"><code>just run</code></pre>
 <p>Builds and runs the app in the simulator or on the current Mac.</p>
@@ -486,6 +485,17 @@ committing.</p>
 <code>.dmg</code> in <code>dist/</code>. Later, with Developer ID
 signing and notarization: a signed, notarized <code>.dmg</code> ready to
 share.</p>
+<h2 id="building-code-signing">Code signing</h2>
+<p>Local builds sign with the <code>Apple Development</code> identity of
+team <code>4HL2424MH6</code> (a free Personal Team certificate in the
+login keychain). A stable identity matters: WebKit keeps a "Tabchat
+WebCrypto Master Key" in the keychain, and an ad-hoc signature changes
+on every build, so Keychain would ask for permission after each
+rebuild.</p>
+<p>Without the certificate (CI, another Mac), sign ad-hoc:</p>
+<pre class="sh"><code>TABCHAT_SIGN_IDENTITY=- just build</code></pre>
+<p>CI sets <code>TABCHAT_SIGN_IDENTITY=-</code>. Distribution signing
+(Developer ID, notarisation) is planned.</p>
 <h2 id="building-development-workflow">Development workflow</h2>
 <ol type="1">
 <li><p><strong>Clone and install:</strong></p>
@@ -537,7 +547,7 @@ just test</code></pre></li>
 <li>Auto-formatting in CI (optional, on PR review)</li>
 </ul>
 </article>
-    <nav class="toc" aria-label="On this page"><div class="toc-title">On this page</div><a href="#building-requirements">Requirements</a><a href="#building-development-environment">Development environment</a><a href="#building-build-commands">Build commands</a><a href="#building-development-workflow">Development workflow</a><a href="#building-debugging">Debugging</a><a href="#building-planned-not-yet-built">Planned (not yet built)</a></nav>
+    <nav class="toc" aria-label="On this page"><div class="toc-title">On this page</div><a href="#building-requirements">Requirements</a><a href="#building-development-environment">Development environment</a><a href="#building-build-commands">Build commands</a><a href="#building-code-signing">Code signing</a><a href="#building-development-workflow">Development workflow</a><a href="#building-debugging">Debugging</a><a href="#building-planned-not-yet-built">Planned (not yet built)</a></nav>
   </div>
   <footer class="pager"><a class="prev" href="#architecture">&larr; Architecture</a><span></span></footer>
 </section>

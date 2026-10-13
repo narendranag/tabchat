@@ -216,6 +216,11 @@
         },
         {
           "level": 2,
+          "title": "Code signing",
+          "anchor": "code-signing"
+        },
+        {
+          "level": 2,
           "title": "Development workflow",
           "anchor": "development-workflow"
         },

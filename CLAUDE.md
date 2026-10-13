@@ -19,7 +19,7 @@ This brain follows the fleet's standard: how projects are built is in
 
 Planning done (2026-10-13): rewriting from scratch as a native Swift app (macOS 14+, sidebar,
 English only). Upstream's Linux code moved to the `Linux` branch; `main` is clean. The WKWebView engine spike
-passed (GO); phases 2–4 (skeleton, core, Mac integration) are built; now: phase 5 (split view, Cmd+K, tab sleep).
+passed (GO); phases 2–5 are built; now: phase 6 (unsigned `.dmg`).
 
 ## Stack
 
