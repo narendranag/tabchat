@@ -45,12 +45,16 @@ private struct SidebarItem: View {
                 .overlay(
                     RoundedRectangle(cornerRadius: 12).stroke(selected ? Color.accentColor : .clear, lineWidth: 2)
                 )
-            if let count = model.unread[tab.id], count > 0 {
-                Text(count > 99 ? "99+" : "\(count)")
-                    .font(.system(size: 10, weight: .bold)).foregroundStyle(.white)
-                    .padding(.horizontal, 5).padding(.vertical, 1)
-                    .background(Capsule().fill(.red))
-                    .offset(x: 4, y: -2)
+            if let unread = model.unread[tab.id], unread.hasUnread {
+                if unread.count >= 1 {
+                    Text(unread.count > 99 ? "99+" : "\(unread.count)")
+                        .font(.system(size: 10, weight: .bold)).foregroundStyle(.white)
+                        .padding(.horizontal, 5).padding(.vertical, 1)
+                        .background(Capsule().fill(.red))
+                        .offset(x: 4, y: -2)
+                } else {
+                    Circle().fill(.red).frame(width: 10, height: 10).offset(x: 2, y: 0)
+                }
             }
         }
         .contentShape(Rectangle())
@@ -66,6 +70,7 @@ private struct SidebarItem: View {
             Button("Rename…") { renaming = tab }
             Button("Reload") { model.controllers[tab.id]?.reload() }
             Button("Add Another Account") { model.addAnotherAccount(of: tab) }
+            Toggle("Mute Notifications", isOn: Binding(get: { tab.muted }, set: { model.setMuted(tab.id, $0) }))
             Divider()
             Button("Remove", role: .destructive) { model.removeTab(tab.id) }
         }

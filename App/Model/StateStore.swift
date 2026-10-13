@@ -37,11 +37,12 @@ struct StateStore: Sendable {
     }
 
     static func decode(_ data: Data) throws -> AppState {
-        let state = try JSONDecoder().decode(AppState.self, from: data)
+        var state = try JSONDecoder().decode(AppState.self, from: data)
         // A newer app wrote this file; refuse rather than silently dropping fields on the next save.
         guard state.schemaVersion <= AppState.currentVersion else {
             throw StateStoreError.unsupportedVersion(state.schemaVersion)
         }
+        state.schemaVersion = AppState.currentVersion
         return state
     }
 }

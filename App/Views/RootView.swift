@@ -2,11 +2,12 @@ import SwiftUI
 
 struct RootView: View {
     @Environment(AppModel.self) private var model
-    @State private var showingAdd = false
 
     var body: some View {
+        @Bindable var model = model
+        let showingAdd = $model.showingAdd
         HStack(spacing: 0) {
-            SidebarView(showingAdd: $showingAdd)
+            SidebarView(showingAdd: showingAdd)
                 .frame(width: 56)
             Divider()
             ZStack(alignment: .top) {
@@ -14,15 +15,16 @@ struct RootView: View {
                 if let controller = model.selectedController {
                     TabOverlay(controller: controller)
                 } else {
-                    EmptyStateView(showingAdd: $showingAdd)
+                    EmptyStateView(showingAdd: showingAdd)
                 }
             }
             .overlay(alignment: .bottom) { ToastView() }
         }
         .navigationTitle(model.selectedTab?.displayName ?? "Tabchat")
         .toolbar { NavigationToolbar() }
-        .sheet(isPresented: $showingAdd) { AddServiceSheet() }
+        .sheet(isPresented: showingAdd) { AddServiceSheet() }
         .onAppear { model.start() }
+        .background(WindowAccessor { MainWindow.shared.adopt($0, startHidden: model.state.settings.startHidden) })
     }
 }
 

@@ -57,6 +57,22 @@ enum ServiceCatalog {
             defaultProfileName: "Microsoft (work)"
         ),
         Service(
+            id: "reddit",
+            name: "Reddit",
+            url: "https://www.reddit.com/",
+            kind: .builtIn,
+            defaultProfile: "reddit",
+            defaultProfileName: "Reddit"
+        ),
+        Service(
+            id: "x",
+            name: "X",
+            url: "https://x.com/home",
+            kind: .builtIn,
+            defaultProfile: "x",
+            defaultProfileName: "X"
+        ),
+        Service(
             id: "brightspace",
             name: "Brightspace",
             url: nil,

@@ -17,13 +17,21 @@ struct TabchatApp: App {
                     .frame(minWidth: 900, minHeight: 600)
             }
         }
-        .commands { AppCommands(model: model) }
+        .commands { AppCommands(model: model, menu: model.menuState) }
+
+        MenuBarExtra { MenuBarContent(model: model) } label: { MenuBarIcon(model: model) }
+
+        Settings {
+            SettingsView().environment(model)
+        }
     }
 }
 
 final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         guard !AppEnvironment.isTesting else { return }
+        // Start the tabs now, not when the window first appears: a hidden launch must still load them.
+        AppModel.shared.start()
         let center = UNUserNotificationCenter.current()
         center.delegate = self
         center.requestAuthorization(options: [.alert, .sound, .badge]) { _, _ in }
@@ -35,7 +43,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-        true
+        // Dock click: bring the hidden window back ourselves; if there is none yet, let SwiftUI make it.
+        !MainWindow.shared.show()
     }
 
     func userNotificationCenter(

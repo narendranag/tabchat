@@ -1,13 +1,15 @@
 import Foundation
 
 /// Everything that is saved to disk. `schemaVersion` lets a later release migrate old files.
+/// Version 2 added `settings` and `Tab.muted`.
 struct AppState: Codable, Equatable, Sendable {
-    static let currentVersion = 1
+    static let currentVersion = 2
 
     var schemaVersion = AppState.currentVersion
     var profiles: [Profile] = []
     var tabs: [Tab] = []
     var selectedTabId: UUID?
+    var settings = AppSettings()
 
     /// First launch: a few common services so the window is not empty.
     static func firstRun() -> AppState {
@@ -61,6 +63,13 @@ struct AppState: Codable, Equatable, Sendable {
         }
     }
 
+    /// Puts a previously removed tab back (at its old position if it still exists) and selects it.
+    mutating func restoreTab(_ tab: Tab, at index: Int) {
+        guard !tabs.contains(where: { $0.id == tab.id }) else { return }
+        tabs.insert(tab, at: min(max(index, 0), tabs.count))
+        selectedTabId = tab.id
+    }
+
     /// Moves `id` to the position of `target` (drag and drop in the sidebar).
     mutating func moveTab(_ id: UUID, before target: UUID) {
         guard id != target, let from = tabs.firstIndex(where: { $0.id == id }) else { return }
@@ -81,5 +90,18 @@ struct AppState: Codable, Equatable, Sendable {
             n += 1
         }
         return n
+    }
+}
+
+/// Older files are upgraded on load: missing keys take defaults, then the version is raised so the
+/// next save writes the current schema.
+extension AppState {
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        schemaVersion = try values.decodeIfPresent(Int.self, forKey: .schemaVersion) ?? 1
+        profiles = try values.decodeIfPresent([Profile].self, forKey: .profiles) ?? []
+        tabs = try values.decodeIfPresent([Tab].self, forKey: .tabs) ?? []
+        selectedTabId = try values.decodeIfPresent(UUID.self, forKey: .selectedTabId)
+        settings = try values.decodeIfPresent(AppSettings.self, forKey: .settings) ?? AppSettings()
     }
 }

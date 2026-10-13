@@ -41,3 +41,25 @@ final class LinkPolicyTests: XCTestCase {
         XCTAssertEqual(LinkPolicy.siteKey(host: "a.b.example.com"), "example.com")
     }
 }
+
+final class SocialServiceTests: XCTestCase {
+    private func url(_ string: String) throws -> URL {
+        try XCTUnwrap(URL(string: string))
+    }
+
+    func testXAndRedditGroupsAndProfiles() throws {
+        let home = try url("https://x.com/home")
+        let reddit = try url("https://www.reddit.com/")
+        XCTAssertEqual(try LinkPolicy.decision(for: url("https://t.co/abc"), tabURLs: [home]), .inApp)
+        XCTAssertEqual(try LinkPolicy.decision(for: url("https://twitter.com/a"), tabURLs: [home]), .inApp)
+        XCTAssertEqual(try LinkPolicy.decision(for: url("https://redd.it/abc"), tabURLs: [reddit]), .inApp)
+        XCTAssertEqual(try LinkPolicy.decision(for: url("https://example.com"), tabURLs: [home]), .external)
+        var state = AppState()
+        let redditService = try XCTUnwrap(ServiceCatalog.service(id: "reddit"))
+        let first = state.addTab(service: redditService)
+        let second = state.addTab(service: redditService, newAccount: true)
+        XCTAssertEqual(first.profileId, "reddit")
+        XCTAssertNotEqual(first.profileId, second.profileId)
+        XCTAssertEqual(try state.addTab(service: XCTUnwrap(ServiceCatalog.service(id: "x"))).profileId, "x")
+    }
+}

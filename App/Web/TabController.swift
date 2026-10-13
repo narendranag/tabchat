@@ -144,7 +144,7 @@ final class TabController: NSObject {
     // MARK: Reports
 
     private func titleChanged(_ title: String) {
-        model?.setUnread(tab.id, UnreadParser.count(fromTitle: title))
+        model?.setUnread(tab.id, UnreadParser.parse(title: title))
     }
 
     fileprivate func handle(message: WKScriptMessage) {

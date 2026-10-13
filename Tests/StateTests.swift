@@ -66,3 +66,40 @@ final class StateTests: XCTestCase {
         XCTAssertNil(URLInput.normalize("javascript:alert(1)"))
     }
 }
+
+final class StateMigrationTests: XCTestCase {
+    func testMigratesVersion1File() throws {
+        let tabId = UUID()
+        let json = """
+        {"schemaVersion": 1,
+         "profiles": [{"id": "discord-1", "name": "Discord"}],
+         "tabs": [{"id": "\(tabId.uuidString)", "serviceId": "discord", "profileId": "discord-1", "colorHex": "2F80ED"}],
+         "selectedTabId": "\(tabId.uuidString)"}
+        """
+        let state = try StateStore.decode(Data(json.utf8))
+        XCTAssertEqual(state.schemaVersion, AppState.currentVersion)
+        XCTAssertEqual(state.tabs.map(\.id), [tabId])
+        XCTAssertEqual(state.selectedTabId, tabId)
+        XCTAssertFalse(state.tabs[0].muted)
+        XCTAssertEqual(state.settings, AppSettings())
+        XCTAssertTrue(state.settings.showDockBadge)
+        // The upgraded file saves as the current version and reads back the same.
+        XCTAssertEqual(try StateStore.decode(StateStore.encode(state)), state)
+    }
+
+    func testRestoreTabPutsItBackInPlace() {
+        var state = AppState.firstRun()
+        let removed = state.tabs[1]
+        state.removeTab(removed.id)
+        XCTAssertEqual(state.tabs.count, 3)
+        state.restoreTab(removed, at: 1)
+        XCTAssertEqual(state.tabs[1], removed)
+        XCTAssertEqual(state.selectedTabId, removed.id)
+        // Restoring twice does nothing, and an out-of-range index appends.
+        state.restoreTab(removed, at: 0)
+        XCTAssertEqual(state.tabs.count, 4)
+        var other = AppState()
+        other.restoreTab(removed, at: 9)
+        XCTAssertEqual(other.tabs, [removed])
+    }
+}
