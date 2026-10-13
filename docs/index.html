@@ -479,12 +479,29 @@ block CI; warnings are logged.</p>
 <pre class="sh"><code>just format</code></pre>
 <p>Auto-formats Swift code with swiftformat. Useful before
 committing.</p>
-<h3 id="building-release-planned">Release (planned)</h3>
+<h3 id="building-release">Release</h3>
 <pre class="sh"><code>just release</code></pre>
-<p>Packages the app as a <code>.app</code> and unsigned
-<code>.dmg</code> in <code>dist/</code>. Later, with Developer ID
-signing and notarization: a signed, notarized <code>.dmg</code> ready to
-share.</p>
+<p>Builds the app in Release configuration. Output:
+<code>build/DerivedData/Build/Products/Release/Tabchat.app</code>.</p>
+<h3 id="building-packaging">Packaging</h3>
+<pre class="sh"><code>just dmg</code></pre>
+<p>Builds the app and packages it as a <code>.dmg</code> installer at
+<code>build/Tabchat-&lt;version&gt;.dmg</code>, where version is read
+from the app's <code>CFBundleShortVersionString</code> in
+Info.plist.</p>
+<p>The DMG contains:</p>
+<ul>
+<li><strong>Tabchat.app:</strong> The signed application</li>
+<li><strong>Applications symlink:</strong> For easy installation
+(drag-and-drop to Applications)</li>
+</ul>
+<p>The app is signed with the local <code>Apple Development</code>
+identity (team <code>4HL2424MH6</code>). On another Mac without this
+certificate, Gatekeeper will block the app. To run it:</p>
+<ul>
+<li>Right-click the app and select "Open"</li>
+<li>Or go to System Settings → Privacy &amp; Security → Open Anyway</li>
+</ul>
 <h2 id="building-code-signing">Code signing</h2>
 <p>Local builds sign with the <code>Apple Development</code> identity of
 team <code>4HL2424MH6</code> (a free Personal Team certificate in the

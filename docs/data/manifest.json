@@ -211,8 +211,13 @@
         },
         {
           "level": 3,
-          "title": "Release (planned)",
-          "anchor": "release-planned"
+          "title": "Release",
+          "anchor": "release"
+        },
+        {
+          "level": 3,
+          "title": "Packaging",
+          "anchor": "packaging"
         },
         {
           "level": 2,

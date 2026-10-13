@@ -90,13 +90,29 @@ just format
 
 Auto-formats Swift code with swiftformat. Useful before committing.
 
-### Release (planned)
+### Release
 
 ```sh
 just release
 ```
 
-Packages the app as a `.app` and unsigned `.dmg` in `dist/`. Later, with Developer ID signing and notarization: a signed, notarized `.dmg` ready to share.
+Builds the app in Release configuration. Output: `build/DerivedData/Build/Products/Release/Tabchat.app`.
+
+### Packaging
+
+```sh
+just dmg
+```
+
+Builds the app and packages it as a `.dmg` installer at `build/Tabchat-<version>.dmg`, where version is read from the app's `CFBundleShortVersionString` in Info.plist.
+
+The DMG contains:
+- **Tabchat.app:** The signed application
+- **Applications symlink:** For easy installation (drag-and-drop to Applications)
+
+The app is signed with the local `Apple Development` identity (team `4HL2424MH6`). On another Mac without this certificate, Gatekeeper will block the app. To run it:
+- Right-click the app and select "Open"
+- Or go to System Settings → Privacy & Security → Open Anyway
 
 ## Code signing
 

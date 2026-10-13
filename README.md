@@ -3,7 +3,9 @@
 WhatsApp, Discord, Teams, Outlook, OneDrive, Brightspace and any website in one Mac window,
 in a sidebar, sharing the system's own web engine.
 
-**Status: early, built in public.** Nothing to download yet. This README, [`TASKS.md`](TASKS.md)
+**Status: v0.1.0 runs, built in public.** Every feature below is built and in daily use on the
+author's Mac; there's no public download yet (`just dmg` builds one, see
+[`docs/03-building.md`](docs/03-building.md)). This README, [`TASKS.md`](TASKS.md)
 and [`DECISIONS.md`](DECISIONS.md) are kept up to date as the work goes; the full plan is in
 [`brief/mac-rewrite.md`](brief/mac-rewrite.md).
 
@@ -16,7 +18,7 @@ keeps the idea, the name and the feature list, not the code.
 The Linux code as it was forked lives on the [`Linux`](https://github.com/narendranag/tabchat/tree/Linux) branch (tag
 `upstream-final`). For Linux, use [the original](https://github.com/MMV2408/tabchat).
 
-## What it will do
+## What it does
 
 - Each service in a sidebar: WhatsApp, Discord, Teams, Outlook, OneDrive, Brightspace, and your own sites
 - Several accounts of the same service, each with its own sign-in; one Microsoft sign-in shared
@@ -26,7 +28,8 @@ The Linux code as it was forked lives on the [`Linux`](https://github.com/narend
 - Keeps running in the menu bar when the window is closed; optional start at login
 - Pause notifications for an hour, until tomorrow, or until you turn it back on
 - Find on page, downloads, back/forward/reload, light and dark mode
-- Later: split view, a `Cmd+K` quick switcher, sleeping services to save memory
+- Split view, a `Cmd+K` quick switcher, and sleeping services to save memory
+- WhatsApp, Discord, Teams, Outlook, OneDrive, Brightspace, Reddit, X, or any site you add
 
 ## How it's built
 
@@ -37,14 +40,24 @@ The Linux code as it was forked lives on the [`Linux`](https://github.com/narend
 
 ## Roadmap
 
-1. **Engine spike** (now): a throwaway app that checks every service works in `WKWebView`,
-   including calls and screen sharing in Teams and Discord. If it doesn't, the fallback is a
-   clean Electron rewrite.
-2. Skeleton: Xcode project, build and test commands, CI
-3. Core: sidebar, services, accounts, navigation, find, downloads
-4. Mac integration: unread badges, notifications, menu bar, login item, shortcuts
-5. Split view, quick switcher, sleeping services, settings
-6. A `.dmg` you can download
+1. ~~Engine spike~~: every service works in `WKWebView`, calls and screen sharing included
+2. ~~Skeleton~~: Xcode project, build and test commands, CI
+3. ~~Core~~: sidebar, services, accounts, navigation, find, downloads
+4. ~~Mac integration~~: unread badges, notifications, menu bar, login item, shortcuts
+5. ~~Split view, quick switcher, sleeping services, settings~~
+6. ~~A `.dmg`~~ (`just dmg`), not yet published
+7. Next: a public download, then signing and notarisation so it opens anywhere without warnings
+
+## Building
+
+```sh
+brew install xcodegen swiftlint swiftformat just
+just run        # build and open
+just dmg        # build/Tabchat-<version>.dmg
+```
+
+Needs macOS 14+, Apple Silicon and Xcode 26 or later. Without an Apple Development certificate,
+use `TABCHAT_SIGN_IDENTITY=- just run`. More in [`docs/03-building.md`](docs/03-building.md).
 
 ## License
 
