@@ -5,11 +5,10 @@
 
 ## Now
 
-- [ ] **Engine spike** (`spike/`, throwaway): WKWebView per service; check sign-in persistence, separate accounts, shared Microsoft sign-in, notification shim, Teams/Discord calls and screen share, Brightspace SSO. Go/no-go into `DECISIONS.md` — see `brief/mac-rewrite.md` #mac
+- [ ] **Skeleton**: XcodeGen project, `just` recipes, swiftformat/swiftlint, XCTest, Actions CI #mac
 
 ## Next
 
-- [ ] **Skeleton**: XcodeGen project, `just` recipes, swiftformat/swiftlint, XCTest, Actions CI #mac
 - [ ] **Core**: sidebar, service catalog, custom sites, profiles, persistence, navigation, find, downloads, external links, offline screen #mac
 - [ ] **Mac integration**: unread on tabs/Dock/menu bar, notifications → tab, pause, close keeps running, login item, app menu + shortcuts #mac
 - [ ] **The rest**: split view, `Cmd+K`, tab sleep, duplicate/incognito, card order, settings window #mac
@@ -22,4 +21,6 @@
 
 ## Done
 
+- [x] Engine spike: GO (`spike/`) — 2026-10-13
+- [x] Linux code to the `Linux` branch, clean `main`, README for building in public — 2026-10-13
 - [x] Plan and decisions for the Mac rewrite (`brief/mac-rewrite.md`) — 2026-10-13
