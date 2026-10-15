@@ -31,11 +31,20 @@ enum WhatsAppScripts {
       for (let j = 0; j < 20 && pane.scrollTop === 0 && pane.scrollHeight === height; j++) await wait(100);
       if (pane.scrollTop === 0 && pane.scrollHeight === height) break;
     }
+    // Each new message goes right after the known message drawn before it, so a row WhatsApp keeps
+    // drawn while scrolling (the newest, say) does not land out of order.
     const seen = new Map();
+    const order = [];
     const collect = () => {
+      let at = -1;
       for (const el of main.querySelectorAll("[data-id]")) {
+        const id = el.getAttribute("data-id") || "";
+        if (seen.has(id)) { at = order.indexOf(id); continue; }
         const message = readMessage(el);
-        if (message.rendered && !seen.has(message.id)) seen.set(message.id, message);
+        if (!message.rendered) continue;
+        seen.set(id, message);
+        order.splice(at + 1, 0, id);
+        at += 1;
       }
     };
     for (let i = 0; i < 400; i++) {
@@ -48,7 +57,7 @@ enum WhatsAppScripts {
     }
     collect();
     pane.scrollTop = pane.scrollHeight;
-    return JSON.stringify({ok: true, chat, messages: Array.from(seen.values())});
+    return JSON.stringify({ok: true, chat, messages: order.map(id => seen.get(id))});
     """#
 
     /// Finds the open chat: `main` and its title `chat`.
@@ -241,10 +250,45 @@ extension WhatsAppScripts {
             ?? Result(ok: false, reason: "script returned something unreadable")
     }
 
+    /// The date part of a stamp ("1:03 pm, 14/10/2026" → "14/10/2026").
+    static func date(of stamp: String) -> String {
+        guard let comma = stamp.lastIndex(of: ",") else { return "" }
+        return stamp[stamp.index(after: comma)...].trimmingCharacters(in: .whitespaces)
+    }
+
+    /// Fills `date` for every message: from its own stamp, or, for documents and others WhatsApp
+    /// gives no stamp, from its neighbours when the stamped messages before and after it share a day
+    /// (messages are in order, so it must be that day). Otherwise it stays nil.
+    static func datedMessages(_ messages: [AgentMessage]) -> [AgentMessage] {
+        let own = messages.map { date(of: $0.stamp) }
+        var before = [String](repeating: "", count: own.count)
+        var after = before
+        var last = ""
+        for index in own.indices {
+            if !own[index].isEmpty {
+                last = own[index]
+            }
+            before[index] = last
+        }
+        last = ""
+        for index in own.indices.reversed() {
+            if !own[index].isEmpty {
+                last = own[index]
+            }
+            after[index] = last
+        }
+        return messages.indices.map { index in
+            var message = messages[index]
+            let date = own[index].isEmpty ? (before[index] == after[index] ? before[index] : "") : own[index]
+            message.date = date.isEmpty ? nil : date
+            return message
+        }
+    }
+
     static func messagesResponse(json: String) -> AgentResponse {
         let result = decode(json)
         guard result.ok, let messages = result.messages else { return .failure(result.reason ?? "reader failed") }
-        var response = AgentResponse(ok: true, untrusted: true, messages: messages)
+        var response = AgentResponse(ok: true, untrusted: true, messages: datedMessages(messages))
         response.chat = result.chat
         return response
     }

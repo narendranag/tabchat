@@ -93,6 +93,9 @@ struct AgentMessage: Codable, Equatable, Sendable {
     var stamp: String
     /// The time shown on the bubble.
     var time: String
+    /// The day, as WhatsApp writes it ("14/10/2026"): from `stamp`, or from the neighbours when both
+    /// sides agree; nil when it can't be known.
+    var date: String?
     var text: String
     var document: AgentDocument?
     /// "image" or "video" when the message carries one (download saves it), else nil.

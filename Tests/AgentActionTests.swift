@@ -76,6 +76,7 @@ final class AgentActionTests: XCTestCase {
         XCTAssertEqual(response.messages, [
             AgentMessage(
                 id: "MSG1", direction: "in", sender: "Ada Example", stamp: "1:03 pm, 14/10/2026", time: "1:03 pm",
+                date: "14/10/2026",
                 text: "Here is the summary", document: nil
             ),
             AgentMessage(
@@ -148,7 +149,21 @@ final class AgentActionTests: XCTestCase {
         let html = """
         <html><body><div id="main"><header><span data-testid="conversation-info-header-chat-title">Ada Example</span></header>
         <div id="pane" style="height:200px;overflow-y:auto">\(rows)</div></div>
-        <script>const p = document.getElementById("pane"); p.scrollTop = p.scrollHeight;</script></body></html>
+        <script>
+        // Like WhatsApp: rows out of view are emptied, except the newest, which stays drawn.
+        const p = document.getElementById("pane");
+        const rows = Array.from(p.querySelectorAll("[data-id]"));
+        const draw = () => rows.forEach((row, i) => {
+          const box = row.getBoundingClientRect(), view = p.getBoundingClientRect();
+          const hidden = i < rows.length - 1 && (box.bottom < view.top || box.top > view.bottom);
+          const mark = row.querySelector("[data-virtualized]");
+          if (hidden && !mark) row.insertAdjacentHTML("afterbegin", '<div data-virtualized="true"></div>');
+          if (!hidden && mark) mark.remove();
+        });
+        p.addEventListener("scroll", draw);
+        p.scrollTop = p.scrollHeight;
+        draw();
+        </script></body></html>
         """
         let webView = WKWebView(frame: NSRect(x: 0, y: 0, width: 800, height: 600))
         webView.loadHTMLString(html, baseURL: URL(string: "https://example.invalid/"))
@@ -163,6 +178,17 @@ final class AgentActionTests: XCTestCase {
             "(p => p.scrollTop + p.clientHeight >= p.scrollHeight - 2)(document.getElementById('pane'))"
         ) as? Bool
         XCTAssertEqual(atBottom, true)
+    }
+
+    func testDatesComeFromStampsOrAgreeingNeighbours() {
+        func message(_ id: String, _ stamp: String) -> AgentMessage {
+            AgentMessage(id: id, direction: "in", sender: "", stamp: stamp, time: "", text: "", document: nil)
+        }
+        let dated = WhatsAppScripts.datedMessages([
+            message("A", ""), message("B", "9:00 am, 01/09/2026"), message("C", ""),
+            message("D", "5:00 pm, 01/09/2026"), message("E", ""), message("F", "8:00 am, 03/09/2026")
+        ])
+        XCTAssertEqual(dated.map(\.date), [nil, "01/09/2026", "01/09/2026", "01/09/2026", nil, "03/09/2026"])
     }
 
     @MainActor
