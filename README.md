@@ -90,7 +90,7 @@ claude mcp add --scope user tabchat -- /Applications/Tabchat.app/Contents/MacOS/
 - Native notifications that respect Focus; clicking one opens the right service; pause and mute
 - Keeps running in the menu bar when the window is closed; optional start at login
 - Find on page, downloads, split view, a `Cmd+K` quick switcher, sleeping services to save memory
-- Built in: WhatsApp, Discord, Teams, Outlook, OneDrive, Brightspace, Reddit, X, GitHub — or any site
+- Built in: WhatsApp, Discord, Teams, Outlook, OneDrive, LinkedIn, Brightspace, Reddit, X, GitHub — or any site
 
 Swift, SwiftUI and AppKit with `WKWebView` — Safari's engine, so the app stays a few megabytes.
 macOS 14 Sonoma or later, Apple Silicon.

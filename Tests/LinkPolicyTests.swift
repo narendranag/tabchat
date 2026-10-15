@@ -73,6 +73,16 @@ final class SocialServiceTests: XCTestCase {
         XCTAssertEqual(state.addTab(service: github).profileId, "github")
         XCTAssertTrue(ServiceCatalog.allowsSleepByDefault(serviceId: "github"))
     }
+
+    func testLinkedInGroupProfileAndStaysAwake() throws {
+        let messaging = try url("https://www.linkedin.com/messaging/")
+        XCTAssertEqual(try LinkPolicy.decision(for: url("https://media.licdn.com/dms/image/x"), tabURLs: [messaging]), .inApp)
+        XCTAssertEqual(try LinkPolicy.decision(for: url("https://example.com"), tabURLs: [messaging]), .external)
+        var state = AppState()
+        let linkedin = try XCTUnwrap(ServiceCatalog.service(id: "linkedin"))
+        XCTAssertEqual(state.addTab(service: linkedin).profileId, "linkedin")
+        XCTAssertFalse(ServiceCatalog.allowsSleepByDefault(serviceId: "linkedin"))
+    }
 }
 
 final class LinkRouteTests: XCTestCase {

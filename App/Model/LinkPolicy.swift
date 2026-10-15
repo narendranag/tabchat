@@ -34,7 +34,8 @@ enum LinkPolicy {
         ["whatsapp.com", "whatsapp.net"],
         ["x.com", "twitter.com", "t.co", "twimg.com"],
         ["reddit.com", "redd.it", "redditmedia.com", "redditstatic.com"],
-        ["github.com", "githubusercontent.com", "githubassets.com"]
+        ["github.com", "githubusercontent.com", "githubassets.com"],
+        ["linkedin.com", "licdn.com"]
     ]
 
     private static let secondLevelLabels: Set<String> = ["co", "com", "org", "net", "gov", "ac", "edu"]
