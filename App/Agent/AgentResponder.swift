@@ -16,6 +16,28 @@ enum AgentResponder {
         return .success(tab)
     }
 
+    /// The tab a request names when actions are allowed there too.
+    static func actionTab(for request: AgentRequest, in state: AppState) -> Result<Tab, AgentError> {
+        switch tab(for: request, in: state) {
+        case let .success(tab) where tab.agentActions: .success(tab)
+        case .success: .failure(.message("actions are off for this tab (Tabchat → Settings → Agents)"))
+        case let .failure(error): .failure(error)
+        }
+    }
+
+    /// `~/Downloads/Tabchat/<service>/<contact>/`, with the names made safe for a folder.
+    static func downloadFolder(base: URL, service: String, contact: String) -> URL {
+        base.appendingPathComponent("Tabchat", isDirectory: true)
+            .appendingPathComponent(folderName(service), isDirectory: true)
+            .appendingPathComponent(folderName(contact), isDirectory: true)
+    }
+
+    static func folderName(_ raw: String) -> String {
+        let cleaned = raw.map { "/:\\".contains($0) || $0.isNewline ? "-" : $0 }
+        let name = String(cleaned).trimmingCharacters(in: .whitespaces).trimmingCharacters(in: CharacterSet(charactersIn: "."))
+        return name.isEmpty ? "unknown" : String(name.prefix(80))
+    }
+
     static func tabs(state: AppState, unread: [UUID: Unread], loaded: Set<UUID>) -> AgentResponse {
         let tabs = readableTabs(state).map { tab in
             let value = unread[tab.id] ?? .none

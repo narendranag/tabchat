@@ -22,6 +22,8 @@ final class TabController: NSObject {
     @ObservationIgnored private var observers: [NSKeyValueObservation] = []
     @ObservationIgnored private var popups: [ObjectIdentifier: NSWindow] = [:]
     @ObservationIgnored private var downloadNames: [ObjectIdentifier: URL] = [:]
+    /// Set by the agent API while it waits for a download it started; see `AgentDownloadSlot`.
+    @ObservationIgnored var agentDownload: AgentDownloadSlot?
 
     init(tab: Tab, dataStore: WKWebsiteDataStore, model: AppModel) {
         self.tab = tab
@@ -349,7 +351,13 @@ extension TabController: WKDownloadDelegate {
         _ download: WKDownload, decideDestinationUsing response: URLResponse, suggestedFilename: String,
         completionHandler: @escaping @MainActor @Sendable (URL?) -> Void
     ) {
-        let directory = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask)[0]
+        var directory = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask)[0]
+        if let slot = agentDownload, slot.download == nil {
+            slot.download = ObjectIdentifier(download)
+            slot.source = response.url
+            directory = slot.directory
+            try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        }
         let destination = DownloadNaming.uniqueURL(in: directory, filename: suggestedFilename) {
             FileManager.default.fileExists(atPath: $0.path)
         }
@@ -358,13 +366,21 @@ extension TabController: WKDownloadDelegate {
     }
 
     func downloadDidFinish(_ download: WKDownload) {
-        if let url = downloadNames.removeValue(forKey: ObjectIdentifier(download)) {
+        if let slot = agentDownload, slot.download == ObjectIdentifier(download),
+           let url = downloadNames.removeValue(forKey: ObjectIdentifier(download)) {
+            AgentDownloadSlot.quarantine(url, source: slot.source)
+            slot.finished = url
+            model?.showToast("Agent downloaded \(url.lastPathComponent)")
+        } else if let url = downloadNames.removeValue(forKey: ObjectIdentifier(download)) {
             model?.showToast("Downloaded \(url.lastPathComponent)")
         }
     }
 
     func download(_ download: WKDownload, didFailWithError error: Error, resumeData: Data?) {
         downloadNames[ObjectIdentifier(download)] = nil
+        if let slot = agentDownload, slot.download == ObjectIdentifier(download) {
+            slot.failure = error.localizedDescription
+        }
         model?.showToast("Download failed: \(error.localizedDescription)")
     }
 }

@@ -41,6 +41,28 @@ enum PageReaders {
     return JSON.stringify({ok: true, chats});
     """#
 
+    /// The structure under a selector: tags, roles, labels and data attributes, text only as a length
+    /// unless it is short. For writing readers against a real page; debug builds only.
+    static let inspect = #"""
+    const root = document.querySelector(selector);
+    if (!root) return "no match for " + selector;
+    const lines = [];
+    const walk = (el, depth) => {
+      if (lines.length > 600 || depth > maxDepth) return;
+      const attrs = [];
+      for (const a of el.attributes) {
+        if (a.name === "class" || a.name === "style") continue;
+        attrs.push(a.name + "=" + JSON.stringify(a.value.slice(0, 80)));
+      }
+      const own = Array.from(el.childNodes).filter(n => n.nodeType === 3).map(n => n.textContent).join("").trim();
+      const text = own ? " text=" + JSON.stringify(own.slice(0, 40)) : "";
+      lines.push("  ".repeat(depth) + el.tagName.toLowerCase() + (attrs.length ? " " + attrs.join(" ") : "") + text);
+      for (const child of el.children) walk(child, depth + 1);
+    };
+    walk(root, 0);
+    return lines.join("\n");
+    """#
+
     /// Any page: its address, title and the text a person can see, capped at `max` characters.
     static let pageText = #"""
     const text = (document.body && document.body.innerText) || "";

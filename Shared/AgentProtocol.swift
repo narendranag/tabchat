@@ -12,6 +12,16 @@ enum AgentCall: String, Codable, Sendable, CaseIterable {
     case chats
     /// The visible text of the page the tab shows now (any site), capped at `AgentWire.maxPageCharacters`.
     case page
+    /// Debug builds only: the element structure under `selector`, for writing readers.
+    case inspect
+    /// The visible messages of the chat open in the tab (read).
+    case messages
+    /// Actions tier: open the chat named `chat` (it must be in the rendered chat list). Sends read receipts.
+    case open
+    /// Actions tier: download the document in message `message` of the open chat.
+    case download
+    /// Actions tier: the open chat's contact details (name, phone, about).
+    case contact
 }
 
 struct AgentRequest: Codable, Equatable, Sendable {
@@ -22,6 +32,12 @@ struct AgentRequest: Codable, Equatable, Sendable {
     var sinceSeconds: Double?
     /// `chats`: report how many chats and fields were found, never their content.
     var countsOnly: Bool?
+    /// `inspect`: a CSS selector.
+    var selector: String?
+    /// `open`: the chat's name exactly as the chat list shows it.
+    var chat: String?
+    /// `download`: a message id from `messages`.
+    var message: String?
 }
 
 struct AgentTabInfo: Codable, Equatable, Sendable {
@@ -56,6 +72,37 @@ struct AgentChatCounts: Codable, Equatable, Sendable {
     var withUnread: Int
 }
 
+struct AgentDocument: Codable, Equatable, Sendable {
+    var name: String
+    var type: String
+    /// "4 pages • 10 kB", as the chat shows it.
+    var details: String
+}
+
+struct AgentMessage: Codable, Equatable, Sendable {
+    var id: String
+    /// "in", "out", or "" when the page does not say.
+    var direction: String
+    var sender: String
+    /// The date and time WhatsApp attaches to text messages ("1:03 pm, 14/10/2026"), else "".
+    var stamp: String
+    /// The time shown on the bubble.
+    var time: String
+    var text: String
+    var document: AgentDocument?
+}
+
+struct AgentContact: Codable, Equatable, Sendable {
+    var name: String
+    var phone: String
+    var about: String
+}
+
+struct AgentFile: Codable, Equatable, Sendable {
+    var path: String
+    var bytes: Int
+}
+
 struct AgentPage: Codable, Equatable, Sendable {
     var url: String
     var title: String
@@ -74,6 +121,12 @@ struct AgentResponse: Codable, Equatable, Sendable {
     var chats: [AgentChat]?
     var counts: AgentChatCounts?
     var page: AgentPage?
+    var dom: String?
+    /// `messages`, `open`, `contact`: the chat's name.
+    var chat: String?
+    var messages: [AgentMessage]?
+    var contact: AgentContact?
+    var file: AgentFile?
 
     static func failure(_ error: String) -> AgentResponse {
         AgentResponse(ok: false, error: error)

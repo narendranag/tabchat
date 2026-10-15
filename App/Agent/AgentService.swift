@@ -83,8 +83,10 @@ final class AgentService {
             return AgentResponder.tabs(state: state, unread: model.unread, loaded: loaded)
         case .feed:
             return AgentResponder.feed(request: request, state: state, feed: feed, now: Date())
-        case .chats, .page:
+        case .chats, .page, .inspect, .messages:
             return await read(request, model: model, state: state)
+        case .open, .download, .contact:
+            return await act(request, model: model, state: state)
         }
     }
 
@@ -98,6 +100,21 @@ final class AgentService {
             return .failure("the tab is asleep or not loaded; select it in Tabchat first")
         }
         do {
+            if request.call == .inspect {
+                #if DEBUG
+                    let dom = try await PageReaders.run(
+                        PageReaders.inspect,
+                        arguments: ["selector": request.selector ?? "body", "maxDepth": 30], in: webView
+                    )
+                    return AgentResponse(ok: true, untrusted: true, dom: dom)
+                #else
+                    return .failure("inspect is only in debug builds")
+                #endif
+            }
+            if request.call == .messages {
+                guard tab.serviceId == "whatsapp" else { return .failure("no message reader for \(tab.serviceId) yet; use page") }
+                return try await WhatsAppScripts.messagesResponse(json: PageReaders.run(WhatsAppScripts.messages, in: webView))
+            }
             if request.call == .page {
                 let json = try await PageReaders.run(
                     PageReaders.pageText, arguments: ["max": AgentWire.maxPageCharacters], in: webView
@@ -116,6 +133,7 @@ final class AgentService {
 
     private static func itemCount(_ response: AgentResponse) -> Int {
         response.tabs?.count ?? response.feed?.count ?? response.chats?.count ?? response.counts?.chats
-            ?? (response.page == nil ? 0 : 1)
+            ?? response.messages?
+            .count ?? ([response.page != nil, response.file != nil, response.contact != nil].contains(true) ? 1 : 0)
     }
 }

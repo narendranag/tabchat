@@ -235,4 +235,9 @@ extension AppModel {
         guard let index = state.tabs.firstIndex(where: { $0.id == id }) else { return }
         mutate { $0.tabs[index].agentReadable = readable }
     }
+
+    func setAgentActions(_ id: UUID, _ allowed: Bool) {
+        guard let index = state.tabs.firstIndex(where: { $0.id == id }) else { return }
+        mutate { $0.tabs[index].agentActions = allowed }
+    }
 }

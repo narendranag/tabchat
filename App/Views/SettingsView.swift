@@ -160,6 +160,17 @@ private struct AgentSettings: View {
                 }
             }
             .disabled(!on)
+            Section("Agents may also act") {
+                ForEach(model.tabs.filter { !$0.isEphemeral && $0.agentReadable }) { tab in
+                    Toggle(tab.displayName, isOn: Binding(
+                        get: { tab.agentActions }, set: { model.setAgentActions(tab.id, $0) }
+                    ))
+                }
+                Text("Open chats, open contact info and download attachments to ~/Downloads/Tabchat. "
+                    + "Never send. Opening a chat marks it read, and the sender sees that.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            .disabled(!on)
             Section {
                 Button("Show Call Log") {
                     NSWorkspace.shared.activateFileViewerSelecting([AgentLog().fileURL])

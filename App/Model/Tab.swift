@@ -15,6 +15,8 @@ struct Tab: Codable, Identifiable, Hashable, Sendable {
     var lastURL: String?
     /// Local agents may read this tab while agent access is on. Off by default; never for incognito tabs.
     var agentReadable = false
+    /// Agents may also act in this tab (open chats, open contact info, download attachments). Never send.
+    var agentActions = false
     /// Incognito and temporary tabs live for this run only: they are never written to `state.json`.
     var incognito = false
     var temporary = false
@@ -49,7 +51,7 @@ enum TabPalette {
 /// `incognito` and `temporary` are deliberately not coded.
 extension Tab {
     enum CodingKeys: String, CodingKey {
-        case id, serviceId, profileId, customName, customURL, colorHex, muted, allowSleep, lastURL, agentReadable
+        case id, serviceId, profileId, customName, customURL, colorHex, muted, allowSleep, lastURL, agentReadable, agentActions
     }
 
     init(from decoder: Decoder) throws {
@@ -65,5 +67,6 @@ extension Tab {
             ?? ServiceCatalog.allowsSleepByDefault(serviceId: serviceId)
         lastURL = try values.decodeIfPresent(String.self, forKey: .lastURL)
         agentReadable = try values.decodeIfPresent(Bool.self, forKey: .agentReadable) ?? false
+        agentActions = try values.decodeIfPresent(Bool.self, forKey: .agentActions) ?? false
     }
 }
