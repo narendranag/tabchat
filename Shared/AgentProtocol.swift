@@ -93,6 +93,8 @@ struct AgentMessage: Codable, Equatable, Sendable {
     var stamp: String
     /// The time shown on the bubble.
     var time: String
+    /// The day divider WhatsApp shows above the message ("Today", "Friday", "14/10/2026"), if any.
+    var day: String?
     /// The day, as WhatsApp writes it ("14/10/2026"): from `stamp`, or from the neighbours when both
     /// sides agree; nil when it can't be known.
     var date: String?

@@ -697,8 +697,8 @@ carries in <code>Contents/MacOS/</code>.</p>
 <td><code>messages</code></td>
 <td>read</td>
 <td><code>tab</code> (WhatsApp)</td>
-<td>open chat: id, direction, sender, stamp, time, date, text, document,
-media, rendered</td>
+<td>open chat: id, direction, sender, stamp, time, day, date, text,
+document, media, rendered</td>
 </tr>
 <tr>
 <td><code>page</code></td>
@@ -772,12 +772,12 @@ document viewer <code>media-viewer-modal</code> with
 <code>data-virtualized="true"</code>; <code>messages</code> reports them
 as <code>rendered: false</code>; <code>download</code> scrolls them into
 view first.</li>
-<li><code>history</code> scrolls the message list (found as the
-scrollable ancestor of the first message) up <code>screens</code>
-screens, waiting for WhatsApp to load more, then back down, keeping each
-message the first time it is drawn, placed right after the known message
-drawn before it (WhatsApp keeps some rows drawn while scrolling). It
-only scrolls, and ends at the newest message. It is in the actions tier
+<li><code>history</code> scrolls the message list (the nearest scrolling
+ancestor of the first message) up <code>screens</code> screens, waiting
+for WhatsApp to load more, then back down, keeping each message the
+first time it is drawn, placed right after the known message drawn
+before it (WhatsApp keeps some rows drawn while scrolling). It only
+scrolls, and ends at the newest message. It is in the actions tier
 because scrolling back makes WhatsApp fetch older messages. Timers are
 slowed in a tab that isn't on screen, so it is quicker with the WhatsApp
 tab selected.</li>
@@ -786,11 +786,15 @@ document thumb, or for a photo or video the <code>image-thumb</code>,
 <code>video-content</code> or <code>blob:</code> image, and presses
 <code>Download</code> in the viewer. It checks that the saved file has
 the document's name (allowing the <code> 1</code> added for a duplicate)
-and answers <code>ok: false</code> with the path when it doesn't. Photo
-and video selectors are not live-checked yet.</li>
-<li>WhatsApp stamps text messages with their day but not documents.
-<code>date</code> comes from the stamp, or from the stamped messages on
-either side when both are on the same day; otherwise it is absent.</li>
+and answers <code>ok: false</code> with the path when it doesn't. Photos
+are live-checked (<code>image-thumb</code>, 2026-10-15); an album
+downloads its first photo; videos are not checked yet.</li>
+<li>WhatsApp stamps text messages with their day but not documents or
+photos. <code>day</code> is the divider above the message in the list
+("Today", "Friday", "27/09/2026"; English only). <code>date</code> comes
+from the stamp, else from <code>day</code> (weekday names count back
+from today), else from the dated messages on either side when both are
+on the same day; otherwise it is absent.</li>
 <li>The CLI waits up to 120 seconds for actions (15 for reads).</li>
 <li>Downloads go through the tab's <code>WKDownload</code> handling,
 redirected by an <code>AgentDownloadSlot</code> to

@@ -12,6 +12,7 @@ final class AgentActionTests: XCTestCase {
     </div></div>
     <div id="main">
       <header><span data-testid="conversation-info-header-chat-title">Ada Example</span></header>
+      <div tabindex="-1"><div><span dir="auto">14/10/2026</span></div></div>
       <div role="row"><div data-id="MSG1"><div class="message-in">
         <div data-pre-plain-text="[1:03 pm, 14/10/2026] Ada Example: ">
           <span data-testid="selectable-text">Here is the summary</span></div>
@@ -73,21 +74,27 @@ final class AgentActionTests: XCTestCase {
         let response = try await WhatsAppScripts.messagesResponse(json: PageReaders.run(WhatsAppScripts.messages, in: webView))
         XCTAssertEqual(response.chat, "Ada Example")
         XCTAssertEqual(response.untrusted, true)
+        let day = "14/10/2026"
         XCTAssertEqual(response.messages, [
             AgentMessage(
                 id: "MSG1", direction: "in", sender: "Ada Example", stamp: "1:03 pm, 14/10/2026", time: "1:03 pm",
-                date: "14/10/2026",
-                text: "Here is the summary", document: nil
+                day: day, date: day, text: "Here is the summary", document: nil
             ),
             AgentMessage(
-                id: "MSG2", direction: "in", sender: "Ada Example", stamp: "", time: "1:04 pm", text: "",
-                document: AgentDocument(name: "Test plan.pdf", type: "PDF", details: "4 pages • PDF • 10 kB")
+                id: "MSG2", direction: "in", sender: "Ada Example", stamp: "", time: "1:04 pm", day: day, date: day,
+                text: "", document: AgentDocument(name: "Test plan.pdf", type: "PDF", details: "4 pages • PDF • 10 kB")
             ),
-            AgentMessage(id: "MSG3", direction: "out", sender: "", stamp: "", time: "1:05 pm", text: "Thanks", document: nil),
-            AgentMessage(id: "MSG4", direction: "", sender: "", stamp: "", time: "", text: "", document: nil, rendered: false),
             AgentMessage(
-                id: "MSG5", direction: "in", sender: "Ada Example", stamp: "", time: "1:06 pm", text: "", document: nil,
-                media: "image"
+                id: "MSG3", direction: "out", sender: "", stamp: "", time: "1:05 pm", day: day, date: day, text: "Thanks",
+                document: nil
+            ),
+            AgentMessage(
+                id: "MSG4", direction: "", sender: "", stamp: "", time: "", day: day, date: day, text: "", document: nil,
+                rendered: false
+            ),
+            AgentMessage(
+                id: "MSG5", direction: "in", sender: "Ada Example", stamp: "", time: "1:06 pm", day: day, date: day,
+                text: "", document: nil, media: "image"
             )
         ])
     }
@@ -178,6 +185,24 @@ final class AgentActionTests: XCTestCase {
             "(p => p.scrollTop + p.clientHeight >= p.scrollHeight - 2)(document.getElementById('pane'))"
         ) as? Bool
         XCTAssertEqual(atBottom, true)
+    }
+
+    func testDayDividersBecomeDates() throws {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = try XCTUnwrap(TimeZone(identifier: "Asia/Kolkata"))
+        // Thursday 15 October 2026, midday.
+        let now = try XCTUnwrap(calendar.date(from: DateComponents(year: 2026, month: 10, day: 15, hour: 12)))
+        let british = Locale(identifier: "en_GB")
+        func date(_ day: String) -> String {
+            WhatsAppScripts.date(ofDay: day, now: now, calendar: calendar, locale: british)
+        }
+        XCTAssertEqual(date("Today"), "15/10/2026")
+        XCTAssertEqual(date("Yesterday"), "14/10/2026")
+        XCTAssertEqual(date("Friday"), "09/10/2026")
+        XCTAssertEqual(date("Thursday"), "15/10/2026")
+        XCTAssertEqual(date("27/09/2026"), "27/09/2026")
+        XCTAssertEqual(date("3 unread messages"), "")
+        XCTAssertEqual(date("Encrypted"), "")
     }
 
     func testDatesComeFromStampsOrAgreeingNeighbours() {

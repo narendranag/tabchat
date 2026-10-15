@@ -15,13 +15,15 @@ enum WhatsAppScripts {
     static let history = prelude + reader + #"""
     const first = main.querySelector("[data-id]");
     if (!first) return JSON.stringify({ok: true, chat, messages: []});
+    // The message list's scroll area: the nearest ancestor that scrolls, even if a short chat
+    // does not overflow it yet.
     let pane = first.parentElement;
-    while (pane && pane !== main) {
-      const overflow = getComputedStyle(pane).overflowY;
-      if ((overflow === "auto" || overflow === "scroll") && pane.scrollHeight > pane.clientHeight) break;
+    while (pane && pane !== document.body && !/auto|scroll/.test(getComputedStyle(pane).overflowY)) {
       pane = pane.parentElement;
     }
-    if (!pane || pane === main) return JSON.stringify({ok: false, reason: "could not find the message list's scroll area"});
+    if (!pane || pane === document.body) {
+      return JSON.stringify({ok: false, reason: "could not find the message list's scroll area"});
+    }
     const wait = ms => new Promise(r => setTimeout(r, ms));
     for (let i = 0; i < screens; i++) {
       const height = pane.scrollHeight;
@@ -47,12 +49,13 @@ enum WhatsAppScripts {
         at += 1;
       }
     };
-    for (let i = 0; i < 400; i++) {
+    // WhatsApp adds rows back at the bottom a moment after they scroll into reach, so at the bottom
+    // wait up to two seconds for more before stopping.
+    for (let i = 0, idle = 0; i < 400 && idle < 8; i++) {
       collect();
-      if (pane.scrollTop + pane.clientHeight >= pane.scrollHeight - 2) break;
       const before = pane.scrollTop;
       pane.scrollTop += Math.floor(pane.clientHeight * 0.7);
-      if (pane.scrollTop === before) break;
+      idle = pane.scrollTop === before ? idle + 1 : 0;
       await wait(250);
     }
     collect();
@@ -71,10 +74,27 @@ enum WhatsAppScripts {
 
     /// `readMessage(el)`: one `[data-id]` element as an `AgentMessage`.
     private static let reader = #"""
+    // The day divider above a message ("Today", "Friday", "14/10/2026"), a sibling of the message's row
+    // in the list. Dividers stay drawn when the messages around them are scrolled out of view.
+    const dayPattern = new RegExp("^(today|yesterday|monday|tuesday|wednesday|thursday|friday|saturday|sunday|"
+      + "\\d{1,4}[/.-]\\d{1,2}[/.-]\\d{1,4})$", "i");
+    const dayOf = el => {
+      // WhatsApp wraps each row in divs of the list; look among the row's siblings, then each wrapper's.
+      let level = el.closest('[role="row"]') || el;
+      for (let depth = 0; level && depth < 4 && level !== main; depth++, level = level.parentElement) {
+        for (let node = level.previousElementSibling; node; node = node.previousElementSibling) {
+          if (node.matches("[data-id]") || node.querySelector("[data-id]")) continue;
+          const text = (node.innerText || node.textContent || "").trim();
+          if (dayPattern.test(text)) return text;
+        }
+      }
+      return "";
+    };
     const readMessage = el => {
       const id = el.getAttribute("data-id") || "";
+      const day = dayOf(el) || null;
       if (el.querySelector('[data-virtualized="true"]')) {
-        return {id, direction: "", sender: "", stamp: "", time: "", text: "", document: null, rendered: false};
+        return {id, day, direction: "", sender: "", stamp: "", time: "", text: "", document: null, rendered: false};
       }
       let sender = "", stamp = "";
       const pre = el.querySelector("[data-pre-plain-text]");
@@ -110,7 +130,7 @@ enum WhatsAppScripts {
       const meta = el.querySelector('[data-testid="msg-meta"]');
       const recalled = !!el.querySelector('[data-testid="recalled"]');
       return {
-        id,
+        id, day,
         rendered: true,
         direction: out ? "out" : (incoming ? "in" : ""),
         sender, stamp,
@@ -256,11 +276,40 @@ extension WhatsAppScripts {
         return stamp[stamp.index(after: comma)...].trimmingCharacters(in: .whitespaces)
     }
 
-    /// Fills `date` for every message: from its own stamp, or, for documents and others WhatsApp
-    /// gives no stamp, from its neighbours when the stamped messages before and after it share a day
-    /// (messages are in order, so it must be that day). Otherwise it stays nil.
-    static func datedMessages(_ messages: [AgentMessage]) -> [AgentMessage] {
-        let own = messages.map { date(of: $0.stamp) }
+    /// The date a day divider stands for, written like WhatsApp's stamps ("14/10/2026" in most
+    /// locales): dates as they are, "Today", "Yesterday" and weekday names (the last week) counted
+    /// back from `now`. "" for anything else.
+    static func date(ofDay day: String, now: Date = Date(), calendar: Calendar = .current, locale: Locale = .current) -> String {
+        let label = day.trimmingCharacters(in: .whitespaces)
+        if label.range(of: #"^\d{1,4}[/.-]\d{1,2}[/.-]\d{1,4}$"#, options: .regularExpression) != nil {
+            return label
+        }
+        let english = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
+        let back: Int
+        switch label.lowercased() {
+        case "today": back = 0
+        case "yesterday": back = 1
+        default:
+            guard let weekday = english.firstIndex(of: label.lowercased()) else { return "" }
+            let todayIndex = calendar.component(.weekday, from: now) - 1
+            back = (todayIndex - weekday + 7) % 7
+        }
+        guard let date = calendar.date(byAdding: .day, value: -back, to: now) else { return "" }
+        let formatter = DateFormatter()
+        formatter.calendar = calendar
+        formatter.timeZone = calendar.timeZone
+        formatter.dateFormat = DateFormatter.dateFormat(fromTemplate: "ddMMyyyy", options: 0, locale: locale) ?? "dd/MM/yyyy"
+        return formatter.string(from: date)
+    }
+
+    /// Fills `date` for every message: from its own stamp, else from the day divider above it, else from
+    /// its neighbours when the dated messages before and after it share a day (messages are in order,
+    /// so it must be that day). Otherwise it stays nil.
+    static func datedMessages(_ messages: [AgentMessage], now: Date = Date()) -> [AgentMessage] {
+        let own = messages.map { message in
+            let stamped = date(of: message.stamp)
+            return stamped.isEmpty ? date(ofDay: message.day ?? "", now: now) : stamped
+        }
         var before = [String](repeating: "", count: own.count)
         var after = before
         var last = ""

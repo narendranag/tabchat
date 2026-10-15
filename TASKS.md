@@ -10,8 +10,7 @@
 
 ## Next
 
-- [ ] Agent API: live-check photo/video `download` on WhatsApp (no chat with a photo tried yet) #agent-api
-- [ ] Agent API: dates for documents at a day boundary, from WhatsApp's date separator rows (needs `inspect`) #agent-api
+- [ ] Agent API: `history` can end without the newest messages of a chat (seen once, 2026-10-15); videos and every photo of an album in `download` #agent-api
 - [ ] Agent API: `open` for chats not in the visible list (search) #agent-api
 - [ ] Agent API: quarantine xattr shows an empty agent name (`0081;ts;;uuid`) #agent-api
 - [ ] Agent API: an agent recipe for contact details → `~/marain/crm` via its `crm` CLI (in that brain) #agent-api
@@ -28,6 +27,8 @@
 - [ ] Signed, notarized `.dmg` from GitHub Actions + Sparkle updates (needs an Apple Developer ID — costs money, Narendra decides)
 
 ## Done
+
+- [x] Agent API: dates from WhatsApp's day dividers; photo download live-checked — 2026-10-15
 
 - [x] Fixes from a fleet session's bug report: `download` waits for an old viewer to close (it had saved the previous file again) and checks the saved name; photos and videos; `history` for earlier messages (live-checked); `date` on messages; CLI timeout 120 s for actions; help text — 2026-10-15
 
