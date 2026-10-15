@@ -84,6 +84,44 @@ enum WhatsAppScripts {
     return JSON.stringify({ok: false, reason: "the document viewer did not open"});
     """#
 
+    /// The open chat's contact info: opens the panel from the chat header if needed, reads the name,
+    /// the phone number and the "About" line, and closes the panel again if it opened it.
+    static let contact = #"""
+    const header = document.querySelector('#main [data-testid="conversation-info-header"]');
+    if (!header) return JSON.stringify({ok: false, reason: "no chat open"});
+    let drawer = document.querySelector('[data-testid="chat-info-drawer"]');
+    const opened = !drawer;
+    if (opened) {
+      header.click();
+      for (let i = 0; i < 50 && !drawer; i++) {
+        await new Promise(r => setTimeout(r, 100));
+        drawer = document.querySelector('[data-testid="chat-info-drawer"]');
+      }
+      if (!drawer) return JSON.stringify({ok: false, reason: "contact info did not open"});
+      await new Promise(r => setTimeout(r, 300));
+    }
+    const nameEl = drawer.querySelector('[data-testid="contact-info-subtitle selectable-text"]');
+    const phonePattern = /^\+?[\d\s()-]{7,}$/;
+    const texts = Array.from(drawer.querySelectorAll('[data-testid="selectable-text"]')).map(e => e.innerText.trim());
+    const phone = texts.find(t => phonePattern.test(t)) || "";
+    let about = "";
+    const leaves = Array.from(drawer.querySelectorAll("span, div")).filter(e => e.children.length === 0);
+    const label = leaves.find(e => e.textContent.trim() === "About");
+    if (label) {
+      const box = label.parentElement && label.parentElement.parentElement;
+      const value = box ? Array.from(box.querySelectorAll('[data-testid="selectable-text"], span[dir="auto"]'))
+        .map(e => e.innerText.trim()).find(t => t && t !== "About") : "";
+      about = value || "";
+    }
+    const name = nameEl ? nameEl.innerText.trim() : "";
+    if (opened) {
+      const close = drawer.querySelector('button[aria-label="Close"]');
+      if (close) close.click();
+    }
+    return JSON.stringify({ok: !!(name || phone), reason: name || phone ? null : "no contact details found",
+      contact: {name, phone, about}});
+    """#
+
     /// Closes the media viewer if it is open.
     static let closeViewer = #"""
     const close = document.querySelector('[data-testid="media-viewer-modal"] [aria-label="Close"]');
@@ -99,6 +137,7 @@ extension WhatsAppScripts {
         var chat: String?
         var name: String?
         var messages: [AgentMessage]?
+        var contact: AgentContact?
     }
 
     static func decode(_ json: String) -> Result {

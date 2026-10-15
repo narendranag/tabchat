@@ -26,6 +26,17 @@ final class AgentActionTests: XCTestCase {
         <span data-testid="selectable-text">Thanks</span><div data-testid="msg-meta">1:05 pm</div></div></div></div>
     </div>
     <script>
+      document.querySelector("header").setAttribute("data-testid", "conversation-info-header");
+      document.querySelector("header").addEventListener("click", () => {
+        const d = document.createElement("div");
+        d.setAttribute("data-testid", "chat-info-drawer");
+        d.innerHTML = '<button aria-label="Close"></button>'
+          + '<span data-testid="contact-info-subtitle selectable-text">Ada Example</span>'
+          + '<span data-testid="selectable-text"><span>+1 555 0100 000</span></span>'
+          + '<div><div><span>About</span></div><span dir="auto">Testing things</span></div>';
+        d.querySelector("button").addEventListener("click", () => d.remove());
+        document.body.appendChild(d);
+      });
       document.querySelector('[data-testid="document-thumb"]').addEventListener("click", () => {
         const modal = document.createElement("div");
         modal.setAttribute("data-testid", "media-viewer-modal");
@@ -111,6 +122,16 @@ final class AgentActionTests: XCTestCase {
             in: webView
         ))
         XCTAssertEqual(result.reason, "that chat is not in the chat list on screen")
+    }
+
+    @MainActor
+    func testContactOpensReadsAndClosesThePanel() async throws {
+        let webView = try await loadFixture()
+        let result = try await WhatsAppScripts.decode(PageReaders.run(WhatsAppScripts.contact, in: webView))
+        XCTAssertEqual(result.contact, AgentContact(name: "Ada Example", phone: "+1 555 0100 000", about: "Testing things"))
+        let open = try await webView
+            .evaluateJavaScript("document.querySelectorAll('[data-testid=chat-info-drawer]').length") as? Int
+        XCTAssertEqual(open, 0)
     }
 
     func testActionsNeedTheirOwnSwitch() throws {

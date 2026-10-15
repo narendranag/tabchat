@@ -21,7 +21,10 @@ extension AgentService {
             case .download:
                 return try await download(request, tab: tab, controller: controller, model: model)
             case .contact:
-                return .failure("contact is not built yet")
+                model.showToast("Agent reading contact info")
+                let result = try await WhatsAppScripts.decode(PageReaders.run(WhatsAppScripts.contact, in: controller.webView))
+                guard result.ok, let contact = result.contact else { return .failure(result.reason ?? "no contact details") }
+                return AgentResponse(ok: true, untrusted: true, contact: contact)
             default:
                 return .failure("not an action")
             }
