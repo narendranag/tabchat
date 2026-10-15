@@ -1,0 +1,100 @@
+---
+id: agent-api
+title: Agent API
+order: 4
+summary: "How local agents read chats and act in TabChat: the socket, the CLI and MCP, the read and act tiers, the WhatsApp scripts, and the security model."
+status: provisional
+updated: 2026-10-15
+audience: [developers, agents]
+depends_on: [overview, architecture]
+related: [building]
+defines: [agent access, read tier, actions tier, call log, feed]
+answers:
+  - How does an agent talk to TabChat?
+  - What can an agent read, and what can it do?
+  - How are permissions, logging and untrusted text handled?
+  - How are the WhatsApp readers written and tested?
+---
+
+# Agent API
+
+The reasoning (routes considered, terms-of-service risk per service, the decisions) is in
+`brief/agent-api.md` in the repo root. This page is how it is built.
+
+## Shape
+
+```
+agent (Claude Code, a script…)
+  │  tabchat-agent <call> …            or   tabchat-agent mcp  (JSON-RPC over stdio)
+  ▼
+~/Library/Application Support/Tabchat/agent.sock   (mode 0600, peer uid checked)
+  │  one JSON request line → one JSON response line
+  ▼
+AgentSocketServer → AgentService (main actor)
+  ├── AgentResponder     who may read what; tabs, feed           (pure, tested)
+  ├── AgentFeed          notifications, in memory, ≤500, ≤24 h
+  ├── PageReaders        chat list, page text, debug inspect      (isolated content world)
+  ├── WhatsAppScripts    messages, open, download, contact
+  └── AgentLog           agent.log: time, program, call, tab, items, outcome — never content
+```
+
+The wire format (`Shared/AgentProtocol.swift`) and the MCP adapter (`Shared/AgentMCP.swift`) are
+compiled into both the app and the `tabchat-agent` tool, which the app bundle carries in
+`Contents/MacOS/`.
+
+## Calls
+
+| Call | Tier | Needs | Returns |
+| --- | --- | --- | --- |
+| `tabs` | read | — | readable tabs: id, name, service, unread, loaded |
+| `feed` | read | optional `tab`, `sinceSeconds` | notifications from readable tabs |
+| `chats` | read | `tab` (WhatsApp) | chat list; `countsOnly` gives numbers only |
+| `messages` | read | `tab` (WhatsApp) | open chat: id, direction, sender, stamp, time, text, document, rendered |
+| `page` | read | `tab` | url, title, visible text (≤20,000 characters) |
+| `open` | act | `tab`, `chat` | opens a chat from the rendered chat list |
+| `contact` | act | `tab` | name, phone, about of the open chat |
+| `download` | act | `tab`, `message` | the saved file's path and size |
+| `inspect` | debug | `tab`, `selector` | element structure (debug builds only) |
+
+Text from chats is marked `"untrusted": true`. There is no call that sends.
+
+## Permissions
+
+- `settings.agentAccess` — the master switch; off by default. Turning it off stops the socket and
+  forgets the feed.
+- `Tab.agentReadable` — the read tier, per tab. Incognito tabs are never readable.
+- `Tab.agentActions` — the actions tier, per tab, only offered for readable tabs.
+
+These keys came without a schema bump, so v0.1.x still opens the state file (it would refuse a newer
+version and reset the tabs).
+
+## WhatsApp scripts
+
+Written against WhatsApp Web's `data-testid` hooks, learned with `inspect` on 2026-10-15:
+`#pane-side` rows with `cell-frame-title`; `#main` messages as `[data-id]` with `msg-container`,
+`msg-meta`, `selectable-text`, `data-pre-plain-text="[time, date] Sender: "`, and
+`document-thumb` titled `View "<file>"`; the document viewer `media-viewer-modal` with `Download` and
+`Close` buttons; the contact panel `chat-info-drawer`, opened from `conversation-info-header`.
+
+- Direction comes from the status tick in `msg-meta` (the `message-in/out` classes are gone).
+- Messages scrolled out of view are drawn as `data-virtualized="true"`; `messages` reports them as
+  `rendered: false`; `download` scrolls them into view first.
+- Downloads go through the tab's `WKDownload` handling, redirected by an `AgentDownloadSlot` to
+  `~/Downloads/Tabchat/<service>/<contact>/`, and are quarantined.
+
+Each script is tested in XCTest against an invented page (`Tests/AgentTests.swift`,
+`Tests/AgentActionTests.swift`). When WhatsApp changes its page, a script returns
+`{"ok": false, "reason": …}` rather than a guess; fix the selectors with `inspect` in a debug build.
+
+## Live checks
+
+Run against the debug build, with the services ticked in Settings → Agents:
+
+```sh
+TA=build/DerivedData/Build/Products/Debug/Tabchat.app/Contents/MacOS/tabchat-agent
+$TA tabs
+$TA chats --tab <id> --counts-only
+$TA inspect --tab <id> --selector '#main'
+```
+
+Never paste real chat content, names or numbers into the repo, tests or issues.

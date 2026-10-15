@@ -4,7 +4,7 @@ title: Overview
 order: 1
 summary: "What Tabchat is, the ideas behind it, and what is in and out of scope."
 status: provisional
-updated: 2026-10-13
+updated: 2026-10-15
 audience: [everyone]
 depends_on: [index]
 related: []
@@ -24,12 +24,19 @@ The app reuses the system's WebKit engine (WKWebView), so it stays lightweight a
 
 **Credit:** Tabchat is a rewrite from scratch of [MMV2408/tabchat](https://github.com/MMV2408/tabchat), an Electron app for Linux (MIT License, © Mike Vijverberg). This fork is macOS-only; the original Linux code lives on the [`Linux`](https://github.com/narendranag/tabchat/tree/Linux) branch (tag `upstream-final`).
 
+**TabChat for Agents.** Since October 2026 the project's focus is letting the AI agents on the
+owner's Mac read these services and act in them — see [04 Agent API](04-agent-api.md). It is an
+independent community port of MMV2408/tabchat, not affiliated with or endorsed by the original project.
+
 ## The ideas behind it
 
 1. **One app, not context-switching:** Bring all your messaging and work apps into one place instead of Alt-Tab between browsers and standalone apps.
 2. **Native and lightweight:** Built in Swift with macOS system frameworks (SwiftUI, AppKit, WKWebView), not a bundled browser. The app itself is a few megabytes; all the heavy lifting is the web service.
 3. **Unified notifications:** Notifications arrive in one place, respect your Focus modes, and clicking one opens the right service in the window instead of a new window or tab.
 4. **Deep macOS integration:** The app lives in the menu bar when closed, updates Dock and menu bar badges, supports start-at-login via `SMAppService`, uses system theme (light/dark).
+5. **Agents read what you can see:** Agents get the services through the official web clients you are
+   signed in to, read-only by default, never sending — the lowest-risk route to chats that have no
+   personal-account API.
 
 ## What's built (v0.1.1)
 

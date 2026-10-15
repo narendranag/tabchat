@@ -1,10 +1,10 @@
 ---
 id: index
-title: "Tabchat documentation"
+title: "TabChat for Agents documentation"
 order: 0
-summary: "Index of the documentation for Tabchat."
+summary: "Index of the documentation for TabChat for Agents."
 status: provisional
-updated: 2026-10-13
+updated: 2026-10-15
 audience: [everyone]
 depends_on: []
 related: [overview]
@@ -15,11 +15,16 @@ answers:
   - Where are the machine-readable versions of these documents?
 ---
 
-# Tabchat documentation
+# TabChat for Agents documentation
 
-A native macOS app that brings WhatsApp, Discord, Teams, Outlook, OneDrive, Brightspace, Reddit, X, GitHub and any website into one window via a sidebar of service icons, all sharing the system's own web engine (WKWebView). Rewritten from scratch in Swift, macOS 14+, Apple Silicon only, targeting users who want a single native app instead of bouncing between browsers and standalone clients.
+TabChat for Agents (the app is still called Tabchat) is a native macOS app that brings WhatsApp, Discord, Teams, Outlook, OneDrive, Brightspace, Reddit, X, GitHub and any website into one window via a sidebar of service icons, all sharing the system's own web engine (WKWebView). Rewritten from scratch in Swift, macOS 14+, Apple Silicon only, targeting users who want a single native app instead of bouncing between browsers and standalone clients.
 
-**Status:** v0.1.1 released (2026-10-13); all six planned phases are built. What's left is in the root `README.md` ("Still to do") and `TASKS.md`.
+It also lets local AI agents read those services and act in them (open a chat, read contact
+details, download documents — never send) through a Unix socket, a CLI and MCP: see
+[04 Agent API](04-agent-api.md). TabChat for Agents is an independent community port of
+MMV2408/tabchat; it is not affiliated with or endorsed by the original project.
+
+**Status:** v0.1.1 released (2026-10-13); the agent API is built and live-tested on WhatsApp (2026-10-15). What's left is in the root `README.md` ("Still to do") and `TASKS.md`.
 
 ## Reading order
 
@@ -28,6 +33,7 @@ A native macOS app that brings WhatsApp, Discord, Teams, Outlook, OneDrive, Brig
 | [01 Overview](01-overview.md) | What it is, the ideas behind it, the scope | Everyone |
 | [02 Architecture](02-architecture.md) | System components and data flow | Developers |
 | [03 Building](03-building.md) | Requirements, environment, and how to build | Developers |
+| [04 Agent API](04-agent-api.md) | How agents read and act: socket, CLI, MCP, permissions, scripts | Developers, agents |
 
 ## Terms used throughout
 

@@ -1,15 +1,15 @@
 {
-  "title": "Tabchat documentation",
-  "summary": "Index of the documentation for Tabchat.",
+  "title": "TabChat for Agents documentation",
+  "summary": "Index of the documentation for TabChat for Agents.",
   "source_of_truth": "markdown",
   "documents": [
     {
       "id": "index",
-      "title": "Tabchat documentation",
+      "title": "TabChat for Agents documentation",
       "order": 0,
-      "summary": "Index of the documentation for Tabchat.",
+      "summary": "Index of the documentation for TabChat for Agents.",
       "status": "provisional",
-      "updated": "2026-10-13",
+      "updated": "2026-10-15",
       "audience": [
         "everyone"
       ],
@@ -48,7 +48,7 @@
       "order": 1,
       "summary": "What Tabchat is, the ideas behind it, and what is in and out of scope.",
       "status": "provisional",
-      "updated": "2026-10-13",
+      "updated": "2026-10-15",
       "audience": [
         "everyone"
       ],
@@ -96,7 +96,7 @@
       "order": 2,
       "summary": "System components, data flow, and design decisions.",
       "status": "provisional",
-      "updated": "2026-10-13",
+      "updated": "2026-10-15",
       "audience": [
         "developers"
       ],
@@ -253,6 +253,66 @@
           "level": 2,
           "title": "Planned (not yet built)",
           "anchor": "planned-not-yet-built"
+        }
+      ]
+    },
+    {
+      "id": "agent-api",
+      "title": "Agent API",
+      "order": 4,
+      "summary": "How local agents read chats and act in TabChat: the socket, the CLI and MCP, the read and act tiers, the WhatsApp scripts, and the security model.",
+      "status": "provisional",
+      "updated": "2026-10-15",
+      "audience": [
+        "developers",
+        "agents"
+      ],
+      "depends_on": [
+        "overview",
+        "architecture"
+      ],
+      "related": [
+        "building"
+      ],
+      "defines": [
+        "agent access",
+        "read tier",
+        "actions tier",
+        "call log",
+        "feed"
+      ],
+      "answers": [
+        "How does an agent talk to TabChat?",
+        "What can an agent read, and what can it do?",
+        "How are permissions, logging and untrusted text handled?",
+        "How are the WhatsApp readers written and tested?"
+      ],
+      "file": "04-agent-api.md",
+      "sections": [
+        {
+          "level": 2,
+          "title": "Shape",
+          "anchor": "shape"
+        },
+        {
+          "level": 2,
+          "title": "Calls",
+          "anchor": "calls"
+        },
+        {
+          "level": 2,
+          "title": "Permissions",
+          "anchor": "permissions"
+        },
+        {
+          "level": 2,
+          "title": "WhatsApp scripts",
+          "anchor": "whatsapp-scripts"
+        },
+        {
+          "level": 2,
+          "title": "Live checks",
+          "anchor": "live-checks"
         }
       ]
     }

@@ -4,7 +4,7 @@ title: Architecture
 order: 2
 summary: "System components, data flow, and design decisions."
 status: provisional
-updated: 2026-10-13
+updated: 2026-10-15
 audience: [developers]
 depends_on: [index, overview]
 related: []
@@ -43,6 +43,8 @@ App/
 │   ├── CatalogLayout        hidden and reordered cards in the Add service sheet
 │   ├── LoginItem            SMAppService.mainApp
 │   └── DownloadNaming, IconCandidate, URLInput
+├── Agent/                   the agent API (see 04 Agent API): socket server, service, feed,
+│                            responder, log, page readers, WhatsApp scripts, download slot
 ├── Web/
 │   ├── TabController        one WKWebView and all its delegates: popups for sign-in, camera and
 │   │                        microphone, file uploads, downloads, load errors

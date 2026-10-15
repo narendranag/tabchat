@@ -1,7 +1,11 @@
-# Tabchat (Mac)
+# TabChat for Agents
 
 WhatsApp, Discord, Teams, Outlook, OneDrive, Brightspace and any website as tabs in one window,
-sharing one browser engine. For Narendra, on his Macs.
+sharing one browser engine — and readable by local AI agents through a socket, the `tabchat-agent`
+CLI and MCP (read tier and actions tier, never send). For Narendra, on his Macs. Renamed from
+"Tabchat (Mac)" on 2026-10-15; the app, bundle id (`com.narendranag.tabchat`) and repo keep the
+old name so sign-ins and links survive. It is an independent community port of MMV2408/tabchat
+(Mike asked for that line in the README).
 
 A from-scratch native rewrite of [MMV2408/tabchat](https://github.com/MMV2408/tabchat) (MIT,
 Electron, Linux). Repo: github.com/narendranag/tabchat (public fork, built in public — keep the
@@ -13,7 +17,8 @@ This brain follows the fleet's standard: how projects are built is in
 `~/claude-computer/docs/DEV-GUIDELINES.md`, the tools on the PATH in
 `~/claude-computer/claude-global/CLAUDE.md`.
 
-**Resuming:** read `TASKS.md`, then `brief/mac-rewrite.md` (the plan and decisions).
+**Resuming:** read `TASKS.md`, then `brief/agent-api.md` (the agent API) and `brief/mac-rewrite.md`
+(the app). Never commit chat content, contact names or numbers: the repo is public.
 
 ## Status
 
@@ -21,7 +26,9 @@ This brain follows the fleet's standard: how projects are built is in
 app (macOS 14+, Apple Silicon, sidebar, English only); all six phases of `brief/mac-rewrite.md` are
 built. Upstream's Linux code is on the `Linux` branch; `main` holds only the Mac app. CI (lint →
 test → build on `macos-26`, Xcode 26.6) runs on every push. Upstream was told
-(MMV2408/tabchat#1, rename offered). Open items are in `TASKS.md`; what's left overall is in the
+(MMV2408/tabchat#1, since deleted; Mike kept the name and asked for the "independent community
+port" line). **Agent API** built and live-tested on WhatsApp 2026-10-15 (`docs/04-agent-api.md`);
+not yet in a release. Open items are in `TASKS.md`; what's left overall is in the
 README's "Still to do".
 
 ## Stack

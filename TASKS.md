@@ -1,4 +1,4 @@
-# Tasks — Tabchat (Mac)
+# Tasks — TabChat for Agents
 
 <!-- Format (shared by every brain): one `- [ ]` per task; optional `📅 YYYY-MM-DD` due date and `#tags`.
      Now / Next / Later / Done. Current status is in CLAUDE.md ("Status"); decisions in DECISIONS.md. -->
@@ -6,14 +6,12 @@
 ## Now
 
 - [ ] Post the Reddit comment (draft in `brief/reddit-comment.md`, from Narendra's account) #community
-- [ ] Watch MMV2408/tabchat#1 for Mike's reply; if he wants the name back, rename app, README, release and repo #community
 - [ ] Install v0.1.1 on air from the release dmg (air was unreachable 2026-10-13; mini done) #mac
 
 ## Next
 
 - [ ] Agent API: photos and other media in `download` (documents only so far); `open` for chats not in the visible list (search) #agent-api
 - [ ] Agent API: an agent recipe for contact details → `~/marain/crm` via its `crm` CLI (in that brain) #agent-api
-- [ ] Agent API: decide on merging `agent-api` after the proof — Narendra decides #agent-api
 
 - [ ] Delete the `.verify` leftovers from phase 2's test launch (`~/Library/*/com.narendranag.tabchat.verify*`, 129 MB) — Narendra decides #mac
 
@@ -27,6 +25,8 @@
 - [ ] Signed, notarized `.dmg` from GitHub Actions + Sparkle updates (needs an Apple Developer ID — costs money, Narendra decides)
 
 ## Done
+
+- [x] Pivot to TabChat for Agents: README rewritten, "independent community port" line (Mike's request on MMV2408/tabchat#1), `agent-api` merged to `main` — 2026-10-15
 
 - [x] Agent API actions tier for WhatsApp: `messages`, `open`, `contact`, `download`, live-tested on mini (branch `agent-api`) — 2026-10-15
 

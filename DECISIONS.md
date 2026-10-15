@@ -1,4 +1,4 @@
-# Decisions — Tabchat (Mac)
+# Decisions — TabChat for Agents
 
 - [mini] [2026-10-13] Forked MMV2408/tabchat to narendranag/tabchat and set it up as a product in `~/products/tabchat` (not `~/projects`) — Narendra's call; it is an existing, working app being adapted, not a new idea.
 - [mini] [2026-10-13] Target: macOS desktop. Stays on Electron until the brain's audit proposes otherwise — it is a fork of an Electron app; DEV-GUIDELINES' Tauri default is the first open decision.
@@ -20,3 +20,5 @@
 - [mini] [2026-10-15] Second permission tier, "actions", per tab and off by default: an agent may open a chat, open contact info and download attachments. Never send. Opening a chat sends read receipts; accepted. Each action is logged and shown in Tabchat as it happens — UI actions in the official client, no outgoing messages, so ban risk stays low.
 - [mini] [2026-10-15] Agent downloads go to `~/Downloads/Tabchat/<service>/<contact>/`, quarantined like any download.
 - [mini] [2026-10-15] Contact details go to the personal CRM `~/marain/crm` through its own `crm` CLI, run by the agent; Tabchat only hands over name, number and "about" and never writes `crm.db`.
+- [mini] [2026-10-15] Project renamed TabChat for Agents and the README rewritten around the agent API; the app name, bundle id and repo stay `Tabchat`/`narendranag/tabchat` so sign-ins, installs and links keep working. `agent-api` merged to `main`.
+- [mini] [2026-10-15] README says TabChat for Agents is an independent community port of MMV2408/tabchat, not affiliated with or endorsed by it — Mike's request on MMV2408/tabchat#1, where he also said to keep the name.
