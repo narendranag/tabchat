@@ -25,7 +25,10 @@ enum WhatsAppScripts {
       return JSON.stringify({ok: false, reason: "could not find the message list's scroll area"});
     }
     const wait = ms => new Promise(r => setTimeout(r, ms));
-    for (let i = 0; i < screens; i++) {
+    // With `until`, stop as soon as that message is in the list: everything newer is below it.
+    const stopAt = typeof until === "string" ? until : "";
+    const reachedStop = () => !!stopAt && !!main.querySelector('[data-id="' + CSS.escape(stopAt) + '"]');
+    for (let i = 0; i < screens && !reachedStop(); i++) {
       const height = pane.scrollHeight;
       pane.scrollTop = Math.max(0, pane.scrollTop - pane.clientHeight);
       await wait(500);
@@ -67,7 +70,10 @@ enum WhatsAppScripts {
     }
     collect();
     pane.scrollTop = pane.scrollHeight;
-    return JSON.stringify({ok: true, chat, messages: order.map(id => seen.get(id))});
+    let ids = order;
+    const reached = !stopAt || order.includes(stopAt);
+    if (stopAt && reached) ids = order.slice(order.indexOf(stopAt) + 1);
+    return JSON.stringify({ok: true, chat, reached, messages: ids.map(id => seen.get(id))});
     """#
 
     /// Finds the open chat: `main` and its title `chat`.
@@ -208,6 +214,11 @@ enum WhatsAppScripts {
         : "no chat with that exact name" + (found.length ? "; search found: " + found.join(" | ") : "");
       return JSON.stringify({ok: false, reason});
     }
+    // With ifRead, a row showing unread messages is left alone: opening it would mark them read.
+    if (typeof ifRead !== "undefined" && ifRead === true && row.querySelector('[aria-label*="unread" i]')) {
+      await clear();
+      return JSON.stringify({ok: false, reason: "that chat has unread messages; not opened"});
+    }
     const target = row.querySelector('[data-testid="cell-frame-container"], [data-testid="message-yourself-row"]') || row;
     for (const kind of ["mousedown", "mouseup", "click"]) {
       target.dispatchEvent(new MouseEvent(kind, {bubbles: true, cancelable: true, view: window}));
@@ -285,6 +296,7 @@ extension WhatsAppScripts {
         var chat: String?
         var name: String?
         var kind: String?
+        var reached: Bool?
         var count: Int?
         var total: Int?
         var messages: [AgentMessage]?

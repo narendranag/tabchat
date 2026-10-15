@@ -16,29 +16,76 @@ enum PageReaders {
     /// WhatsApp Web's chat list: rows in `#pane-side`; the first `span[title]` is the chat's name,
     /// the last the message preview; the unread badge's label says "unread". Ids are not read:
     /// WhatsApp's carry phone numbers.
-    static let whatsAppChatList = #"""
+    static let whatsAppChatList = whatsAppRows + #"""
     const pane = document.querySelector("#pane-side");
     if (!pane) return JSON.stringify({ok: false, reason: "no chat list on screen"});
-    const rows = Array.from(pane.querySelectorAll('[role="listitem"], [role="row"]'));
-    const top = rows.filter(r => !rows.some(o => o !== r && o.contains(r)));
-    const days = "yesterday|today|monday|tuesday|wednesday|thursday|friday|saturday|sunday";
-    const timePattern = new RegExp("^(\\d{1,2}[:.]\\d{2}(\\s?[AP]M)?|" + days + "|\\d{1,2}/\\d{1,2}/\\d{2,4})$", "i");
-    const chats = top.map(row => {
-      const titled = Array.from(row.querySelectorAll("span[title]")).map(s => s.getAttribute("title") || "");
-      const badge = row.querySelector('[aria-label*="unread" i]');
-      let unread = 0;
-      if (badge) {
-        const m = ((badge.textContent || "") + " " + (badge.getAttribute("aria-label") || "")).match(/\d+/);
-        unread = m ? parseInt(m[0], 10) : 1;
+    return JSON.stringify({ok: true, chats: readRows(pane)});
+    """#
+
+    /// The chat list from the top down to chats last active before `sinceMs` (local midnight of the
+    /// day asked for): scrolls the list, which opens nothing, and returns to the top. Stops after three
+    /// older rows in a row, so pinned chats at the top don't end it early.
+    static let whatsAppChatListSince = whatsAppRows + #"""
+    const pane = document.querySelector("#pane-side");
+    if (!pane) return JSON.stringify({ok: false, reason: "no chat list on screen"});
+    const wait = ms => new Promise(r => setTimeout(r, ms));
+    const dayOf = label => {
+      const now = new Date(); now.setHours(0, 0, 0, 0);
+      const l = label.toLowerCase();
+      const names = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+      if (/^\d{1,2}[:.]\d{2}/.test(l) || l === "today") return now.getTime();
+      if (l === "yesterday") return now.getTime() - 86400000;
+      if (names.includes(l)) return now.getTime() - ((now.getDay() - names.indexOf(l) + 7) % 7) * 86400000;
+      const m = l.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+      if (!m) return null;
+      const [d, mo] = dayFirst ? [m[1], m[2]] : [m[2], m[1]];
+      const y = m[3].length === 2 ? 2000 + Number(m[3]) : Number(m[3]);
+      return new Date(y, Number(mo) - 1, Number(d)).getTime();
+    };
+    const seen = new Map();
+    let older = 0;
+    for (let i = 0; i < 200 && older < 3; i++) {
+      for (const chat of readRows(pane)) {
+        if (seen.has(chat.name)) continue;
+        seen.set(chat.name, chat);
+        const day = dayOf(chat.time);
+        older = day !== null && day < sinceMs ? older + 1 : 0;
+        if (older >= 3) break;
       }
-      let time = "";
-      for (const el of row.querySelectorAll("div, span")) {
-        const t = el.children.length === 0 ? (el.textContent || "").trim() : "";
-        if (timePattern.test(t)) { time = t; break; }
-      }
-      return {name: titled[0] || "", preview: titled.length > 1 ? titled[titled.length - 1] : "", time, unread};
-    }).filter(c => c.name);
+      const before = pane.scrollTop;
+      pane.scrollTop += Math.floor(pane.clientHeight * 0.8);
+      await wait(300);
+      if (pane.scrollTop === before) break;
+    }
+    pane.scrollTop = 0;
+    const chats = Array.from(seen.values()).filter(c => { const d = dayOf(c.time); return d === null || d >= sinceMs; });
     return JSON.stringify({ok: true, chats});
+    """#
+
+    /// `readRows(pane)`: the chat rows WhatsApp has drawn, as `AgentChat`s.
+    private static let whatsAppRows = #"""
+    const readRows = pane => {
+      const rows = Array.from(pane.querySelectorAll('[role="listitem"], [role="row"]'));
+      const top = rows.filter(r => !rows.some(o => o !== r && o.contains(r)));
+      const days = "yesterday|today|monday|tuesday|wednesday|thursday|friday|saturday|sunday";
+      const timePattern = new RegExp("^(\\d{1,2}[:.]\\d{2}(\\s?[AP]M)?|" + days + "|\\d{1,2}/\\d{1,2}/\\d{2,4})$", "i");
+      return top.map(row => {
+        const titled = Array.from(row.querySelectorAll("span[title]")).map(s => s.getAttribute("title") || "");
+        const badge = row.querySelector('[aria-label*="unread" i]');
+        let unread = 0;
+        if (badge) {
+          const m = ((badge.textContent || "") + " " + (badge.getAttribute("aria-label") || "")).match(/\d+/);
+          unread = m ? parseInt(m[0], 10) : 1;
+        }
+        let time = "";
+        for (const el of row.querySelectorAll("div, span")) {
+          const t = el.children.length === 0 ? (el.textContent || "").trim() : "";
+          if (timePattern.test(t)) { time = t; break; }
+        }
+        return {name: titled[0] || "", preview: titled.length > 1 ? titled[titled.length - 1] : "", time, unread};
+      }).filter(c => c.name);
+    };
+
     """#
 
     /// The structure under a selector: tags, roles, labels and data attributes, text only as a length
@@ -76,12 +123,21 @@ enum PageReaders {
     }
 
     /// Turns a chat-list reader's JSON into the API's answer; content only when `countsOnly` is off.
-    static func chatsResponse(json: String, countsOnly: Bool) -> AgentResponse {
+    static func chatsResponse(json: String, countsOnly: Bool, readOnly: Bool = false, now: Date = Date()) -> AgentResponse {
         guard let result = try? JSONDecoder().decode(ChatListResult.self, from: Data(json.utf8)) else {
             return .failure("reader returned something unreadable")
         }
-        guard result.ok, let chats = result.chats else {
+        guard result.ok, var chats = result.chats else {
             return .failure(result.reason ?? "reader failed")
+        }
+        if readOnly {
+            chats = chats.filter { $0.unread == 0 }
+        }
+        for index in chats.indices {
+            let label = chats[index].time
+            let today = label.range(of: #"^\d{1,2}[:.]\d{2}"#, options: .regularExpression) != nil
+            let date = WhatsAppScripts.date(ofDay: today ? "Today" : label, now: now)
+            chats[index].date = date.isEmpty ? nil : date
         }
         if countsOnly {
             return AgentResponse(ok: true, counts: counts(chats))

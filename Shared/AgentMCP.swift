@@ -25,6 +25,14 @@ enum AgentMCP {
                 schema: ["type": "object", "properties": [String: Any]()]
             ),
             Tool(
+                name: "tabchat_status",
+                description: "Whether the owner is using Tabchat (focused, seconds since their last input there) or the "
+                    + "Mac (seconds idle), the tab shown, whether a send awaits confirmation, and each readable tab's "
+                    + "switches. Check it before background work and back off while the owner is active.",
+                call: .status,
+                schema: ["type": "object", "properties": [String: Any]()]
+            ),
+            Tool(
                 name: "tabchat_feed",
                 description: "Recent notifications (sender or chat, and message preview) Tabchat received, newest last. "
                     + "Kept in memory only, at most 24 hours. Read-only." + untrustedNote,
@@ -44,7 +52,15 @@ enum AgentMCP {
                 call: .chats,
                 schema: [
                     "type": "object",
-                    "properties": ["tab": ["type": "string", "description": "A tab id from tabchat_tabs."]],
+                    "properties": [
+                        "tab": ["type": "string", "description": "A tab id from tabchat_tabs."],
+                        "since": [
+                            "type": "string",
+                            "description": "ISO 8601 time: scroll the list down to chats active "
+                                + "on or after that day (needs the actions switch)."
+                        ],
+                        "read_only": ["type": "boolean", "description": "Only chats with nothing unread."]
+                    ],
                     "required": ["tab"]
                 ]
             ),
@@ -77,7 +93,8 @@ enum AgentMCP {
                     "type": "object",
                     "properties": [
                         "tab": ["type": "string", "description": "A tab id from tabchat_tabs."],
-                        "chat": ["type": "string", "description": "The chat's name exactly as the chat list shows it."]
+                        "chat": ["type": "string", "description": "The chat's name exactly as the chat list shows it."],
+                        "if_read": ["type": "boolean", "description": "Refuse, without opening, if it has unread messages."]
                     ],
                     "required": ["tab", "chat"]
                 ]
@@ -132,7 +149,11 @@ enum AgentMCP {
                     "type": "object",
                     "properties": [
                         "tab": ["type": "string", "description": "A tab id from tabchat_tabs."],
-                        "screens": ["type": "integer", "description": "Screens to scroll back, 1–20 (default 3)."]
+                        "screens": ["type": "integer", "description": "Screens to scroll back, 1–20 (default 3; 20 with until)."],
+                        "until": [
+                            "type": "string",
+                            "description": "A message id you already have: stop there and return only newer messages."
+                        ]
                     ],
                     "required": ["tab"]
                 ]
@@ -205,6 +226,10 @@ enum AgentMCP {
         request.message = arguments["message"] as? String
         request.screens = (arguments["screens"] as? NSNumber)?.intValue
         request.text = arguments["text"] as? String
+        request.until = arguments["until"] as? String
+        request.since = arguments["since"] as? String
+        request.readOnly = arguments["read_only"] as? Bool
+        request.ifRead = arguments["if_read"] as? Bool
         if let minutes = (arguments["since_minutes"] as? NSNumber)?.doubleValue {
             request.sinceSeconds = minutes * 60
         }

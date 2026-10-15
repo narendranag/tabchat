@@ -94,11 +94,17 @@ extension AgentService {
     /// The actions that only open panels or scroll: `contact` and `history`.
     private func read(_ request: AgentRequest, controller: TabController, model: AppModel) async throws -> AgentResponse {
         if request.call == .history {
-            let screens = min(max(request.screens ?? 3, 1), 20)
+            let until = request.until ?? ""
+            let screens = min(max(request.screens ?? (until.isEmpty ? 3 : 20), 1), 20)
             model.showToast("Agent reading earlier messages")
-            return try await WhatsAppScripts.messagesResponse(json: PageReaders.run(
-                WhatsAppScripts.history, arguments: ["screens": screens], in: controller.webView
-            ))
+            let json = try await PageReaders.run(
+                WhatsAppScripts.history, arguments: ["screens": screens, "until": until], in: controller.webView
+            )
+            var response = WhatsAppScripts.messagesResponse(json: json)
+            if response.ok, WhatsAppScripts.decode(json).reached == false {
+                response.note = "did not reach that message within \(screens) screens; these are the messages read"
+            }
+            return response
         }
         model.showToast("Agent reading contact info")
         let result = try await WhatsAppScripts.decode(PageReaders.run(WhatsAppScripts.contact, in: controller.webView))
@@ -110,7 +116,11 @@ extension AgentService {
         guard let name = request.chat, !name.isEmpty else { return .failure("open needs --chat NAME") }
         model.showToast("Agent opening \(name)")
         let result = try await WhatsAppScripts.decode(
-            PageReaders.run(WhatsAppScripts.open, arguments: ["name": name], in: controller.webView)
+            PageReaders.run(
+                WhatsAppScripts.open,
+                arguments: ["name": name, "ifRead": request.ifRead == true],
+                in: controller.webView
+            )
         )
         guard result.ok else { return .failure(result.reason ?? "could not open the chat") }
         var response = AgentResponse(ok: true)

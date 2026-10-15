@@ -1,5 +1,7 @@
+import AppKit
 import Foundation
 import Observation
+import WebKit
 
 /// The agent API inside the app: keeps the notification feed, runs the socket while agents are
 /// allowed, answers calls and logs each one. The read calls only read; the actions (clicks, drafts,
@@ -14,6 +16,9 @@ final class AgentService {
     @ObservationIgnored private var server: AgentSocketServer?
     /// A `send` is waiting for the owner; a second one is refused until it is answered.
     @ObservationIgnored var sendPending = false
+    /// The owner's last keyboard or mouse input in Tabchat, for `status`.
+    @ObservationIgnored private var lastInput: Date?
+    @ObservationIgnored private var inputMonitor: Any?
     /// Asks the owner to confirm a `send`; replaced in tests.
     @ObservationIgnored var confirmSend: @MainActor (AgentSendRequest) async -> Bool = AgentSendConfirm.ask
     private let log: AgentLog
@@ -26,6 +31,11 @@ final class AgentService {
 
     func attach(_ model: AppModel) {
         self.model = model
+        let input: NSEvent.EventTypeMask = [.keyDown, .leftMouseDown, .rightMouseDown, .scrollWheel]
+        inputMonitor = NSEvent.addLocalMonitorForEvents(matching: input) { [weak self] event in
+            self?.lastInput = Date()
+            return event
+        }
         log.trim(now: Date())
     }
 
@@ -57,7 +67,10 @@ final class AgentService {
         guard AgentResponder.readableTabs(state).contains(where: { $0.id == tab.id }) else { return }
         let now = Date()
         feed.prune(now: now)
-        feed.append(AgentFeedItem(time: now, tab: tab.id.uuidString, service: tab.serviceId, title: title, body: body))
+        feed.append(AgentFeedItem(
+            time: now, tab: tab.id.uuidString, service: tab.serviceId, title: title, body: body,
+            chat: tab.serviceId == "whatsapp" && !title.isEmpty ? title : nil
+        ))
     }
 
     private func reply(to line: Data, client: String) async -> Data {
@@ -88,6 +101,8 @@ final class AgentService {
             return AgentResponder.tabs(state: state, unread: model.unread, loaded: loaded)
         case .feed:
             return AgentResponder.feed(request: request, state: state, feed: feed, now: Date())
+        case .status:
+            return status(model: model, state: state)
         case .chats, .page, .inspect, .messages:
             return await read(request, model: model, state: state)
         case .open, .download, .contact, .history, .draft, .send:
@@ -126,14 +141,52 @@ final class AgentService {
                 )
                 return PageReaders.pageResponse(json: json)
             }
+            if let since = request.since {
+                return try await chatsSince(since, request: request, tab: tab, webView: webView, state: state)
+            }
             guard let script = PageReaders.chatList(serviceId: tab.serviceId) else {
                 return .failure("no chat-list reader for \(tab.serviceId) yet; use page")
             }
             let json = try await PageReaders.run(script, in: webView)
-            return PageReaders.chatsResponse(json: json, countsOnly: request.countsOnly ?? false)
+            return PageReaders.chatsResponse(
+                json: json, countsOnly: request.countsOnly ?? false, readOnly: request.readOnly ?? false
+            )
         } catch {
             return .failure("reader failed: \(error.localizedDescription)")
         }
+    }
+
+    private func status(model: AppModel, state: AppState) -> AgentResponse {
+        let readable = AgentResponder.readableTabs(state)
+        let selected = readable.first { $0.id == state.selectedTabId }?.id.uuidString
+        let idle = CGEventSource.secondsSinceLastEventType(.combinedSessionState, eventType: CGEventType(rawValue: ~0)!)
+        let window = MainWindow.shared.window
+        var response = AgentResponse(ok: true, status: AgentStatus(
+            focused: NSApp.isActive && window?.isKeyWindow == true,
+            tabchatInputSecondsAgo: lastInput.map { Date().timeIntervalSince($0) },
+            macIdleSeconds: idle, selectedTab: selected, sendPending: sendPending
+        ))
+        response.tabs = AgentResponder.tabs(
+            state: state, unread: model.unread, loaded: Set(model.controllers.keys).subtracting(model.sleeping)
+        ).tabs
+        return response
+    }
+
+    /// `chats --since`: scrolls the chat list, so it needs the tab's actions switch as well.
+    private func chatsSince(
+        _ since: String, request: AgentRequest, tab: Tab, webView: WKWebView, state: AppState
+    ) async throws -> AgentResponse {
+        guard tab.serviceId == "whatsapp" else { return .failure("chats --since is WhatsApp only so far") }
+        if case let .failure(error) = AgentResponder.actionTab(for: request, in: state) {
+            return .failure(error.text)
+        }
+        guard let date = AgentResponder.isoDate(since) else { return .failure("--since takes an ISO 8601 time") }
+        let midnight = Calendar.current.startOfDay(for: date)
+        let order = DateFormatter.dateFormat(fromTemplate: "ddMMyyyy", options: 0, locale: .current) ?? "dd"
+        let json = try await PageReaders.run(PageReaders.whatsAppChatListSince, arguments: [
+            "sinceMs": midnight.timeIntervalSince1970 * 1000, "dayFirst": order.hasPrefix("d")
+        ], in: webView)
+        return PageReaders.chatsResponse(json: json, countsOnly: request.countsOnly ?? false, readOnly: request.readOnly ?? false)
     }
 
     private static func itemCount(_ response: AgentResponse) -> Int {

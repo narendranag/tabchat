@@ -49,7 +49,8 @@ final class AgentTests: XCTestCase {
         let (state, whatsapp, _) = try state()
         let response = AgentResponder.tabs(state: state, unread: [whatsapp.id: Unread(count: 3)], loaded: [])
         XCTAssertEqual(response.tabs, [AgentTabInfo(
-            id: whatsapp.id.uuidString, name: "WhatsApp", service: "whatsapp", unread: 3, unreadDot: false, loaded: false
+            id: whatsapp.id.uuidString, name: "WhatsApp", service: "whatsapp", unread: 3, unreadDot: false, loaded: false,
+            actions: false
         )])
     }
 
@@ -120,7 +121,7 @@ final class AgentTests: XCTestCase {
         XCTAssertEqual(
             tools.compactMap { $0["name"] as? String },
             [
-                "tabchat_tabs", "tabchat_feed", "tabchat_chats", "tabchat_page",
+                "tabchat_tabs", "tabchat_status", "tabchat_feed", "tabchat_chats", "tabchat_page",
                 "tabchat_messages", "tabchat_open", "tabchat_contact", "tabchat_download",
                 "tabchat_draft", "tabchat_send", "tabchat_history"
             ]
@@ -176,11 +177,18 @@ final class AgentTests: XCTestCase {
         let webView = try await loadFixture()
         let script = try XCTUnwrap(PageReaders.chatList(serviceId: "whatsapp"))
         let json = try await PageReaders.run(script, in: webView)
-        let response = PageReaders.chatsResponse(json: json, countsOnly: false)
+        let now = Date()
+        let response = PageReaders.chatsResponse(json: json, countsOnly: false, now: now)
         XCTAssertEqual(response.untrusted, true)
         XCTAssertEqual(response.chats, [
-            AgentChat(name: "Ada Example", preview: "See you at noon", time: "10:21", unread: 2),
-            AgentChat(name: "Test Group", preview: "Grace: the build is green", time: "Yesterday", unread: 0)
+            AgentChat(
+                name: "Ada Example", preview: "See you at noon", time: "10:21", unread: 2,
+                date: WhatsAppScripts.date(ofDay: "Today", now: now)
+            ),
+            AgentChat(
+                name: "Test Group", preview: "Grace: the build is green", time: "Yesterday", unread: 0,
+                date: WhatsAppScripts.date(ofDay: "Yesterday", now: now)
+            )
         ])
         let counts = PageReaders.chatsResponse(json: json, countsOnly: true)
         XCTAssertNil(counts.chats)

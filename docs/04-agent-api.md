@@ -47,16 +47,17 @@ compiled into both the app and the `tabchat-agent` tool, which the app bundle ca
 | Call | Tier | Needs | Returns |
 | --- | --- | --- | --- |
 | `tabs` | read | — | readable tabs: id, name, service, unread, loaded |
-| `feed` | read | optional `tab`, `sinceSeconds` | notifications from readable tabs |
-| `chats` | read | `tab` (WhatsApp) | chat list; `countsOnly` gives numbers only |
+| `status` | read | — | `focused`, `tabchatInputSecondsAgo`, `macIdleSeconds`, `selectedTab`, `sendPending`, tabs with their `actions` switch |
+| `feed` | read | optional `tab`, `sinceSeconds` | notifications from readable tabs; WhatsApp items carry `chat` |
+| `chats` | read | `tab` (WhatsApp); optional `readOnly`, `since` (act) | chat list with `unread` and `date`; `countsOnly` gives numbers only; `since` scrolls the list |
 | `messages` | read | `tab` (WhatsApp) | open chat: id, direction, sender, stamp, time, day, date, text, document, media, rendered |
 | `page` | read | `tab` | url, title, visible text (≤20,000 characters) |
-| `open` | act | `tab`, `chat` | opens the chat with that exact name, from the list or through search |
+| `open` | act | `tab`, `chat`, optional `ifRead` | opens the chat with that exact name, from the list or through search |
 | `contact` | act | `tab` | name, phone, about of the open chat |
 | `download` | act | `tab`, `message` | `file: {path, bytes}` for the saved document, photo or video |
 | `draft` | act | `tab`, `text`, optional `chat` | types the message into the chat's box and stops |
 | `send` | act | `tab`, `text`, optional `chat` | sends one message after the owner clicks Send in Tabchat |
-| `history` | act | `tab`, optional `screens` (1–20, default 3) | messages read while scrolling back and down again |
+| `history` | act | `tab`, optional `screens` (1–20, default 3), `until` | messages read while scrolling back and down again; with `until`, only newer ones, and `reached` says whether it got there |
 | `inspect` | debug | `tab`, `selector` | element structure (debug builds only) |
 
 Text from chats is marked `"untrusted": true`. Nothing is sent without the owner: `draft` stops at the
@@ -117,6 +118,13 @@ Written against WhatsApp Web's `data-testid` hooks, learned with `inspect` on 20
 - Names are compared with emoji read back from WhatsApp's `<img alt>`, and a failed search lists
   the names it found. Your own chat is a `message-yourself-row` in search (open it as `<name>` or
   `<name> (You)`); address-book contacts not on WhatsApp (`out-contact-cell`, "Invite") are skipped.
+- For the CRM's nightly run (`~/marain/crm/docs/10-relationship-manager.md`, whose plan this API
+  follows): `chats --since <ISO time> --read-only` scrolls the chat list (opening nothing) down to
+  chats active on or after that day, by day, and keeps those with nothing unread; `open --if-read`
+  refuses, before clicking, a chat whose row shows unread messages; `history --until <id>` returns
+  only what is newer than the last stored message; `status` lets it back off while the owner is at
+  Tabchat or the Mac. WhatsApp Web shows no chat JIDs, so a chat is keyed by name plus message ids.
+  Feed items' `is_group` is left out until a reliable marker is found.
 - The CLI waits up to 120 seconds for actions, 360 for `send`, 15 for reads.
 - Downloads go through the tab's `WKDownload` handling, redirected by an `AgentDownloadSlot` to
   `~/Downloads/Tabchat/<service>/<contact>/`, and are quarantined.

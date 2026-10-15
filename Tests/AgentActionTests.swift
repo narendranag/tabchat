@@ -45,7 +45,8 @@ final class AgentActionTests: XCTestCase {
           + '<div role="row"><div data-testid="out-contact-cell"><div data-testid="cell-frame-title">'
           + '<span title="Ada Owner">Ada Owner</span></div><button>Invite</button></div></div>'
         : '<div role="row"><div data-testid="cell-frame-container"><div data-testid="cell-frame-title">'
-          + '<span title="' + n + '">' + n + '</span></div></div></div>';
+          + '<span title="' + n + '">' + n + '</span></div>'
+          + (n === "Grace Example" ? '<span aria-label="2 unread messages">2</span>' : '') + '</div></div>';
       document.querySelector("#side input").addEventListener("input", e => {
         const q = e.target.value.toLowerCase();
         const names = ["Grace Example", "🐒 Grace Sample", "Ada Owner"];

@@ -118,3 +118,53 @@ extension AgentActionTests {
         XCTAssertEqual(beyond.reason, "that message has no item 2")
     }
 }
+
+/// What the CRM's nightly run asks for: only what's new, and only chats it may open.
+extension AgentActionTests {
+    @MainActor
+    func testHistoryUntilReturnsOnlyNewerMessages() async throws {
+        let rows = (1 ... 12).map {
+            #"<div style="height:60px"><div data-id="H\#($0)"><span data-testid="selectable-text">Note \#($0)</span>"#
+                + #"<div data-testid="msg-meta">1:\#(String(format: "%02d", $0)) pm</div></div></div>"#
+        }.joined()
+        let html = """
+        <html><body><div id="main"><header><span data-testid="conversation-info-header-chat-title">Ada Example</span></header>
+        <div id="pane" style="height:200px;overflow-y:auto">\(rows)</div></div>
+        <script>const p = document.getElementById("pane"); p.scrollTop = p.scrollHeight;</script></body></html>
+        """
+        let webView = WKWebView(frame: NSRect(x: 0, y: 0, width: 800, height: 600))
+        webView.loadHTMLString(html, baseURL: URL(string: "https://example.invalid/"))
+        for _ in 0 ..< 100 where webView.isLoading || webView.url == nil {
+            try await Task.sleep(for: .milliseconds(50))
+        }
+        let json = try await PageReaders.run(WhatsAppScripts.history, arguments: ["screens": 20, "until": "H8"], in: webView)
+        XCTAssertEqual(WhatsAppScripts.messagesResponse(json: json).messages?.map(\.id), ["H9", "H10", "H11", "H12"])
+        XCTAssertEqual(WhatsAppScripts.decode(json).reached, true)
+        let missing = try await PageReaders.run(WhatsAppScripts.history, arguments: ["screens": 2, "until": "NOPE"], in: webView)
+        XCTAssertEqual(WhatsAppScripts.decode(missing).reached, false)
+    }
+
+    func testChatsReadOnlyAndDated() {
+        let json = #"{"ok":true,"chats":[{"name":"Ada","preview":"","time":"","unread":2},"#
+            + #"{"name":"Grace","preview":"","time":"","unread":0}]}"#
+        XCTAssertEqual(PageReaders.chatsResponse(json: json, countsOnly: false, readOnly: true).chats?.map(\.name), ["Grace"])
+        XCTAssertEqual(PageReaders.chatsResponse(json: json, countsOnly: false).chats?.count, 2)
+    }
+
+    @MainActor
+    func testOpenIfReadLeavesUnreadChatsAlone() async throws {
+        let webView = try await loadFixture()
+        let refused = try await WhatsAppScripts.decode(PageReaders.run(
+            WhatsAppScripts.open, arguments: ["name": "Grace Example", "ifRead": true], in: webView
+        ))
+        XCTAssertEqual(refused.reason, "that chat has unread messages; not opened")
+        let header = try await webView.evaluateJavaScript(
+            "document.querySelector('[data-testid=conversation-info-header-chat-title]').textContent"
+        ) as? String
+        XCTAssertEqual(header, "Ada Example")
+        let opened = try await WhatsAppScripts.decode(PageReaders.run(
+            WhatsAppScripts.open, arguments: ["name": "Grace Example", "ifRead": false], in: webView
+        ))
+        XCTAssertEqual(opened.chat, "Grace Example")
+    }
+}

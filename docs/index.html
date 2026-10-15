@@ -682,16 +682,29 @@ carries in <code>Contents/MacOS/</code>.</p>
 <td>readable tabs: id, name, service, unread, loaded</td>
 </tr>
 <tr>
+<td><code>status</code></td>
+<td>read</td>
+<td>—</td>
+<td><code>focused</code>, <code>tabchatInputSecondsAgo</code>,
+<code>macIdleSeconds</code>, <code>selectedTab</code>,
+<code>sendPending</code>, tabs with their <code>actions</code>
+switch</td>
+</tr>
+<tr>
 <td><code>feed</code></td>
 <td>read</td>
 <td>optional <code>tab</code>, <code>sinceSeconds</code></td>
-<td>notifications from readable tabs</td>
+<td>notifications from readable tabs; WhatsApp items carry
+<code>chat</code></td>
 </tr>
 <tr>
 <td><code>chats</code></td>
 <td>read</td>
-<td><code>tab</code> (WhatsApp)</td>
-<td>chat list; <code>countsOnly</code> gives numbers only</td>
+<td><code>tab</code> (WhatsApp); optional <code>readOnly</code>,
+<code>since</code> (act)</td>
+<td>chat list with <code>unread</code> and <code>date</code>;
+<code>countsOnly</code> gives numbers only; <code>since</code> scrolls
+the list</td>
 </tr>
 <tr>
 <td><code>messages</code></td>
@@ -709,7 +722,8 @@ document, media, rendered</td>
 <tr>
 <td><code>open</code></td>
 <td>act</td>
-<td><code>tab</code>, <code>chat</code></td>
+<td><code>tab</code>, <code>chat</code>, optional
+<code>ifRead</code></td>
 <td>opens the chat with that exact name, from the list or through
 search</td>
 </tr>
@@ -741,9 +755,11 @@ video</td>
 <tr>
 <td><code>history</code></td>
 <td>act</td>
-<td><code>tab</code>, optional <code>screens</code> (1–20, default
-3)</td>
-<td>messages read while scrolling back and down again</td>
+<td><code>tab</code>, optional <code>screens</code> (1–20, default 3),
+<code>until</code></td>
+<td>messages read while scrolling back and down again; with
+<code>until</code>, only newer ones, and <code>reached</code> says
+whether it got there</td>
 </tr>
 <tr>
 <td><code>inspect</code></td>
@@ -841,6 +857,18 @@ found. Your own chat is a <code>message-yourself-row</code> in search
 (open it as <code>&lt;name&gt;</code> or
 <code>&lt;name&gt; (You)</code>); address-book contacts not on WhatsApp
 (<code>out-contact-cell</code>, "Invite") are skipped.</li>
+<li>For the CRM's nightly run
+(<code>~/marain/crm/docs/10-relationship-manager.md</code>, whose plan
+this API follows):
+<code>chats --since &lt;ISO time&gt; --read-only</code> scrolls the chat
+list (opening nothing) down to chats active on or after that day, by
+day, and keeps those with nothing unread; <code>open --if-read</code>
+refuses, before clicking, a chat whose row shows unread messages;
+<code>history --until &lt;id&gt;</code> returns only what is newer than
+the last stored message; <code>status</code> lets it back off while the
+owner is at Tabchat or the Mac. WhatsApp Web shows no chat JIDs, so a
+chat is keyed by name plus message ids. Feed items'
+<code>is_group</code> is left out until a reliable marker is found.</li>
 <li>The CLI waits up to 120 seconds for actions, 360 for
 <code>send</code>, 15 for reads.</li>
 <li>Downloads go through the tab's <code>WKDownload</code> handling,

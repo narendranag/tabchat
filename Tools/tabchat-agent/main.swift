@@ -11,13 +11,19 @@ Read the Tabchat tabs you opened to agents and, where you allowed it, act in the
 Settings → Agents). Nothing is sent without your click in Tabchat.
 
   tabs                          tabs agents may read, with unread counts
+  status                        whether you are using Tabchat or the Mac, and the switches
   feed [--tab ID] [--since MIN] notifications received (in memory, at most 24 h)
-  chats --tab ID [--counts-only] the chat list the tab shows (WhatsApp for now)
+  chats --tab ID [--counts-only] [--read-only] [--since ISO-TIME]
+                                the chat list the tab shows (WhatsApp for now); --read-only keeps
+                                chats with nothing unread; --since scrolls down to chats active
+                                on or after that day (actions tier)
   page --tab ID                 the visible text of the page the tab shows
   messages --tab ID             the visible messages of the chat open in the tab
 
 Actions (only for tabs with "actions" ticked; opening a chat sends read receipts):
-  open --tab ID --chat NAME     open the chat with that exact name (searches if needed)
+  open --tab ID --chat NAME [--if-read]
+                                open the chat with that exact name (searches if needed);
+                                --if-read refuses if its row shows unread messages
   download --tab ID --message ID  download the document, photo or video in that message
                                 → ~/Downloads/Tabchat/<service>/<contact>/; replies with file.path, file.bytes
   draft --tab ID [--chat NAME] --text TEXT
@@ -25,8 +31,10 @@ Actions (only for tabs with "actions" ticked; opening a chat sends read receipts
   send --tab ID [--chat NAME] --text TEXT
                                 send one message, after you click Send in Tabchat's dialog
                                 (--text - reads the message from stdin)
-  history --tab ID [--screens N]  scroll the open chat back N screens (default 3, at most 20)
-                                and return every message read on the way
+  history --tab ID [--screens N] [--until MESSAGE-ID]
+                                scroll the open chat back N screens (default 3, at most 20)
+                                and return every message read on the way; with --until, stop at
+                                that message and return only newer ones
   contact --tab ID              the open chat's name, phone and about
   mcp                           serve the same calls as MCP tools over stdio
 
@@ -103,7 +111,9 @@ guard let call = AgentCall(rawValue: command) else { fail("unknown command \(com
 
 var request = AgentRequest(call: call)
 request.tab = option("--tab", in: arguments)
-if let minutes = option("--since", in: arguments) {
+if call == .chats {
+    request.since = option("--since", in: arguments)
+} else if let minutes = option("--since", in: arguments) {
     guard let value = Double(minutes) else { fail("--since takes minutes", code: 2) }
     request.sinceSeconds = value * 60
 }
@@ -112,6 +122,9 @@ request.selector = option("--selector", in: arguments)
 request.chat = option("--chat", in: arguments)
 request.message = option("--message", in: arguments)
 request.countsOnly = arguments.contains("--counts-only") ? true : nil
+request.readOnly = arguments.contains("--read-only") ? true : nil
+request.ifRead = arguments.contains("--if-read") ? true : nil
+request.until = option("--until", in: arguments)
 if let text = option("--text", in: arguments) {
     request.text = text == "-" ? String(bytes: FileHandle.standardInput.readDataToEndOfFile(), encoding: .utf8) : text
 }

@@ -25,6 +25,16 @@ enum AgentResponder {
         }
     }
 
+    /// An ISO 8601 time, with or without fractional seconds, or a bare date (taken as local midnight).
+    static func isoDate(_ text: String) -> Date? {
+        let full = ISO8601DateFormatter()
+        let fractional = ISO8601DateFormatter()
+        fractional.formatOptions.insert(.withFractionalSeconds)
+        let day = DateFormatter()
+        day.dateFormat = "yyyy-MM-dd"
+        return full.date(from: text) ?? fractional.date(from: text) ?? day.date(from: text)
+    }
+
     /// The message a `draft` or `send` carries, trimmed, or why it can't be used.
     static func messageText(_ request: AgentRequest) -> Result<String, AgentError> {
         let text = (request.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
@@ -67,7 +77,8 @@ enum AgentResponder {
             let value = unread[tab.id] ?? .none
             return AgentTabInfo(
                 id: tab.id.uuidString, name: tab.displayName, service: tab.serviceId,
-                unread: value.count, unreadDot: value.dot && value.count < 1, loaded: loaded.contains(tab.id)
+                unread: value.count, unreadDot: value.dot && value.count < 1, loaded: loaded.contains(tab.id),
+                actions: tab.agentActions
             )
         }
         return AgentResponse(ok: true, tabs: tabs)
