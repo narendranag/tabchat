@@ -828,7 +828,10 @@ One pending send at a time; at most 4,000 characters. Live-checked
 2026-10-15.</li>
 <li>Names are compared with emoji read back from WhatsApp's
 <code>&lt;img alt&gt;</code>, and a failed search lists the names it
-found.</li>
+found. Your own chat is a <code>message-yourself-row</code> in search
+(open it as <code>&lt;name&gt;</code> or
+<code>&lt;name&gt; (You)</code>); address-book contacts not on WhatsApp
+(<code>out-contact-cell</code>, "Invite") are skipped.</li>
 <li>The CLI waits up to 120 seconds for actions, 360 for
 <code>send</code>, 15 for reads.</li>
 <li>Downloads go through the tab's <code>WKDownload</code> handling,

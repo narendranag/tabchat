@@ -114,7 +114,7 @@ extension AgentService {
         )
         guard result.ok else { return .failure(result.reason ?? "could not open the chat") }
         var response = AgentResponse(ok: true)
-        response.chat = name
+        response.chat = result.chat ?? name
         return response
     }
 

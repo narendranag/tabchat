@@ -159,10 +159,14 @@ enum WhatsAppScripts {
       return copy.textContent.trim();
     };
     const wait = ms => new Promise(r => setTimeout(r, ms));
+    // A row's name; your own chat may also be asked for as "<name> (You)". Address-book contacts
+    // who are not on WhatsApp (an "Invite" row) are never matched.
     const findRow = () => Array.from(document.querySelectorAll('#pane-side [role="row"], #pane-side [role="listitem"]'))
       .find(r => {
         const t = r.querySelector('[data-testid="cell-frame-title"] span[title]');
-        return t && t.getAttribute("title") === name;
+        if (!t || r.querySelector('[data-testid="out-contact-cell"]')) return false;
+        const title = t.getAttribute("title");
+        return title === name || (!!r.querySelector('[data-testid="you-label"]') && title + " (You)" === name);
       });
     const search = document.querySelector('#side [data-testid="chat-list-search-container"] input[type="text"]');
     const type = text => {
@@ -176,7 +180,7 @@ enum WhatsAppScripts {
     let row = findRow(), searched = false;
     if (!row && search && !search.closest("#main, footer")) {
       searched = true;
-      type(name);
+      type(name.replace(/ \(You\)$/, ""));
       for (let i = 0; i < 50 && !row; i++) { await wait(100); row = findRow(); }
     }
     const clear = async () => {
@@ -194,13 +198,20 @@ enum WhatsAppScripts {
         : "no chat with that exact name" + (found.length ? "; search found: " + found.join(" | ") : "");
       return JSON.stringify({ok: false, reason});
     }
-    const target = row.querySelector('[data-testid="cell-frame-container"]') || row;
+    const target = row.querySelector('[data-testid="cell-frame-container"], [data-testid="message-yourself-row"]') || row;
     for (const kind of ["mousedown", "mouseup", "click"]) {
       target.dispatchEvent(new MouseEvent(kind, {bubbles: true, cancelable: true, view: window}));
     }
+    // Opened when the header shows the name, or, for chats whose header differs from their list title
+    // (your own chat may be asked for as "<name> (You)"), when WhatsApp marks the clicked row selected.
+    const selected = () => !!row.querySelector('[aria-selected="true"]') || row.getAttribute("aria-selected") === "true";
     for (let i = 0; i < 50; i++) {
       const h = document.querySelector('#main [data-testid="conversation-info-header-chat-title"]');
-      if (h && label(h) === name) { await clear(); return JSON.stringify({ok: true, chat: name}); }
+      if (h && (label(h) === name || label(h) === name.replace(/ \(You\)$/, "") || selected())) {
+        const chat = label(h);
+        await clear();
+        return JSON.stringify({ok: true, chat});
+      }
       await wait(100);
     }
     await clear();

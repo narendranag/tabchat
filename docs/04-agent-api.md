@@ -108,7 +108,8 @@ Written against WhatsApp Web's `data-testid` hooks, learned with `inspect` on 20
   `button[aria-label="Send"]` and waits for the box to empty. One pending send at a time; at most
   4,000 characters. Live-checked 2026-10-15.
 - Names are compared with emoji read back from WhatsApp's `<img alt>`, and a failed search lists
-  the names it found.
+  the names it found. Your own chat is a `message-yourself-row` in search (open it as `<name>` or
+  `<name> (You)`); address-book contacts not on WhatsApp (`out-contact-cell`, "Invite") are skipped.
 - The CLI waits up to 120 seconds for actions, 360 for `send`, 15 for reads.
 - Downloads go through the tab's `WKDownload` handling, redirected by an `AgentDownloadSlot` to
   `~/Downloads/Tabchat/<service>/<contact>/`, and are quarantined.

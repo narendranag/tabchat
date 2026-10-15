@@ -38,18 +38,27 @@ final class AgentActionTests: XCTestCase {
       // The search box: shows the matching chats in place of the list, as WhatsApp does.
       const grid = document.querySelector("#pane-side [role=grid]");
       const list = grid.innerHTML;
-      const row = n => '<div role="row"><div data-testid="cell-frame-container"><div data-testid="cell-frame-title">'
-        + '<span title="' + n + '">' + n + '</span></div></div></div>';
+      // Your own chat and an address-book contact look different in WhatsApp's search results.
+      const row = n => n === "Ada Owner"
+        ? '<div role="row"><div role="button"><div data-testid="message-yourself-row"><div data-testid="cell-frame-title">'
+          + '<span title="Ada Owner">Ada Owner</span><span data-testid="you-label">(You)</span></div></div></div></div>'
+          + '<div role="row"><div data-testid="out-contact-cell"><div data-testid="cell-frame-title">'
+          + '<span title="Ada Owner">Ada Owner</span></div><button>Invite</button></div></div>'
+        : '<div role="row"><div data-testid="cell-frame-container"><div data-testid="cell-frame-title">'
+          + '<span title="' + n + '">' + n + '</span></div></div></div>';
       document.querySelector("#side input").addEventListener("input", e => {
         const q = e.target.value.toLowerCase();
-        const names = ["Grace Example", "🐒 Grace Sample"];
+        const names = ["Grace Example", "🐒 Grace Sample", "Ada Owner"];
         grid.innerHTML = q ? names.filter(n => n.toLowerCase().includes(q)).map(row).join("") : list;
       });
       document.getElementById("pane-side").addEventListener("click", e => {
-        const title = e.target.closest("[data-testid=cell-frame-container]")?.querySelector("span[title]");
-        // Emoji become images in WhatsApp's header.
-        if (title) document.querySelector("[data-testid=conversation-info-header-chat-title]").innerHTML =
-          title.title.replace("🐒", '<img alt="🐒" src="data:,">');
+        const cell = e.target.closest("[data-testid=cell-frame-container], [data-testid=message-yourself-row]");
+        const title = cell?.querySelector("span[title]");
+        if (!title) return;
+        // Your own chat: its header adds " (You)", and WhatsApp marks the row selected. Emoji become images.
+        cell.setAttribute("aria-selected", "true");
+        document.querySelector("[data-testid=conversation-info-header-chat-title]").innerHTML =
+          title.title === "Ada Owner" ? "Ada Owner (You)" : title.title.replace("🐒", '<img alt="🐒" src="data:,">');
       });
       document.querySelector("header").addEventListener("click", () => {
         const d = document.createElement("div");
@@ -254,26 +263,6 @@ final class AgentActionTests: XCTestCase {
             in: webView
         ))
         XCTAssertEqual(missing.reason, "that message is not in the open chat")
-    }
-
-    @MainActor
-    func testOpenFindsAChatThroughSearchAndClearsIt() async throws {
-        let webView = try await loadFixture()
-        let result = try await WhatsAppScripts.decode(PageReaders.run(
-            WhatsAppScripts.open,
-            arguments: ["name": "🐒 Grace Sample"],
-            in: webView
-        ))
-        XCTAssertTrue(result.ok, result.reason ?? "")
-        XCTAssertEqual(result.chat, "🐒 Grace Sample")
-        let search = try await webView.evaluateJavaScript("document.querySelector('#side input').value") as? String
-        XCTAssertEqual(search, "")
-        let missing = try await WhatsAppScripts.decode(PageReaders.run(
-            WhatsAppScripts.open,
-            arguments: ["name": "Grace"],
-            in: webView
-        ))
-        XCTAssertEqual(missing.reason, "no chat with that exact name; search found: Grace Example | 🐒 Grace Sample")
     }
 
     @MainActor

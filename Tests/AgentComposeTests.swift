@@ -2,8 +2,40 @@
 import WebKit
 import XCTest
 
-/// `draft` and `send` against the invented page in `AgentActionTests`.
+/// `open` through search, `draft` and `send` against the invented page in `AgentActionTests`.
 extension AgentActionTests {
+    @MainActor
+    func testOpenFindsAChatThroughSearchAndClearsIt() async throws {
+        let webView = try await loadFixture()
+        let result = try await WhatsAppScripts.decode(PageReaders.run(
+            WhatsAppScripts.open,
+            arguments: ["name": "🐒 Grace Sample"],
+            in: webView
+        ))
+        XCTAssertTrue(result.ok, result.reason ?? "")
+        XCTAssertEqual(result.chat, "🐒 Grace Sample")
+        let search = try await webView.evaluateJavaScript("document.querySelector('#side input').value") as? String
+        XCTAssertEqual(search, "")
+        let missing = try await WhatsAppScripts.decode(PageReaders.run(
+            WhatsAppScripts.open,
+            arguments: ["name": "Grace"],
+            in: webView
+        ))
+        XCTAssertEqual(missing.reason, "no chat with that exact name; search found: Grace Example | 🐒 Grace Sample")
+        let own = try await WhatsAppScripts.decode(PageReaders.run(
+            WhatsAppScripts.open,
+            arguments: ["name": "Ada Owner"],
+            in: webView
+        ))
+        XCTAssertEqual(own.chat, "Ada Owner (You)")
+        let asked = try await WhatsAppScripts.decode(PageReaders.run(
+            WhatsAppScripts.open,
+            arguments: ["name": "Ada Owner (You)"],
+            in: webView
+        ))
+        XCTAssertEqual(asked.chat, "Ada Owner (You)")
+    }
+
     @MainActor
     private func compose(_ text: String, send: Bool, chat: String = "Ada Example", in webView: WKWebView) async throws
         -> WhatsAppScripts.Result {
