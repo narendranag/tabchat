@@ -5,6 +5,8 @@
 
 ## Now
 
+- Paused 2026-10-15 at Narendra's word (v0.2.0 released). Pick up from Next; check with the CRM session before restarting Tabchat.
+
 - [ ] Post the Reddit comment (draft in `brief/reddit-comment.md`, from Narendra's account) #community
 - [ ] Install v0.1.1 on air from the release dmg (air was unreachable 2026-10-13; mini done) #mac
 
@@ -26,6 +28,8 @@
 - [ ] Signed, notarized `.dmg` from GitHub Actions + Sparkle updates (needs an Apple Developer ID — costs money, Narendra decides)
 
 ## Done
+
+- [x] v0.2.0 released: the agent API (GitHub release with the dmg) — 2026-10-15
 
 - [x] Discord readers (read only): DM list with stable channel ids, messages with ISO times; fixes from the CRM's run (chats --since timeout, history on fresh chats, local --since, 90 s history budget) — live-checked 2026-10-15
 

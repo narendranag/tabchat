@@ -22,13 +22,16 @@ This brain follows the fleet's standard: how projects are built is in
 
 ## Status
 
-**v0.1.1 released** (2026-10-13), installed in `/Applications` on mini. A from-scratch native Swift
+**v0.2.0 released** (2026-10-15, the agent API; v0.1.1 was 2026-10-13). **Paused** at Narendra's word
+on 2026-10-15; pick up from `TASKS.md`. A from-scratch native Swift
 app (macOS 14+, Apple Silicon, sidebar, English only); all six phases of `brief/mac-rewrite.md` are
 built. Upstream's Linux code is on the `Linux` branch; `main` holds only the Mac app. CI (lint →
 test → build on `macos-26`, Xcode 26.6) runs on every push. Upstream was told
 (MMV2408/tabchat#1, since deleted; Mike kept the name and asked for the "independent community
-port" line). **Agent API** built and live-tested on WhatsApp 2026-10-15 (`docs/04-agent-api.md`);
-not yet in a release. Open items are in `TASKS.md`; what's left overall is in the
+port" line). **Agent API** (`docs/04-agent-api.md`): read and act tiers, drafts and confirmed sends on
+WhatsApp, read-only Discord, LinkedIn as a tab; complements the CRM's plan
+(`~/marain/crm/docs/10-relationship-manager.md`, final). Check with the CRM session before restarting
+Tabchat: its nightly run uses it. Open items are in `TASKS.md`; what's left overall is in the
 README's "Still to do".
 
 ## Stack

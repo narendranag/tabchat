@@ -9,8 +9,8 @@ unless you click Send yourself.
 TabChat for Agents is an independent community port of [MMV2408/tabchat](https://github.com/MMV2408/tabchat);
 it is not affiliated with or endorsed by the original project.
 
-**Status: working, built in public.** The Mac app is v0.1.1; the agent API is new (October 2026) and
-tested live on WhatsApp. [`TASKS.md`](TASKS.md) and [`DECISIONS.md`](DECISIONS.md) are kept up to date;
+**Status: working, built in public; paused for now.** v0.2.0 (October 2026) is the first release with the
+agent API, tested live on WhatsApp, Discord and LinkedIn. [`TASKS.md`](TASKS.md) and [`DECISIONS.md`](DECISIONS.md) are kept up to date;
 the reasoning behind the agent API — what can be read, the risks per service, the security model — is in
 [`brief/agent-api.md`](brief/agent-api.md).
 
@@ -98,7 +98,8 @@ macOS 14 Sonoma or later, Apple Silicon.
 ## Download
 
 Get the latest `Tabchat-<version>.dmg` from [Releases](https://github.com/narendranag/tabchat-for-agents/releases/latest).
-v0.1.1 is the app without the agent API; the next release will include it.
+v0.2.0 is the first release with the agent API; v0.1.x is the app without it. Your services and sign-ins
+carry over when you replace the app.
 
 The build is **not notarised** yet: the first time, drag it to Applications, then right-click it →
 **Open** → **Open** (or System Settings → Privacy & Security → **Open Anyway**).
