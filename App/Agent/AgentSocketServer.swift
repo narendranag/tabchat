@@ -104,6 +104,8 @@ final class AgentSocketServer: @unchecked Sendable {
             close(client)
             return
         }
+        // BSD hands the listener's O_NONBLOCK to accepted sockets; reads here must wait (with a timeout).
+        _ = fcntl(client, F_SETFL, fcntl(client, F_GETFL) & ~O_NONBLOCK)
         var on: Int32 = 1
         setsockopt(client, SOL_SOCKET, SO_NOSIGPIPE, &on, socklen_t(MemoryLayout<Int32>.size))
         var timeout = timeval(tv_sec: 5, tv_usec: 0)

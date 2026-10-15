@@ -225,6 +225,8 @@ final class AgentTests: XCTestCase {
             $0.withMemoryRebound(to: sockaddr.self, capacity: 1) { connect(fd, $0, socklen_t(MemoryLayout<sockaddr_un>.size)) }
         }
         XCTAssertEqual(connected, 0)
+        // A real client's request can arrive after the server starts reading; it must wait for it.
+        Thread.sleep(forTimeInterval: 0.3)
         let line = try AgentWire.line(AgentRequest(call: .tabs))
         _ = line.withUnsafeBytes { write(fd, $0.baseAddress, $0.count) }
         var buffer = [UInt8](repeating: 0, count: 1024)
