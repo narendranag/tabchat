@@ -90,7 +90,8 @@ Written against WhatsApp Web's `data-testid` hooks, learned with `inspect` on 20
   `screens` screens, waiting for WhatsApp to load more, then back down, keeping each message the
   first time it is drawn, placed right after the known message drawn before it (WhatsApp keeps some
   rows drawn while scrolling). When scrolling loads nothing it presses WhatsApp's own "Click here
-  to get older messages from your phone" (after a restart WhatsApp keeps only the newest messages). It only scrolls, and ends at the newest message. It is in the actions tier
+  to get older messages from your phone" (after a restart WhatsApp keeps only the newest messages);
+  it presses nothing else, and ends at the newest message. It is in the actions tier
   because scrolling back makes WhatsApp fetch older messages. Timers are slowed in a tab that isn't on
   screen, so it is quicker with the WhatsApp tab selected.
 - `download` closes any viewer still open, then clicks the document thumb, or for a photo or video
