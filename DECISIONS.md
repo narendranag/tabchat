@@ -22,3 +22,4 @@
 - [mini] [2026-10-15] Contact details go to the personal CRM `~/marain/crm` through its own `crm` CLI, run by the agent; Tabchat only hands over name, number and "about" and never writes `crm.db`.
 - [mini] [2026-10-15] Project renamed TabChat for Agents and the README rewritten around the agent API; the app name, bundle id and repo stay `Tabchat`/`narendranag/tabchat` so sign-ins, installs and links keep working. `agent-api` merged to `main`.
 - [mini] [2026-10-15] README says TabChat for Agents is an independent community port of MMV2408/tabchat, not affiliated with or endorsed by it — Mike's request on MMV2408/tabchat#1, where he also said to keep the name.
+- [mini] [2026-10-15] GitHub repo renamed `narendranag/tabchat` → `narendranag/tabchat-for-agents`, description rewritten for the agent API — Narendra's call; GitHub redirects the old URLs, the app and bundle id keep the name Tabchat.

@@ -22,7 +22,7 @@ Tabchat is a native macOS app that brings messaging and productivity services—
 
 The app reuses the system's WebKit engine (WKWebView), so it stays lightweight and integrates deeply with macOS: unread badges on the Dock icon and menu bar, native notifications that respect Focus modes, menu bar icon for always-at-hand access, start-at-login support.
 
-**Credit:** Tabchat is a rewrite from scratch of [MMV2408/tabchat](https://github.com/MMV2408/tabchat), an Electron app for Linux (MIT License, © Mike Vijverberg). This fork is macOS-only; the original Linux code lives on the [`Linux`](https://github.com/narendranag/tabchat/tree/Linux) branch (tag `upstream-final`).
+**Credit:** Tabchat is a rewrite from scratch of [MMV2408/tabchat](https://github.com/MMV2408/tabchat), an Electron app for Linux (MIT License, © Mike Vijverberg). This fork is macOS-only; the original Linux code lives on the [`Linux`](https://github.com/narendranag/tabchat-for-agents/tree/Linux) branch (tag `upstream-final`).
 
 **TabChat for Agents.** Since October 2026 the project's focus is letting the AI agents on the
 owner's Mac read these services and act in them — see [04 Agent API](04-agent-api.md). It is an

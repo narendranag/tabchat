@@ -124,7 +124,7 @@ The app is signed with the local `Apple Development` identity (team `4HL2424MH6`
 
 ```sh
 git tag -a v<version> -m "Tabchat for Mac <version>" && git push origin v<version>
-gh release create v<version> build/Tabchat-<version>.dmg -R narendranag/tabchat \
+gh release create v<version> build/Tabchat-<version>.dmg -R narendranag/tabchat-for-agents \
   --title "Tabchat for Mac <version>" --notes-file brief/release-<version>.md
 ```
 
@@ -149,7 +149,7 @@ CI sets `TABCHAT_SIGN_IDENTITY=-`. Distribution signing (Developer ID, notarisat
 
 1. **Clone and install:**
    ```sh
-   git clone https://github.com/narendranag/tabchat.git
+   git clone https://github.com/narendranag/tabchat-for-agents.git
    cd tabchat
    brew install xcodegen swiftlint swiftformat just
    ```

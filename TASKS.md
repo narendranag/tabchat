@@ -26,6 +26,7 @@
 
 ## Done
 
+- [x] Repo renamed to `narendranag/tabchat-for-agents` with a new description — 2026-10-15
 - [x] Pivot to TabChat for Agents: README rewritten, "independent community port" line (Mike's request on MMV2408/tabchat#1), `agent-api` merged to `main` — 2026-10-15
 
 - [x] Agent API actions tier for WhatsApp: `messages`, `open`, `contact`, `download`, live-tested on mini (branch `agent-api`) — 2026-10-15

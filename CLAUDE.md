@@ -3,12 +3,12 @@
 WhatsApp, Discord, Teams, Outlook, OneDrive, Brightspace and any website as tabs in one window,
 sharing one browser engine — and readable by local AI agents through a socket, the `tabchat-agent`
 CLI and MCP (read tier and actions tier, never send). For Narendra, on his Macs. Renamed from
-"Tabchat (Mac)" on 2026-10-15; the app, bundle id (`com.narendranag.tabchat`) and repo keep the
-old name so sign-ins and links survive. It is an independent community port of MMV2408/tabchat
+"Tabchat (Mac)" on 2026-10-15; the app and bundle id (`com.narendranag.tabchat`) keep the old
+name so sign-ins survive; the repo became `narendranag/tabchat-for-agents` (GitHub redirects old links). It is an independent community port of MMV2408/tabchat
 (Mike asked for that line in the README).
 
 A from-scratch native rewrite of [MMV2408/tabchat](https://github.com/MMV2408/tabchat) (MIT,
-Electron, Linux). Repo: github.com/narendranag/tabchat (public fork, built in public — keep the
+Electron, Linux). Repo: github.com/narendranag/tabchat-for-agents (renamed from `narendranag/tabchat` 2026-10-15; public fork, built in public — keep the
 README, `TASKS.md` and `DECISIONS.md` current). Remotes: `origin` = the fork, `upstream` = MMV2408.
 The forked Linux code is on the `Linux` branch (tag `upstream-final`); `main` holds only the Mac app.
 Keep the MIT licence and the credit to the original author.
@@ -38,7 +38,7 @@ README's "Still to do".
   OS hooks" exception.
 - Local builds sign with the free Apple Development identity (team 4HL2424MH6) so Keychain keeps
   trusting WebKit's WebCrypto key across rebuilds; CI signs ad-hoc (`TABCHAT_SIGN_IDENTITY=-`).
-- `gh` defaults to `narendranag/tabchat` in this clone (it had picked upstream); pass `-R` anyway.
+- `gh` defaults to `narendranag/tabchat-for-agents` in this clone (it had picked upstream); pass `-R` anyway.
 
 ## Release
 

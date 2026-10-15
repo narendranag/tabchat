@@ -91,7 +91,7 @@ macOS 14 Sonoma or later, Apple Silicon.
 
 ## Download
 
-Get the latest `Tabchat-<version>.dmg` from [Releases](https://github.com/narendranag/tabchat/releases/latest).
+Get the latest `Tabchat-<version>.dmg` from [Releases](https://github.com/narendranag/tabchat-for-agents/releases/latest).
 v0.1.1 is the app without the agent API; the next release will include it.
 
 The build is **not notarised** yet: the first time, drag it to Applications, then right-click it →
@@ -102,7 +102,7 @@ The build is **not notarised** yet: the first time, drag it to Applications, the
 It started as [MMV2408/tabchat](https://github.com/MMV2408/tabchat) by Mike Vijverberg, an Electron app
 for Linux (MIT). This is a from-scratch native rewrite for macOS: it kept the idea and the feature list,
 not the code, and then grew the agent API. The Linux code as it was forked is on the
-[`Linux`](https://github.com/narendranag/tabchat/tree/Linux) branch (tag `upstream-final`); for Linux,
+[`Linux`](https://github.com/narendranag/tabchat-for-agents/tree/Linux) branch (tag `upstream-final`); for Linux,
 use [the original](https://github.com/MMV2408/tabchat).
 
 ## Still to do

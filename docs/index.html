@@ -285,7 +285,7 @@ bar icon for always-at-hand access, start-at-login support.</p>
 href="https://github.com/MMV2408/tabchat" target="_blank" rel="noopener">MMV2408/tabchat</a>, an
 Electron app for Linux (MIT License, © Mike Vijverberg). This fork is
 macOS-only; the original Linux code lives on the <a
-href="https://github.com/narendranag/tabchat/tree/Linux" target="_blank" rel="noopener"><code>Linux</code></a>
+href="https://github.com/narendranag/tabchat-for-agents/tree/Linux" target="_blank" rel="noopener"><code>Linux</code></a>
 branch (tag <code>upstream-final</code>).</p>
 <p><strong>TabChat for Agents.</strong> Since October 2026 the project's
 focus is letting the AI agents on the owner's Mac read these services
@@ -564,7 +564,7 @@ requirements, the first-open step, and the dmg's SHA-256
 <li>Tag and publish:</li>
 </ol>
 <pre class="sh"><code>git tag -a v&lt;version&gt; -m &quot;Tabchat for Mac &lt;version&gt;&quot; &amp;&amp; git push origin v&lt;version&gt;
-gh release create v&lt;version&gt; build/Tabchat-&lt;version&gt;.dmg -R narendranag/tabchat \
+gh release create v&lt;version&gt; build/Tabchat-&lt;version&gt;.dmg -R narendranag/tabchat-for-agents \
   --title &quot;Tabchat for Mac &lt;version&gt;&quot; --notes-file brief/release-&lt;version&gt;.md</code></pre>
 <p>Releases so far: <code>v0.1.0</code> (first release),
 <code>v0.1.1</code> (GitHub service).</p>
@@ -582,7 +582,7 @@ rebuild.</p>
 <h2 id="building-development-workflow">Development workflow</h2>
 <ol type="1">
 <li><p><strong>Clone and install:</strong></p>
-<pre class="sh"><code>git clone https://github.com/narendranag/tabchat.git
+<pre class="sh"><code>git clone https://github.com/narendranag/tabchat-for-agents.git
 cd tabchat
 brew install xcodegen swiftlint swiftformat just</code></pre></li>
 <li><p><strong>Generate and build:</strong></p>
