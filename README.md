@@ -53,7 +53,7 @@ $TA messages --tab <id>
 $TA download --tab <id> --message <message-id>
 ```
 
-The same calls are MCP tools (`tabchat_tabs`, `tabchat_feed`, `tabchat_chats`, `tabchat_page`).
+The same calls are MCP tools: `tabchat_tabs`, `tabchat_feed`, `tabchat_chats`, `tabchat_page`, `tabchat_messages`, and the actions `tabchat_open`, `tabchat_contact`, `tabchat_download`.
 Register it once in Claude Code:
 
 ```sh

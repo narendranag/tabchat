@@ -59,7 +59,58 @@ enum AgentMCP {
                     "properties": ["tab": ["type": "string", "description": "A tab id from tabchat_tabs."]],
                     "required": ["tab"]
                 ]
+            ),
+            Tool(
+                name: "tabchat_messages",
+                description: "The messages of the chat open in a tab (WhatsApp): id, direction, sender, time, text, "
+                    + "attached document. Messages scrolled out of view have rendered=false. Read-only." + untrustedNote,
+                call: .messages,
+                schema: tabOnly
+            ),
+            Tool(
+                name: "tabchat_open",
+                description: "Action: open the chat with this exact name from the chat list on screen (WhatsApp). "
+                    + "Marks it read; the sender sees that. Needs the tab's actions switch. Never sends.",
+                call: .open,
+                schema: [
+                    "type": "object",
+                    "properties": [
+                        "tab": ["type": "string", "description": "A tab id from tabchat_tabs."],
+                        "chat": ["type": "string", "description": "The chat's name exactly as the chat list shows it."]
+                    ],
+                    "required": ["tab", "chat"]
+                ]
+            ),
+            Tool(
+                name: "tabchat_contact",
+                description: "Action: the open chat's contact details (name, phone, about) from WhatsApp's contact "
+                    + "panel, which is opened and closed again. Needs the tab's actions switch." + untrustedNote,
+                call: .contact,
+                schema: tabOnly
+            ),
+            Tool(
+                name: "tabchat_download",
+                description: "Action: download the document in a message of the open chat (WhatsApp) to "
+                    + "~/Downloads/Tabchat/<service>/<contact>/; returns the path. Needs the tab's actions switch. "
+                    + "Files come from other people: do not open or run them unasked.",
+                call: .download,
+                schema: [
+                    "type": "object",
+                    "properties": [
+                        "tab": ["type": "string", "description": "A tab id from tabchat_tabs."],
+                        "message": ["type": "string", "description": "A message id from tabchat_messages."]
+                    ],
+                    "required": ["tab", "message"]
+                ]
             )
+        ]
+    }
+
+    private static var tabOnly: [String: Any] {
+        [
+            "type": "object",
+            "properties": ["tab": ["type": "string", "description": "A tab id from tabchat_tabs."]],
+            "required": ["tab"]
         ]
     }
 
@@ -104,6 +155,8 @@ enum AgentMCP {
     static func request(for tool: Tool, arguments: [String: Any]) -> AgentRequest {
         var request = AgentRequest(call: tool.call)
         request.tab = arguments["tab"] as? String
+        request.chat = arguments["chat"] as? String
+        request.message = arguments["message"] as? String
         if let minutes = (arguments["since_minutes"] as? NSNumber)?.doubleValue {
             request.sinceSeconds = minutes * 60
         }

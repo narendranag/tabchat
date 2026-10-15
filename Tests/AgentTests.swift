@@ -119,7 +119,10 @@ final class AgentTests: XCTestCase {
         let tools = try XCTUnwrap((list["result"] as? [String: Any])?["tools"] as? [[String: Any]])
         XCTAssertEqual(
             tools.compactMap { $0["name"] as? String },
-            ["tabchat_tabs", "tabchat_feed", "tabchat_chats", "tabchat_page"]
+            [
+                "tabchat_tabs", "tabchat_feed", "tabchat_chats", "tabchat_page",
+                "tabchat_messages", "tabchat_open", "tabchat_contact", "tabchat_download"
+            ]
         )
     }
 
