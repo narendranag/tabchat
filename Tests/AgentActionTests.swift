@@ -26,6 +26,9 @@ final class AgentActionTests: XCTestCase {
         <span data-testid="selectable-text">Thanks</span><div data-testid="msg-meta">1:05 pm
           <svg><title>wds-ic-read</title></svg></div></div></div></div>
       <div role="row"><div data-id="MSG4"><div data-virtualized="true"></div></div></div>
+      <div role="row"><div data-id="MSG5"><div class="message-in">
+        <div role="button" id="photo"><img data-testid="image-thumb" alt="" src="data:,"></div>
+        <div data-testid="msg-meta">1:06 pm</div></div></div></div>
     </div>
     <script>
       document.querySelector("header").setAttribute("data-testid", "conversation-info-header");
@@ -39,14 +42,17 @@ final class AgentActionTests: XCTestCase {
         d.querySelector("button").addEventListener("click", () => d.remove());
         document.body.appendChild(d);
       });
-      document.querySelector('[data-testid="document-thumb"]').addEventListener("click", () => {
+      const viewer = what => () => {
         const modal = document.createElement("div");
         modal.setAttribute("data-testid", "media-viewer-modal");
         modal.innerHTML = '<button aria-label="Download"></button><div aria-label="Close"></div>';
-        modal.querySelector("button").addEventListener("click", () => { document.body.dataset.downloaded = "yes"; });
-        modal.querySelector("[aria-label=Close]").addEventListener("click", () => modal.remove());
+        modal.querySelector("button").addEventListener("click", () => { document.body.dataset.downloaded = what; });
+        // Like WhatsApp, the viewer takes a moment to go.
+        modal.querySelector("[aria-label=Close]").addEventListener("click", () => setTimeout(() => modal.remove(), 150));
         document.body.appendChild(modal);
-      });
+      };
+      document.querySelector('[data-testid="document-thumb"]').addEventListener("click", viewer("document"));
+      document.querySelector("#photo").addEventListener("click", viewer("photo"));
     </script>
     </body></html>
     """
@@ -77,7 +83,11 @@ final class AgentActionTests: XCTestCase {
                 document: AgentDocument(name: "Test plan.pdf", type: "PDF", details: "4 pages • PDF • 10 kB")
             ),
             AgentMessage(id: "MSG3", direction: "out", sender: "", stamp: "", time: "1:05 pm", text: "Thanks", document: nil),
-            AgentMessage(id: "MSG4", direction: "", sender: "", stamp: "", time: "", text: "", document: nil, rendered: false)
+            AgentMessage(id: "MSG4", direction: "", sender: "", stamp: "", time: "", text: "", document: nil, rendered: false),
+            AgentMessage(
+                id: "MSG5", direction: "in", sender: "Ada Example", stamp: "", time: "1:06 pm", text: "", document: nil,
+                media: "image"
+            )
         ])
     }
 
@@ -92,11 +102,67 @@ final class AgentActionTests: XCTestCase {
         XCTAssertTrue(result.ok)
         XCTAssertEqual(result.name, "Test plan.pdf")
         let pressed = try await webView.evaluateJavaScript("document.body.dataset.downloaded") as? String
-        XCTAssertEqual(pressed, "yes")
+        XCTAssertEqual(pressed, "document")
         _ = try await PageReaders.run(WhatsAppScripts.closeViewer, in: webView)
         let open = try await webView
             .evaluateJavaScript("document.querySelectorAll('[data-testid=media-viewer-modal]').length") as? Int
         XCTAssertEqual(open, 0)
+    }
+
+    @MainActor
+    func testDownloadClosesAnOpenViewerBeforePressingDownload() async throws {
+        let webView = try await loadFixture()
+        // A viewer left open by an earlier download must not have its button pressed again.
+        _ = try await webView.evaluateJavaScript("document.querySelector('[data-testid=document-thumb]').click()")
+        let result = try await WhatsAppScripts.decode(PageReaders.run(
+            WhatsAppScripts.download,
+            arguments: ["id": "MSG5"],
+            in: webView
+        ))
+        XCTAssertTrue(result.ok)
+        XCTAssertEqual(result.kind, "image")
+        let pressed = try await webView.evaluateJavaScript("document.body.dataset.downloaded") as? String
+        XCTAssertEqual(pressed, "photo")
+        let closed = try await WhatsAppScripts.decode(PageReaders.run(WhatsAppScripts.closeViewer, in: webView))
+        XCTAssertTrue(closed.ok)
+        let open = try await webView
+            .evaluateJavaScript("document.querySelectorAll('[data-testid=media-viewer-modal]').length") as? Int
+        XCTAssertEqual(open, 0)
+    }
+
+    func testSavedFileMustBeTheExpectedDocument() {
+        XCTAssertTrue(AgentResponder.sameFile("Test plan.pdf", saved: "Test plan.pdf"))
+        XCTAssertTrue(AgentResponder.sameFile("Test plan.pdf", saved: "Test plan 1.pdf"))
+        XCTAssertTrue(AgentResponder.sameFile("Plan 2.pdf", saved: "Plan 2.pdf"))
+        XCTAssertTrue(AgentResponder.sameFile("", saved: "WhatsApp Image.jpeg"))
+        XCTAssertFalse(AgentResponder.sameFile("Test plan.pdf", saved: "Other plan.pdf"))
+        XCTAssertFalse(AgentResponder.sameFile("Test plan.pdf", saved: "Test plan.docx"))
+    }
+
+    @MainActor
+    func testHistoryScrollsBackAndReadsEveryMessage() async throws {
+        let rows = (1 ... 12).map {
+            #"<div style="height:60px"><div data-id="H\#($0)"><span data-testid="selectable-text">Note \#($0)</span>"#
+                + #"<div data-testid="msg-meta">1:\#(String(format: "%02d", $0)) pm</div></div></div>"#
+        }.joined()
+        let html = """
+        <html><body><div id="main"><header><span data-testid="conversation-info-header-chat-title">Ada Example</span></header>
+        <div id="pane" style="height:200px;overflow-y:auto">\(rows)</div></div>
+        <script>const p = document.getElementById("pane"); p.scrollTop = p.scrollHeight;</script></body></html>
+        """
+        let webView = WKWebView(frame: NSRect(x: 0, y: 0, width: 800, height: 600))
+        webView.loadHTMLString(html, baseURL: URL(string: "https://example.invalid/"))
+        for _ in 0 ..< 100 where webView.isLoading || webView.url == nil {
+            try await Task.sleep(for: .milliseconds(50))
+        }
+        let response = try await WhatsAppScripts.messagesResponse(json: PageReaders.run(
+            WhatsAppScripts.history, arguments: ["screens": 6], in: webView
+        ))
+        XCTAssertEqual(response.messages?.map(\.id), (1 ... 12).map { "H\($0)" })
+        let atBottom = try await webView.evaluateJavaScript(
+            "(p => p.scrollTop + p.clientHeight >= p.scrollHeight - 2)(document.getElementById('pane'))"
+        ) as? Bool
+        XCTAssertEqual(atBottom, true)
     }
 
     @MainActor

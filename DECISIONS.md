@@ -23,3 +23,5 @@
 - [mini] [2026-10-15] Project renamed TabChat for Agents and the README rewritten around the agent API; the app name, bundle id and repo stay `Tabchat`/`narendranag/tabchat` so sign-ins, installs and links keep working. `agent-api` merged to `main`.
 - [mini] [2026-10-15] README says TabChat for Agents is an independent community port of MMV2408/tabchat, not affiliated with or endorsed by it — Mike's request on MMV2408/tabchat#1, where he also said to keep the name.
 - [mini] [2026-10-15] GitHub repo renamed `narendranag/tabchat` → `narendranag/tabchat-for-agents`, description rewritten for the agent API — Narendra's call; GitHub redirects the old URLs, the app and bundle id keep the name Tabchat.
+- [mini] [2026-10-15] Earlier messages are reached with a `history` action (scroll back, read on the way down), not a read call — scrolling back makes WhatsApp fetch older messages, so it sits behind the actions switch like the other calls that change what the page shows.
+- [mini] [2026-10-15] `download` answers `ok: false` when the saved file's name isn't the document's — a wrong file reported as success is worse than a retry.

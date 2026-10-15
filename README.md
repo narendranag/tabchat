@@ -37,7 +37,8 @@ agents may read and whether they may also act.
 | `page` | read | The visible text of whatever page a service shows (any site) |
 | `open` | act | Open a chat from the chat list |
 | `contact` | act | The open chat's name, phone number and "About" |
-| `download` | act | Download a document from a message to `~/Downloads/Tabchat/<service>/<contact>/` |
+| `download` | act | Download a document, photo or video from a message to `~/Downloads/Tabchat/<service>/<contact>/` |
+| `history` | act | Scroll the open chat back and read earlier messages |
 
 Reading works on every service through `page`; the chat-aware calls and the actions are WhatsApp
 only so far. **There is no send.** Opening a chat marks it read, and the sender sees that.
@@ -53,7 +54,7 @@ $TA messages --tab <id>
 $TA download --tab <id> --message <message-id>
 ```
 
-The same calls are MCP tools: `tabchat_tabs`, `tabchat_feed`, `tabchat_chats`, `tabchat_page`, `tabchat_messages`, and the actions `tabchat_open`, `tabchat_contact`, `tabchat_download`.
+The same calls are MCP tools: `tabchat_tabs`, `tabchat_feed`, `tabchat_chats`, `tabchat_page`, `tabchat_messages`, and the actions `tabchat_open`, `tabchat_contact`, `tabchat_download`, `tabchat_history`.
 Register it once in Claude Code:
 
 ```sh
@@ -109,8 +110,8 @@ use [the original](https://github.com/MMV2408/tabchat).
 
 - **More services for agents**: chat lists, messages and actions for Discord, Teams and Outlook
   (they are readable through `page` today)
-- **More downloads**: photos and other media (documents only so far); opening chats that aren't
-  in the visible part of the list
+- **Opening chats** that aren't in the visible part of the list; photo and video downloads are new and
+  not yet checked against the live page
 - **Notarised build** and automatic updates (needs a paid Apple Developer ID)
 - **Unread for every service**: Reddit and GitHub don't put a count in their page titles
 - **Intel Macs**: Apple Silicon only for now

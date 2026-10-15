@@ -32,6 +32,18 @@ enum AgentResponder {
             .appendingPathComponent(folderName(contact), isDirectory: true)
     }
 
+    /// Whether a saved file is the document expected: the same name, perhaps with the " 1" the
+    /// download folder adds to keep an earlier copy. An empty expected name (photos) always matches.
+    static func sameFile(_ expected: String, saved: String) -> Bool {
+        guard !expected.isEmpty else { return true }
+        let want = (expected as NSString).deletingPathExtension.lowercased()
+        var got = (saved as NSString).deletingPathExtension.lowercased()
+        if let range = got.range(of: #" \d+$"#, options: .regularExpression), got != want {
+            got.removeSubrange(range)
+        }
+        return got == want && (expected as NSString).pathExtension.lowercased() == (saved as NSString).pathExtension.lowercased()
+    }
+
     static func folderName(_ raw: String) -> String {
         let cleaned = raw.map { "/:\\".contains($0) || $0.isNewline ? "-" : $0 }
         let name = String(cleaned).trimmingCharacters(in: .whitespaces).trimmingCharacters(in: CharacterSet(charactersIn: "."))

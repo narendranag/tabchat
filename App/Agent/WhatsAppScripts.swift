@@ -6,12 +6,63 @@ import Foundation
 /// "actions" switch is on; none of them type, send or delete anything.
 enum WhatsAppScripts {
     /// The open chat's visible messages. Element ids are WhatsApp's message ids, not phone numbers.
-    static let messages = #"""
+    static let messages = prelude + reader + #"""
+    return JSON.stringify({ok: true, chat, messages: Array.from(main.querySelectorAll("[data-id]")).map(readMessage)});
+    """#
+
+    /// Scrolls the open chat up `screens` screens (WhatsApp loads earlier messages as you go), then back
+    /// down, reading each message once it is drawn. Scrolling is all it does: nothing is clicked.
+    static let history = prelude + reader + #"""
+    const first = main.querySelector("[data-id]");
+    if (!first) return JSON.stringify({ok: true, chat, messages: []});
+    let pane = first.parentElement;
+    while (pane && pane !== main) {
+      const overflow = getComputedStyle(pane).overflowY;
+      if ((overflow === "auto" || overflow === "scroll") && pane.scrollHeight > pane.clientHeight) break;
+      pane = pane.parentElement;
+    }
+    if (!pane || pane === main) return JSON.stringify({ok: false, reason: "could not find the message list's scroll area"});
+    const wait = ms => new Promise(r => setTimeout(r, ms));
+    for (let i = 0; i < screens; i++) {
+      const height = pane.scrollHeight;
+      pane.scrollTop = Math.max(0, pane.scrollTop - pane.clientHeight);
+      await wait(500);
+      // At the top: give WhatsApp up to two seconds to load more, else this is the start of the chat.
+      for (let j = 0; j < 20 && pane.scrollTop === 0 && pane.scrollHeight === height; j++) await wait(100);
+      if (pane.scrollTop === 0 && pane.scrollHeight === height) break;
+    }
+    const seen = new Map();
+    const collect = () => {
+      for (const el of main.querySelectorAll("[data-id]")) {
+        const message = readMessage(el);
+        if (message.rendered && !seen.has(message.id)) seen.set(message.id, message);
+      }
+    };
+    for (let i = 0; i < 400; i++) {
+      collect();
+      if (pane.scrollTop + pane.clientHeight >= pane.scrollHeight - 2) break;
+      const before = pane.scrollTop;
+      pane.scrollTop += Math.floor(pane.clientHeight * 0.7);
+      if (pane.scrollTop === before) break;
+      await wait(250);
+    }
+    collect();
+    pane.scrollTop = pane.scrollHeight;
+    return JSON.stringify({ok: true, chat, messages: Array.from(seen.values())});
+    """#
+
+    /// Finds the open chat: `main` and its title `chat`.
+    private static let prelude = #"""
     const main = document.querySelector("#main");
     if (!main) return JSON.stringify({ok: false, reason: "no chat open"});
     const header = main.querySelector('[data-testid="conversation-info-header-chat-title"]');
     const chat = header ? header.textContent.trim() : "";
-    const messages = Array.from(main.querySelectorAll("[data-id]")).map(el => {
+
+    """#
+
+    /// `readMessage(el)`: one `[data-id]` element as an `AgentMessage`.
+    private static let reader = #"""
+    const readMessage = el => {
       const id = el.getAttribute("data-id") || "";
       if (el.querySelector('[data-virtualized="true"]')) {
         return {id, direction: "", sender: "", stamp: "", time: "", text: "", document: null, rendered: false};
@@ -44,6 +95,9 @@ enum WhatsAppScripts {
         const details = Array.from(thumb.querySelectorAll("span[title]")).map(s => s.getAttribute("title"));
         document = {name: m ? m[1] : "", type: type ? type.getAttribute("title") : "", details: details.join(" • ")};
       }
+      const mediaEl = thumb ? null
+        : el.querySelector('[data-testid="image-thumb"], [data-testid="video-content"], img[src^="blob:"]');
+      const media = mediaEl ? (mediaEl.matches('[data-testid="video-content"]') ? "video" : "image") : null;
       const meta = el.querySelector('[data-testid="msg-meta"]');
       const recalled = !!el.querySelector('[data-testid="recalled"]');
       return {
@@ -53,10 +107,10 @@ enum WhatsAppScripts {
         sender, stamp,
         time: meta ? ((meta.textContent.match(/\d{1,2}[:.]\d{2}(\s?[ap]\.?m\.?)?/i) || [""])[0]) : "",
         text: textEl ? textEl.innerText : (recalled ? "(deleted)" : ""),
-        document
+        document, media
       };
-    });
-    return JSON.stringify({ok: true, chat, messages});
+    };
+
     """#
 
     /// Opens the chat named `name` from the rendered chat list and waits until its header shows.
@@ -79,8 +133,17 @@ enum WhatsAppScripts {
     return JSON.stringify({ok: false, reason: "the chat did not open"});
     """#
 
-    /// Opens the document in message `id` and presses the viewer's Download button.
+    /// Opens the document, photo or video in message `id` and presses the viewer's Download button.
+    /// Any viewer still open (from an earlier download) is closed first, so its button is never pressed
+    /// for the wrong message.
     static let download = #"""
+    const viewer = () => document.querySelector('[data-testid="media-viewer-modal"]');
+    for (let i = 0; i < 30 && viewer(); i++) {
+      const close = viewer().querySelector('[aria-label="Close"]');
+      if (close) close.click();
+      await new Promise(r => setTimeout(r, 100));
+    }
+    if (viewer()) return JSON.stringify({ok: false, reason: "a media viewer is still open; try again"});
     const find = () => Array.from(document.querySelectorAll("#main [data-id]")).find(el => el.getAttribute("data-id") === id);
     let msg = find();
     if (!msg) return JSON.stringify({ok: false, reason: "that message is not in the open chat"});
@@ -91,15 +154,25 @@ enum WhatsAppScripts {
       msg = find() || msg;
     }
     const thumb = msg.querySelector('[data-testid="document-thumb"]');
-    if (!thumb) return JSON.stringify({ok: false, reason: "that message has no document (only documents for now)"});
-    const m = (thumb.getAttribute("title") || "").match(/^View "(.*)"$/);
-    thumb.click();
+    let target = thumb, name = "", kind = "document";
+    if (thumb) {
+      const m = (thumb.getAttribute("title") || "").match(/^View "(.*)"$/);
+      name = m ? m[1] : "";
+    } else {
+      const media = msg.querySelector('[data-testid="image-thumb"], [data-testid="video-content"], img[src^="blob:"]');
+      if (media) {
+        target = media.closest('[role="button"]') || media;
+        kind = media.matches('[data-testid="video-content"]') ? "video" : "image";
+      }
+    }
+    if (!target) return JSON.stringify({ok: false, reason: "that message has no document, photo or video"});
+    target.click();
     for (let i = 0; i < 80; i++) {
-      const button = document.querySelector('[data-testid="media-viewer-modal"] button[aria-label="Download"]');
-      if (button) { button.click(); return JSON.stringify({ok: true, name: m ? m[1] : ""}); }
+      const button = viewer() && viewer().querySelector('button[aria-label="Download"]');
+      if (button) { button.click(); return JSON.stringify({ok: true, name, kind}); }
       await new Promise(r => setTimeout(r, 100));
     }
-    return JSON.stringify({ok: false, reason: "the document viewer did not open"});
+    return JSON.stringify({ok: false, reason: "the viewer did not open"});
     """#
 
     /// The open chat's contact info: opens the panel from the chat header if needed, reads the name,
@@ -140,11 +213,15 @@ enum WhatsAppScripts {
       contact: {name, phone, about}});
     """#
 
-    /// Closes the media viewer if it is open.
+    /// Closes the media viewer if it is open, and waits until it has gone.
     static let closeViewer = #"""
-    const close = document.querySelector('[data-testid="media-viewer-modal"] [aria-label="Close"]');
-    if (close) close.click();
-    return JSON.stringify({ok: true});
+    for (let i = 0; i < 30; i++) {
+      const close = document.querySelector('[data-testid="media-viewer-modal"] [aria-label="Close"]');
+      if (!close) return JSON.stringify({ok: true});
+      close.click();
+      await new Promise(r => setTimeout(r, 100));
+    }
+    return JSON.stringify({ok: false, reason: "the viewer did not close"});
     """#
 }
 
@@ -154,6 +231,7 @@ extension WhatsAppScripts {
         var reason: String?
         var chat: String?
         var name: String?
+        var kind: String?
         var messages: [AgentMessage]?
         var contact: AgentContact?
     }

@@ -698,7 +698,7 @@ carries in <code>Contents/MacOS/</code>.</p>
 <td>read</td>
 <td><code>tab</code> (WhatsApp)</td>
 <td>open chat: id, direction, sender, stamp, time, text, document,
-rendered</td>
+media, rendered</td>
 </tr>
 <tr>
 <td><code>page</code></td>
@@ -722,7 +722,15 @@ rendered</td>
 <td><code>download</code></td>
 <td>act</td>
 <td><code>tab</code>, <code>message</code></td>
-<td>the saved file's path and size</td>
+<td><code>file: {path, bytes}</code> for the saved document, photo or
+video</td>
+</tr>
+<tr>
+<td><code>history</code></td>
+<td>act</td>
+<td><code>tab</code>, optional <code>screens</code> (1–20, default
+3)</td>
+<td>messages read while scrolling back and down again</td>
 </tr>
 <tr>
 <td><code>inspect</code></td>
@@ -764,6 +772,21 @@ document viewer <code>media-viewer-modal</code> with
 <code>data-virtualized="true"</code>; <code>messages</code> reports them
 as <code>rendered: false</code>; <code>download</code> scrolls them into
 view first.</li>
+<li><code>history</code> scrolls the message list (found as the
+scrollable ancestor of the first message) up <code>screens</code>
+screens, waiting for WhatsApp to load more, then back down, keeping each
+message the first time it is drawn. It only scrolls, and ends at the
+newest message. It is in the actions tier because scrolling back makes
+WhatsApp fetch older messages. Timers are slowed in a tab that isn't on
+screen, so it is quicker with the WhatsApp tab selected.</li>
+<li><code>download</code> closes any viewer still open, then clicks the
+document thumb, or for a photo or video the <code>image-thumb</code>,
+<code>video-content</code> or <code>blob:</code> image, and presses
+<code>Download</code> in the viewer. It checks that the saved file has
+the document's name (allowing the <code> 1</code> added for a duplicate)
+and answers <code>ok: false</code> with the path when it doesn't. Photo
+and video selectors are not live-checked yet.</li>
+<li>The CLI waits up to 120 seconds for actions (15 for reads).</li>
 <li>Downloads go through the tab's <code>WKDownload</code> handling,
 redirected by an <code>AgentDownloadSlot</code> to
 <code>~/Downloads/Tabchat/&lt;service&gt;/&lt;contact&gt;/</code>, and

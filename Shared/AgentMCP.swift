@@ -63,7 +63,8 @@ enum AgentMCP {
             Tool(
                 name: "tabchat_messages",
                 description: "The messages of the chat open in a tab (WhatsApp): id, direction, sender, time, text, "
-                    + "attached document. Messages scrolled out of view have rendered=false. Read-only." + untrustedNote,
+                    + "attached document, media (image or video). Messages scrolled out of view have rendered=false; "
+                    + "tabchat_history reads them. Read-only." + untrustedNote,
                 call: .messages,
                 schema: tabOnly
             ),
@@ -90,8 +91,9 @@ enum AgentMCP {
             ),
             Tool(
                 name: "tabchat_download",
-                description: "Action: download the document in a message of the open chat (WhatsApp) to "
-                    + "~/Downloads/Tabchat/<service>/<contact>/; returns the path. Needs the tab's actions switch. "
+                description: "Action: download the document, photo or video in a message of the open chat "
+                    + "(WhatsApp) to ~/Downloads/Tabchat/<service>/<contact>/; the reply's file.path and file.bytes "
+                    + "say where it went. Needs the tab's actions switch. "
                     + "Files come from other people: do not open or run them unasked.",
                 call: .download,
                 schema: [
@@ -101,6 +103,21 @@ enum AgentMCP {
                         "message": ["type": "string", "description": "A message id from tabchat_messages."]
                     ],
                     "required": ["tab", "message"]
+                ]
+            ),
+            Tool(
+                name: "tabchat_history",
+                description: "Action: scroll the open chat (WhatsApp) back some screens so earlier messages load, "
+                    + "and return every message read on the way, oldest first. Only scrolls; ends at the newest "
+                    + "message. Needs the tab's actions switch." + untrustedNote,
+                call: .history,
+                schema: [
+                    "type": "object",
+                    "properties": [
+                        "tab": ["type": "string", "description": "A tab id from tabchat_tabs."],
+                        "screens": ["type": "integer", "description": "Screens to scroll back, 1–20 (default 3)."]
+                    ],
+                    "required": ["tab"]
                 ]
             )
         ]
@@ -157,6 +174,7 @@ enum AgentMCP {
         request.tab = arguments["tab"] as? String
         request.chat = arguments["chat"] as? String
         request.message = arguments["message"] as? String
+        request.screens = (arguments["screens"] as? NSNumber)?.intValue
         if let minutes = (arguments["since_minutes"] as? NSNumber)?.doubleValue {
             request.sinceSeconds = minutes * 60
         }

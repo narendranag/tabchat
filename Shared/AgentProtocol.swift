@@ -18,10 +18,13 @@ enum AgentCall: String, Codable, Sendable, CaseIterable {
     case messages
     /// Actions tier: open the chat named `chat` (it must be in the rendered chat list). Sends read receipts.
     case open
-    /// Actions tier: download the document in message `message` of the open chat.
+    /// Actions tier: download the document, photo or video in message `message` of the open chat.
     case download
     /// Actions tier: the open chat's contact details (name, phone, about).
     case contact
+    /// Actions tier: scroll the open chat back `screens` screens, so WhatsApp loads earlier messages, then
+    /// walk back down reading every message as it is drawn. Ends scrolled to the newest message.
+    case history
 }
 
 struct AgentRequest: Codable, Equatable, Sendable {
@@ -38,6 +41,8 @@ struct AgentRequest: Codable, Equatable, Sendable {
     var chat: String?
     /// `download`: a message id from `messages`.
     var message: String?
+    /// `history`: how many screens to scroll back (1–20, default 3).
+    var screens: Int?
 }
 
 struct AgentTabInfo: Codable, Equatable, Sendable {
@@ -90,6 +95,8 @@ struct AgentMessage: Codable, Equatable, Sendable {
     var time: String
     var text: String
     var document: AgentDocument?
+    /// "image" or "video" when the message carries one (download saves it), else nil.
+    var media: String?
     /// False for messages WhatsApp has not drawn (scrolled out of view): only the id is known.
     var rendered = true
 }

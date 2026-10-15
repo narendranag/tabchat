@@ -10,7 +10,9 @@
 
 ## Next
 
-- [ ] Agent API: photos and other media in `download` (documents only so far); `open` for chats not in the visible list (search) #agent-api
+- [ ] Agent API: live-check `history` and photo/video `download` on WhatsApp (branch `agent-fixes`), then merge #agent-api
+- [ ] Agent API: `open` for chats not in the visible list (search) #agent-api
+- [ ] Agent API: quarantine xattr shows an empty agent name (`0081;ts;;uuid`) #agent-api
 - [ ] Agent API: an agent recipe for contact details → `~/marain/crm` via its `crm` CLI (in that brain) #agent-api
 
 - [ ] Delete the `.verify` leftovers from phase 2's test launch (`~/Library/*/com.narendranag.tabchat.verify*`, 129 MB) — Narendra decides #mac
@@ -25,6 +27,8 @@
 - [ ] Signed, notarized `.dmg` from GitHub Actions + Sparkle updates (needs an Apple Developer ID — costs money, Narendra decides)
 
 ## Done
+
+- [x] Fixes from a fleet session's bug report: `download` waits for an old viewer to close (it had saved the previous file again) and checks the saved name; photos and videos; `history` for earlier messages; CLI timeout 120 s for actions; help text — 2026-10-15
 
 - [x] Repo renamed to `narendranag/tabchat-for-agents` with a new description — 2026-10-15
 - [x] Pivot to TabChat for Agents: README rewritten, "independent community port" line (Mike's request on MMV2408/tabchat#1), `agent-api` merged to `main` — 2026-10-15

@@ -85,7 +85,7 @@ final class AgentService {
             return AgentResponder.feed(request: request, state: state, feed: feed, now: Date())
         case .chats, .page, .inspect, .messages:
             return await read(request, model: model, state: state)
-        case .open, .download, .contact:
+        case .open, .download, .contact, .history:
             return await act(request, model: model, state: state)
         }
     }

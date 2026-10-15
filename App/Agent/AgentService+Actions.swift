@@ -20,17 +20,29 @@ extension AgentService {
                 return try await open(request, controller: controller, model: model)
             case .download:
                 return try await download(request, tab: tab, controller: controller, model: model)
-            case .contact:
-                model.showToast("Agent reading contact info")
-                let result = try await WhatsAppScripts.decode(PageReaders.run(WhatsAppScripts.contact, in: controller.webView))
-                guard result.ok, let contact = result.contact else { return .failure(result.reason ?? "no contact details") }
-                return AgentResponse(ok: true, untrusted: true, contact: contact)
+            case .contact, .history:
+                return try await read(request, controller: controller, model: model)
             default:
                 return .failure("not an action")
             }
         } catch {
             return .failure("action failed: \(error.localizedDescription)")
         }
+    }
+
+    /// The actions that only open panels or scroll: `contact` and `history`.
+    private func read(_ request: AgentRequest, controller: TabController, model: AppModel) async throws -> AgentResponse {
+        if request.call == .history {
+            let screens = min(max(request.screens ?? 3, 1), 20)
+            model.showToast("Agent reading earlier messages")
+            return try await WhatsAppScripts.messagesResponse(json: PageReaders.run(
+                WhatsAppScripts.history, arguments: ["screens": screens], in: controller.webView
+            ))
+        }
+        model.showToast("Agent reading contact info")
+        let result = try await WhatsAppScripts.decode(PageReaders.run(WhatsAppScripts.contact, in: controller.webView))
+        guard result.ok, let contact = result.contact else { return .failure(result.reason ?? "no contact details") }
+        return AgentResponse(ok: true, untrusted: true, contact: contact)
     }
 
     private func open(_ request: AgentRequest, controller: TabController, model: AppModel) async throws -> AgentResponse {
@@ -69,6 +81,9 @@ extension AgentService {
             return .failure("download failed: \(failure)")
         }
         guard let url = slot.finished else { return .failure("the download did not start within a minute") }
+        if let expected = started.name, !AgentResponder.sameFile(expected, saved: url.lastPathComponent) {
+            return .failure("saved \(url.path), which is not the expected \(expected); check it and try again")
+        }
         let bytes = (try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
         var response = AgentResponse(ok: true, file: AgentFile(path: url.path, bytes: bytes))
         response.chat = chat

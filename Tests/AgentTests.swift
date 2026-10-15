@@ -121,7 +121,8 @@ final class AgentTests: XCTestCase {
             tools.compactMap { $0["name"] as? String },
             [
                 "tabchat_tabs", "tabchat_feed", "tabchat_chats", "tabchat_page",
-                "tabchat_messages", "tabchat_open", "tabchat_contact", "tabchat_download"
+                "tabchat_messages", "tabchat_open", "tabchat_contact", "tabchat_download",
+                "tabchat_history"
             ]
         )
     }
