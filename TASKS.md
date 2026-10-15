@@ -11,6 +11,7 @@
 ## Next
 
 - [ ] Agent API: videos and every photo of an album in `download` #agent-api
+- [ ] LinkedIn messages: add LinkedIn as a service (linkedin.com/messaging) and give it agent readers (`chats`, `messages`) like WhatsApp's — Narendra asked 2026-10-15. LinkedIn restricts accounts over automation more than most, so start read-only and check its terms in `brief/agent-api.md` before any actions #agent-api
 - [ ] Agent API: an agent recipe for contact details → `~/marain/crm` via its `crm` CLI (in that brain) #agent-api
 
 - [ ] Delete the `.verify` leftovers from phase 2's test launch (`~/Library/*/com.narendranag.tabchat.verify*`, 129 MB) — Narendra decides #mac

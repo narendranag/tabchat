@@ -29,8 +29,15 @@ enum WhatsAppScripts {
       const height = pane.scrollHeight;
       pane.scrollTop = Math.max(0, pane.scrollTop - pane.clientHeight);
       await wait(500);
-      // At the top: give WhatsApp up to two seconds to load more, else this is the start of the chat.
+      // At the top: give WhatsApp up to two seconds to load more. After a restart it keeps only the
+      // newest messages and offers "Click here to get older messages from your phone"; press that once
+      // a screen and wait up to five more seconds. Nothing loading means the start of the chat.
       for (let j = 0; j < 20 && pane.scrollTop === 0 && pane.scrollHeight === height; j++) await wait(100);
+      const older = Array.from(main.querySelectorAll("button")).find(b => /older messages/i.test(b.innerText || ""));
+      if (pane.scrollTop === 0 && pane.scrollHeight === height && older) {
+        older.click();
+        for (let j = 0; j < 50 && pane.scrollHeight === height; j++) await wait(100);
+      }
       if (pane.scrollTop === 0 && pane.scrollHeight === height) break;
     }
     // Each new message goes right after the known message drawn before it, so a row WhatsApp keeps
@@ -168,7 +175,10 @@ enum WhatsAppScripts {
         const title = t.getAttribute("title");
         return title === name || (!!r.querySelector('[data-testid="you-label"]') && title + " (You)" === name);
       });
-    const search = document.querySelector('#side [data-testid="chat-list-search-container"] input[type="text"]');
+    const searchBox = () => document.querySelector('#side [data-testid="chat-list-search-container"] input[type="text"]');
+    // Just after a restart WhatsApp is still loading: wait up to ten seconds for the list or the search box.
+    for (let i = 0; i < 100 && !findRow() && !searchBox(); i++) await wait(100);
+    const search = searchBox();
     const type = text => {
       search.focus();
       search.select();
@@ -194,7 +204,7 @@ enum WhatsAppScripts {
       const found = searched ? Array.from(document.querySelectorAll('#pane-side [data-testid="cell-frame-title"] span[title]'))
         .map(t => t.getAttribute("title")).filter((t, i, all) => t && all.indexOf(t) === i).slice(0, 5) : [];
       await clear();
-      const reason = !searched ? "that chat is not in the chat list on screen"
+      const reason = !searched ? "that chat is not on screen and WhatsApp's search box is not there (still loading?)"
         : "no chat with that exact name" + (found.length ? "; search found: " + found.join(" | ") : "");
       return JSON.stringify({ok: false, reason});
     }
@@ -216,48 +226,6 @@ enum WhatsAppScripts {
     }
     await clear();
     return JSON.stringify({ok: false, reason: "the chat did not open"});
-    """#
-
-    /// Opens the document, photo or video in message `id` and presses the viewer's Download button.
-    /// Any viewer still open (from an earlier download) is closed first, so its button is never pressed
-    /// for the wrong message.
-    static let download = #"""
-    const viewer = () => document.querySelector('[data-testid="media-viewer-modal"]');
-    for (let i = 0; i < 30 && viewer(); i++) {
-      const close = viewer().querySelector('[aria-label="Close"]');
-      if (close) close.click();
-      await new Promise(r => setTimeout(r, 100));
-    }
-    if (viewer()) return JSON.stringify({ok: false, reason: "a media viewer is still open; try again"});
-    const find = () => Array.from(document.querySelectorAll("#main [data-id]")).find(el => el.getAttribute("data-id") === id);
-    let msg = find();
-    if (!msg) return JSON.stringify({ok: false, reason: "that message is not in the open chat"});
-    // Scrolled out of view: bring it back so WhatsApp draws it.
-    for (let i = 0; i < 30 && msg.querySelector('[data-virtualized="true"]'); i++) {
-      msg.scrollIntoView({block: "center"});
-      await new Promise(r => setTimeout(r, 100));
-      msg = find() || msg;
-    }
-    const thumb = msg.querySelector('[data-testid="document-thumb"]');
-    let target = thumb, name = "", kind = "document";
-    if (thumb) {
-      const m = (thumb.getAttribute("title") || "").match(/^View "(.*)"$/);
-      name = m ? m[1] : "";
-    } else {
-      const media = msg.querySelector('[data-testid="image-thumb"], [data-testid="video-content"], img[src^="blob:"]');
-      if (media) {
-        target = media.closest('[role="button"]') || media;
-        kind = media.matches('[data-testid="video-content"]') ? "video" : "image";
-      }
-    }
-    if (!target) return JSON.stringify({ok: false, reason: "that message has no document, photo or video"});
-    target.click();
-    for (let i = 0; i < 80; i++) {
-      const button = viewer() && viewer().querySelector('button[aria-label="Download"]');
-      if (button) { button.click(); return JSON.stringify({ok: true, name, kind}); }
-      await new Promise(r => setTimeout(r, 100));
-    }
-    return JSON.stringify({ok: false, reason: "the viewer did not open"});
     """#
 
     /// The open chat's contact info: opens the panel from the chat header if needed, reads the name,
@@ -317,6 +285,8 @@ extension WhatsAppScripts {
         var chat: String?
         var name: String?
         var kind: String?
+        var count: Int?
+        var total: Int?
         var messages: [AgentMessage]?
         var contact: AgentContact?
     }

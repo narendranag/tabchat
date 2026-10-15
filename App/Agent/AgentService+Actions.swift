@@ -125,29 +125,67 @@ extension AgentService {
         guard controller.agentDownload == nil else { return .failure("another agent download is running") }
         let chat = try await WhatsAppScripts.decode(PageReaders.run(WhatsAppScripts.messages, in: controller.webView)).chat ?? ""
         let base = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask)[0]
-        let slot = AgentDownloadSlot(directory: AgentResponder.downloadFolder(base: base, service: tab.serviceId, contact: chat))
+        let folder = AgentResponder.downloadFolder(base: base, service: tab.serviceId, contact: chat)
+        model.showToast("Agent downloading from \(chat)")
+        // One file per pass; an album gives one pass per photo it shows.
+        var files: [AgentFile] = []
+        var index = 0, count = 1, total = 1
+        items: while index < count {
+            switch try await downloadOne(id: id, index: index, folder: folder, controller: controller) {
+            case let .success(item):
+                files.append(item.file)
+                (count, total) = (item.shown, item.held)
+            case let .failure(error):
+                // Keep what an album already gave; fail only when nothing was saved.
+                guard files.isEmpty else { break items }
+                return .failure(error.text)
+            }
+            index += 1
+        }
+        var response = AgentResponse(ok: true, file: files.first)
+        response.files = files.count > 1 ? files : nil
+        response.chat = chat
+        if total > files.count {
+            response.note = "the album holds \(total) items and shows \(count); \(files.count) saved"
+        }
+        return response
+    }
+
+    /// One saved item of a message: the file, how many items the message shows, how many it holds.
+    private struct SavedItem {
+        var file: AgentFile
+        var shown: Int
+        var held: Int
+    }
+
+    /// Item `index` of message `id`, saved to `folder`.
+    private func downloadOne(
+        id: String, index: Int, folder: URL, controller: TabController
+    ) async throws -> Result<SavedItem, AgentError> {
+        let slot = AgentDownloadSlot(directory: folder)
         controller.agentDownload = slot
         defer { controller.agentDownload = nil }
-        model.showToast("Agent downloading from \(chat)")
         let started = try await WhatsAppScripts.decode(
-            PageReaders.run(WhatsAppScripts.download, arguments: ["id": id], in: controller.webView)
+            PageReaders.run(WhatsAppScripts.download, arguments: ["id": id, "index": index], in: controller.webView)
         )
-        guard started.ok else { return .failure(started.reason ?? "could not start the download") }
+        guard started.ok else { return .failure(.message(started.reason ?? "could not start the download")) }
         // Up to a minute for the file; WhatsApp fetches and decrypts it first.
         for _ in 0 ..< 600 where slot.finished == nil && slot.failure == nil {
             try await Task.sleep(for: .milliseconds(100))
         }
         _ = try? await PageReaders.run(WhatsAppScripts.closeViewer, in: controller.webView)
         if let failure = slot.failure {
-            return .failure("download failed: \(failure)")
+            return .failure(.message("download failed: \(failure)"))
         }
-        guard let url = slot.finished else { return .failure("the download did not start within a minute") }
+        guard let url = slot.finished else { return .failure(.message("the download did not start within a minute")) }
         if let expected = started.name, !AgentResponder.sameFile(expected, saved: url.lastPathComponent) {
-            return .failure("saved \(url.path), which is not the expected \(expected); check it and try again")
+            return .failure(.message("saved \(url.path), which is not the expected \(expected); check it and try again"))
         }
         let bytes = (try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
-        var response = AgentResponse(ok: true, file: AgentFile(path: url.path, bytes: bytes))
-        response.chat = chat
-        return response
+        return .success(SavedItem(
+            file: AgentFile(path: url.path, bytes: bytes),
+            shown: started.count ?? 1,
+            held: started.total ?? 1
+        ))
     }
 }

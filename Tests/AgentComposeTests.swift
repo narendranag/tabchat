@@ -77,3 +77,44 @@ extension AgentActionTests {
         XCTAssertEqual(AgentResponder.messageText(request), .failure(.message("messages are limited to 4000 characters")))
     }
 }
+
+/// Albums: every photo they show, one at a time.
+extension AgentActionTests {
+    @MainActor
+    func testDownloadPicksAnAlbumPhotoAndCountsThem() async throws {
+        let thumbs = (1 ... 2).map {
+            #"<div role="button" id="p\#($0)"><div data-testid="image-thumb"></div></div>"#
+        }.joined()
+        let html = """
+        <html><body><div id="main">
+        <div data-id="album-A" data-testid="image-album" aria-label="Media album 6 photos">\(thumbs)</div>
+        </div><script>
+        for (const id of ["p1", "p2"]) document.getElementById(id).addEventListener("click", () => {
+          const modal = document.createElement("div");
+          modal.setAttribute("data-testid", "media-viewer-modal");
+          modal.innerHTML = '<button aria-label="Download"></button><div aria-label="Close"></div>';
+          modal.querySelector("button").addEventListener("click", () => { document.body.dataset.downloaded = id; });
+          modal.querySelector("[aria-label=Close]").addEventListener("click", () => modal.remove());
+          document.body.appendChild(modal);
+        });
+        </script></body></html>
+        """
+        let webView = WKWebView(frame: NSRect(x: 0, y: 0, width: 800, height: 600))
+        webView.loadHTMLString(html, baseURL: URL(string: "https://example.invalid/"))
+        for _ in 0 ..< 100 where webView.isLoading || webView.url == nil {
+            try await Task.sleep(for: .milliseconds(50))
+        }
+        let second = try await WhatsAppScripts.decode(PageReaders.run(
+            WhatsAppScripts.download, arguments: ["id": "album-A", "index": 1], in: webView
+        ))
+        XCTAssertTrue(second.ok, second.reason ?? "")
+        XCTAssertEqual(second.count, 2)
+        XCTAssertEqual(second.total, 6)
+        let pressed = try await webView.evaluateJavaScript("document.body.dataset.downloaded") as? String
+        XCTAssertEqual(pressed, "p2")
+        let beyond = try await WhatsAppScripts.decode(PageReaders.run(
+            WhatsAppScripts.download, arguments: ["id": "album-A", "index": 2], in: webView
+        ))
+        XCTAssertEqual(beyond.reason, "that message has no item 2")
+    }
+}

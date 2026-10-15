@@ -148,7 +148,11 @@ struct AgentResponse: Codable, Equatable, Sendable {
     var chat: String?
     var messages: [AgentMessage]?
     var contact: AgentContact?
+    /// `download`: the first file saved; `files` has every one (an album gives several).
     var file: AgentFile?
+    var files: [AgentFile]?
+    /// Something the caller should know that isn't an error, e.g. an album holding more than it shows.
+    var note: String?
 
     static func failure(_ error: String) -> AgentResponse {
         AgentResponse(ok: false, error: error)
