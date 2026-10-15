@@ -11,15 +11,24 @@
 
 ## Next
 
+- [ ] Agent API proof step 1: socket server, per-tab switch, call log, notification feed ring buffer, `tabchat-agent tabs|feed|mcp` (branch `agent-api`) #agent-api
+- [ ] Agent API proof step 2: WhatsApp chat-list reader in an isolated content world, fixture test; Narendra runs one live `--counts-only` check #agent-api
+- [ ] Agent API: decide on merging `agent-api` after the proof — Narendra decides #agent-api
+
 - [ ] Delete the `.verify` leftovers from phase 2's test launch (`~/Library/*/com.narendranag.tabchat.verify*`, 129 MB) — Narendra decides #mac
 
 ## Later
+
+- [ ] Agent API: Discord, Teams, Outlook readers and a `messages` call, if the proof holds #agent-api
+- [ ] Agent API: draft-only sending (agent fills the compose box, Narendra presses Return) — separate decision #agent-api
 
 - [ ] Unread counts for Reddit and GitHub (per-service script; their titles carry no count) #mac
 - [ ] Intel (x86_64) builds, if anyone asks #mac
 - [ ] Signed, notarized `.dmg` from GitHub Actions + Sparkle updates (needs an Apple Developer ID — costs money, Narendra decides)
 
 ## Done
+
+- [x] Agent API exploration and decisions: `brief/agent-api.md` — 2026-10-15
 
 - [x] v0.1.1 released with GitHub: https://github.com/narendranag/tabchat/releases/tag/v0.1.1 — 2026-10-13
 - [x] Told MMV2408 about the Mac version: https://github.com/MMV2408/tabchat/issues/1 (offered a rename) — 2026-10-13
