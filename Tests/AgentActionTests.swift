@@ -31,6 +31,7 @@ final class AgentActionTests: XCTestCase {
       <div role="row"><div data-id="MSG5"><div class="message-in">
         <div role="button" id="photo"><img data-testid="image-thumb" alt="" src="data:,"></div>
         <div data-testid="msg-meta">1:06 pm</div></div></div></div>
+      <footer><div contenteditable="true" role="textbox"></div><button aria-label="Send">Send</button></footer>
     </div>
     <script>
       document.querySelector("header").setAttribute("data-testid", "conversation-info-header");
@@ -66,6 +67,11 @@ final class AgentActionTests: XCTestCase {
         modal.querySelector("[aria-label=Close]").addEventListener("click", () => setTimeout(() => modal.remove(), 150));
         document.body.appendChild(modal);
       };
+      document.querySelector("footer button").addEventListener("click", () => {
+        const box = document.querySelector("footer [contenteditable]");
+        document.body.dataset.sent = box.innerText;
+        box.innerHTML = "";
+      });
       document.querySelector('[data-testid="document-thumb"]').addEventListener("click", viewer("document"));
       document.querySelector("#photo").addEventListener("click", viewer("photo"));
     </script>
@@ -73,7 +79,7 @@ final class AgentActionTests: XCTestCase {
     """
 
     @MainActor
-    private func loadFixture() async throws -> WKWebView {
+    func loadFixture() async throws -> WKWebView {
         let webView = WKWebView(frame: NSRect(x: 0, y: 0, width: 800, height: 600))
         webView.loadHTMLString(Self.fixture, baseURL: URL(string: "https://example.invalid/"))
         for _ in 0 ..< 100 where webView.isLoading || webView.url == nil {

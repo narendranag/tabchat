@@ -22,6 +22,12 @@ enum AgentCall: String, Codable, Sendable, CaseIterable {
     case download
     /// Actions tier: the open chat's contact details (name, phone, about).
     case contact
+    /// Actions tier: type `text` into the message box of the open chat (or of `chat`, opened first)
+    /// and stop there. The owner reads it and sends it, or deletes it.
+    case draft
+    /// Actions tier: send `text` to the open chat (or to `chat`), only after the owner clicks Send in
+    /// Tabchat's own dialog, which shows the recipient and the whole message. One message per call.
+    case send
     /// Actions tier: scroll the open chat back `screens` screens, so WhatsApp loads earlier messages, then
     /// walk back down reading every message as it is drawn. Ends scrolled to the newest message.
     case history
@@ -43,6 +49,8 @@ struct AgentRequest: Codable, Equatable, Sendable {
     var message: String?
     /// `history`: how many screens to scroll back (1–20, default 3).
     var screens: Int?
+    /// `draft`, `send`: the message, at most `AgentWire.maxMessageCharacters`.
+    var text: String?
 }
 
 struct AgentTabInfo: Codable, Equatable, Sendable {
@@ -151,6 +159,7 @@ enum AgentWire {
     /// Requests larger than this are refused; real ones are under 200 bytes.
     static let maxRequestBytes = 16 * 1024
     static let maxPageCharacters = 20000
+    static let maxMessageCharacters = 4000
 
     /// `~/Library/Application Support/Tabchat/agent.sock`, readable and writable by its owner only.
     static var socketURL: URL {

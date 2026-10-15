@@ -8,7 +8,7 @@ let usage = """
 usage: tabchat-agent <command> [options]
 
 Read the Tabchat tabs you opened to agents and, where you allowed it, act in them (Tabchat →
-Settings → Agents). Nothing here sends a message.
+Settings → Agents). Nothing is sent without your click in Tabchat.
 
   tabs                          tabs agents may read, with unread counts
   feed [--tab ID] [--since MIN] notifications received (in memory, at most 24 h)
@@ -16,10 +16,15 @@ Settings → Agents). Nothing here sends a message.
   page --tab ID                 the visible text of the page the tab shows
   messages --tab ID             the visible messages of the chat open in the tab
 
-Actions (only for tabs with "actions" ticked; never sends; opening a chat sends read receipts):
+Actions (only for tabs with "actions" ticked; opening a chat sends read receipts):
   open --tab ID --chat NAME     open the chat with that exact name (searches if needed)
   download --tab ID --message ID  download the document, photo or video in that message
                                 → ~/Downloads/Tabchat/<service>/<contact>/; replies with file.path, file.bytes
+  draft --tab ID [--chat NAME] --text TEXT
+                                type a message into the chat and stop; you send it yourself
+  send --tab ID [--chat NAME] --text TEXT
+                                send one message, after you click Send in Tabchat's dialog
+                                (--text - reads the message from stdin)
   history --tab ID [--screens N]  scroll the open chat back N screens (default 3, at most 20)
                                 and return every message read on the way
   contact --tab ID              the open chat's name, phone and about
@@ -51,8 +56,9 @@ func send(_ request: AgentRequest) -> AgentResponse {
         return .failure("Tabchat is not running, or agent access is off (Tabchat → Settings → Agents)")
     }
     // Actions wait for WhatsApp: a download up to a minute, history a few seconds a screen.
-    let acting = [.open, .download, .contact, .history].contains(request.call)
-    var timeout = timeval(tv_sec: acting ? 120 : 15, tv_usec: 0)
+    // `send` waits for your answer in Tabchat (up to 5 minutes).
+    let acting = [.open, .download, .contact, .history, .draft].contains(request.call)
+    var timeout = timeval(tv_sec: request.call == .send ? 360 : acting ? 120 : 15, tv_usec: 0)
     setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, socklen_t(MemoryLayout<timeval>.size))
     guard let line = try? AgentWire.line(request) else { return .failure("could not encode the request") }
     _ = line.withUnsafeBytes { write(fd, $0.baseAddress, $0.count) }
@@ -106,6 +112,10 @@ request.selector = option("--selector", in: arguments)
 request.chat = option("--chat", in: arguments)
 request.message = option("--message", in: arguments)
 request.countsOnly = arguments.contains("--counts-only") ? true : nil
+if let text = option("--text", in: arguments) {
+    request.text = text == "-" ? String(bytes: FileHandle.standardInput.readDataToEndOfFile(), encoding: .utf8) : text
+}
+
 if let screens = option("--screens", in: arguments) {
     guard let value = Int(screens), value > 0 else { fail("--screens takes a number", code: 2) }
     request.screens = value

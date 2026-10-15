@@ -233,6 +233,43 @@ enum WhatsAppScripts {
     return JSON.stringify({ok: false, reason: "the viewer did not open"});
     """#
 
+    /// Types `text` into the open chat's message box (`#main footer`, never the search box), line by
+    /// line with line breaks, never Return. With `send`, then clicks WhatsApp's Send button and waits
+    /// for the box to empty. Refuses when the open chat isn't `chat` or the box already holds text.
+    static let compose = #"""
+    const wait = ms => new Promise(r => setTimeout(r, ms));
+    const header = document.querySelector('#main [data-testid="conversation-info-header-chat-title"]');
+    if (!header) return JSON.stringify({ok: false, reason: "no chat open"});
+    if (chat && header.textContent.trim() !== chat) return JSON.stringify({ok: false, reason: "a different chat is open"});
+    const box = document.querySelector('#main footer [contenteditable="true"]');
+    if (!box || box.closest("#side")) return JSON.stringify({ok: false, reason: "no message box in the open chat"});
+    if (box.innerText.trim()) return JSON.stringify({ok: false, reason: "the message box already has text; clear it first"});
+    box.focus();
+    if (document.activeElement !== box && !box.contains(document.activeElement)) {
+      return JSON.stringify({ok: false, reason: "could not focus the message box"});
+    }
+    text.split(/\r?\n/).forEach((line, i) => {
+      if (i) document.execCommand("insertLineBreak");
+      if (line) document.execCommand("insertText", false, line);
+    });
+    await wait(150);
+    const flat = s => s.replace(/\s+/g, " ").trim();
+    if (flat(box.innerText) !== flat(text)) {
+      return JSON.stringify({ok: false, reason: "the message box does not hold the text as given; check it in Tabchat"});
+    }
+    if (!send) return JSON.stringify({ok: true, chat: header.textContent.trim()});
+    const icon = document.querySelector('#main footer button[aria-label="Send"], #main footer [data-icon="wds-ic-send-filled"], '
+      + '#main footer [data-icon="send"]');
+    const button = icon && (icon.closest("button") || icon);
+    if (!button) return JSON.stringify({ok: false, reason: "no Send button; the text is left in the message box"});
+    button.click();
+    for (let i = 0; i < 50; i++) {
+      await wait(100);
+      if (!box.innerText.trim()) return JSON.stringify({ok: true, chat: header.textContent.trim()});
+    }
+    return JSON.stringify({ok: false, reason: "the message may not have gone; check the chat in Tabchat"});
+    """#
+
     /// The open chat's contact info: opens the panel from the chat header if needed, reads the name,
     /// the phone number and the "About" line, and closes the panel again if it opened it.
     static let contact = #"""

@@ -106,6 +106,23 @@ enum AgentMCP {
                 ]
             ),
             Tool(
+                name: "tabchat_draft",
+                description: "Action: type a message into the message box of a WhatsApp chat and stop there; the owner "
+                    + "reads it and presses Return, or deletes it. Use this unless the owner asked to send now. "
+                    + "Needs the tab's actions switch.",
+                call: .draft,
+                schema: compose
+            ),
+            Tool(
+                name: "tabchat_send",
+                description: "Action: send one message to a WhatsApp chat, for when the owner asks for it to go now. "
+                    + "Tabchat shows the owner the recipient and the whole text; nothing is sent unless they click "
+                    + "Send (it waits up to 5 minutes). One message per call; never bulk or scheduled sends. "
+                    + "Needs the tab's actions switch.",
+                call: .send,
+                schema: compose
+            ),
+            Tool(
                 name: "tabchat_history",
                 description: "Action: scroll the open chat (WhatsApp) back some screens so earlier messages load, "
                     + "and return every message read on the way, oldest first. Only scrolls; ends at the newest "
@@ -120,6 +137,18 @@ enum AgentMCP {
                     "required": ["tab"]
                 ]
             )
+        ]
+    }
+
+    private static var compose: [String: Any] {
+        [
+            "type": "object",
+            "properties": [
+                "tab": ["type": "string", "description": "A tab id from tabchat_tabs."],
+                "chat": ["type": "string", "description": "The chat's exact name; omit to use the chat already open."],
+                "text": ["type": "string", "description": "The message (at most 4000 characters)."]
+            ],
+            "required": ["tab", "text"]
         ]
     }
 
@@ -175,6 +204,7 @@ enum AgentMCP {
         request.chat = arguments["chat"] as? String
         request.message = arguments["message"] as? String
         request.screens = (arguments["screens"] as? NSNumber)?.intValue
+        request.text = arguments["text"] as? String
         if let minutes = (arguments["since_minutes"] as? NSNumber)?.doubleValue {
             request.sinceSeconds = minutes * 60
         }

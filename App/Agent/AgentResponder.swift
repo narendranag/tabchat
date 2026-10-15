@@ -25,6 +25,18 @@ enum AgentResponder {
         }
     }
 
+    /// The message a `draft` or `send` carries, trimmed, or why it can't be used.
+    static func messageText(_ request: AgentRequest) -> Result<String, AgentError> {
+        let text = (request.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        if text.isEmpty {
+            return .failure(.message("\(request.call.rawValue) needs --text"))
+        }
+        if text.count > AgentWire.maxMessageCharacters {
+            return .failure(.message("messages are limited to \(AgentWire.maxMessageCharacters) characters"))
+        }
+        return .success(text)
+    }
+
     /// `~/Downloads/Tabchat/<service>/<contact>/`, with the names made safe for a folder.
     static func downloadFolder(base: URL, service: String, contact: String) -> URL {
         base.appendingPathComponent("Tabchat", isDirectory: true)

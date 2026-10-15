@@ -2,7 +2,8 @@ import Foundation
 import Observation
 
 /// The agent API inside the app: keeps the notification feed, runs the socket while agents are
-/// allowed, answers calls and logs each one. Read-only: nothing here sends, clicks or navigates.
+/// allowed, answers calls and logs each one. The read calls only read; the actions (clicks, drafts,
+/// sends after the owner confirms) are in `AgentService+Actions.swift`.
 @MainActor
 @Observable
 final class AgentService {
@@ -11,6 +12,10 @@ final class AgentService {
     private(set) var lastError: String?
     @ObservationIgnored private weak var model: AppModel?
     @ObservationIgnored private var server: AgentSocketServer?
+    /// A `send` is waiting for the owner; a second one is refused until it is answered.
+    @ObservationIgnored var sendPending = false
+    /// Asks the owner to confirm a `send` (chat, text, program); replaced in tests.
+    @ObservationIgnored var confirmSend: @MainActor (String, String, String) async -> Bool = AgentSendConfirm.ask
     private let log: AgentLog
     private let socketURL: URL
 
@@ -61,7 +66,7 @@ final class AgentService {
         do {
             let decoded = try AgentWire.decoder().decode(AgentRequest.self, from: line)
             request = decoded
-            response = await answer(decoded)
+            response = await answer(decoded, client: client)
         } catch {
             response = .failure("bad request: expected one JSON object such as {\"call\":\"tabs\"}")
         }
@@ -73,7 +78,7 @@ final class AgentService {
         return (try? AgentWire.line(response)) ?? Data("{\"ok\":false}\n".utf8)
     }
 
-    func answer(_ request: AgentRequest) async -> AgentResponse {
+    func answer(_ request: AgentRequest, client: String = "An agent") async -> AgentResponse {
         guard let model else { return .failure("Tabchat is starting") }
         let state = model.state
         guard state.settings.agentAccess else { return .failure("agent access is off in Tabchat's settings") }
@@ -85,8 +90,8 @@ final class AgentService {
             return AgentResponder.feed(request: request, state: state, feed: feed, now: Date())
         case .chats, .page, .inspect, .messages:
             return await read(request, model: model, state: state)
-        case .open, .download, .contact, .history:
-            return await act(request, model: model, state: state)
+        case .open, .download, .contact, .history, .draft, .send:
+            return await act(request, model: model, state: state, client: client)
         }
     }
 

@@ -146,7 +146,7 @@ private struct AgentSettings: View {
                 ))
                 Text("Agents on this Mac (Claude Code and others) can then read the services ticked below "
                     + "through the tabchat-agent command: unread counts, notifications and what the page shows. "
-                    + "Read only: they cannot send, click or open chats. Any program running as you can use it.")
+                    + "Reading only; actions are switched on separately below. Any program running as you can use it.")
                     .font(.caption).foregroundStyle(.secondary)
                 if let error = model.agent.lastError {
                     Text(error).font(.caption).foregroundStyle(.red)
@@ -166,8 +166,9 @@ private struct AgentSettings: View {
                         get: { tab.agentActions }, set: { model.setAgentActions(tab.id, $0) }
                     ))
                 }
-                Text("Open chats, open contact info and download attachments to ~/Downloads/Tabchat. "
-                    + "Never send. Opening a chat marks it read, and the sender sees that.")
+                Text("Open chats, read contact info, download attachments to ~/Downloads/Tabchat, and write "
+                    + "drafts for you to send. A message is sent only when you click Send in Tabchat's own dialog, "
+                    + "one message at a time. Opening a chat marks it read, and the sender sees that.")
                     .font(.caption).foregroundStyle(.secondary)
             }
             .disabled(!on)

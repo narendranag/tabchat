@@ -122,7 +122,7 @@ final class AgentTests: XCTestCase {
             [
                 "tabchat_tabs", "tabchat_feed", "tabchat_chats", "tabchat_page",
                 "tabchat_messages", "tabchat_open", "tabchat_contact", "tabchat_download",
-                "tabchat_history"
+                "tabchat_draft", "tabchat_send", "tabchat_history"
             ]
         )
     }
