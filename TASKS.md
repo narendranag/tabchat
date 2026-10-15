@@ -11,7 +11,7 @@
 
 ## Next
 
-- [ ] Agent API actions tier: `messages`, `open`, `contact`, `download` for WhatsApp, with a per-tab switch #agent-api
+- [ ] Agent API: photos and other media in `download` (documents only so far); `open` for chats not in the visible list (search) #agent-api
 - [ ] Agent API: an agent recipe for contact details → `~/marain/crm` via its `crm` CLI (in that brain) #agent-api
 - [ ] Agent API: decide on merging `agent-api` after the proof — Narendra decides #agent-api
 
@@ -27,6 +27,8 @@
 - [ ] Signed, notarized `.dmg` from GitHub Actions + Sparkle updates (needs an Apple Developer ID — costs money, Narendra decides)
 
 ## Done
+
+- [x] Agent API actions tier for WhatsApp: `messages`, `open`, `contact`, `download`, live-tested on mini (branch `agent-api`) — 2026-10-15
 
 - [x] Agent API proof: socket, `tabchat-agent tabs|feed|chats|page|mcp`, per-tab switch, call log; live WhatsApp chat list read 17/17 (branch `agent-api`) — 2026-10-15
 

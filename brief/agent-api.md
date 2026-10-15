@@ -189,5 +189,13 @@ the WhatsApp chat-list reader, written blind against an invented fixture, read 1
 with name, preview and time on the first try (one 116 badge is a muted chat, which WhatsApp leaves
 out of the title count). One bug found live and fixed: accepted sockets inherited non-blocking mode.
 
+Actions tier, live 2026-10-15: `open` opened a named chat from the chat list; `messages` read 8
+messages (direction, sender, time, text, document names; scrolled-out ones marked `rendered: false`);
+`contact` read name and phone and closed the panel again; `download` scrolled a document into view,
+opened WhatsApp's viewer, pressed Download and closed it — a 4-page PDF landed in
+`~/Downloads/Tabchat/whatsapp/<contact>/`, quarantined. Selectors were learned with a debug-only
+`inspect` call (structure, not content) and are WhatsApp's `data-testid` hooks. Found live and fixed:
+the `message-in/out` classes are gone (direction now comes from the status tick), and virtualised rows.
+
 What this changes above: the "Auth" bullet's tokens and the sops entry are dropped; the per-tab
 switch and the log stay.
