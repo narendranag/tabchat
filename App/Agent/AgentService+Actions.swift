@@ -101,7 +101,11 @@ extension AgentService {
                 WhatsAppScripts.history, arguments: ["screens": screens, "until": until], in: controller.webView
             )
             var response = WhatsAppScripts.messagesResponse(json: json)
-            if response.ok, WhatsAppScripts.decode(json).reached == false {
+            let result = WhatsAppScripts.decode(json)
+            if response.ok, result.partial == true {
+                response.note = "stopped after 90 seconds (WhatsApp is slower when its tab isn't the one shown); "
+                    + "these are the messages read"
+            } else if response.ok, result.reached == false {
                 response.note = "did not reach that message within \(screens) screens; these are the messages read"
             }
             return response

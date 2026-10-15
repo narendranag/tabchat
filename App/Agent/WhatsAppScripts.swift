@@ -16,6 +16,9 @@ enum WhatsAppScripts {
     // A chat just opened may take a moment to draw; after a restart it may show only WhatsApp's
     // "get older messages from your phone", with no message yet. Wait, then press that once.
     const pause = ms => new Promise(r => setTimeout(r, ms));
+    // A tab that isn't on screen runs its timers slowly; stop in time to answer, with what was read.
+    const deadline = Date.now() + 90000;
+    const late = () => Date.now() > deadline;
     for (let i = 0; i < 30 && !main.querySelector("[data-id]"); i++) await pause(100);
     if (!main.querySelector("[data-id]")) {
       const button = Array.from(main.querySelectorAll("button")).find(b => /older messages/i.test(b.innerText || ""));
@@ -39,7 +42,7 @@ enum WhatsAppScripts {
     // With `until`, stop as soon as that message is in the list: everything newer is below it.
     const stopAt = typeof until === "string" ? until : "";
     const reachedStop = () => !!stopAt && !!main.querySelector('[data-id="' + CSS.escape(stopAt) + '"]');
-    for (let i = 0; i < screens && !reachedStop(); i++) {
+    for (let i = 0; i < screens && !reachedStop() && !late(); i++) {
       const height = pane.scrollHeight;
       pane.scrollTop = Math.max(0, pane.scrollTop - pane.clientHeight);
       await wait(500);
@@ -72,7 +75,7 @@ enum WhatsAppScripts {
     };
     // WhatsApp adds rows back at the bottom a moment after they scroll into reach, so at the bottom
     // wait up to two seconds for more before stopping.
-    for (let i = 0, idle = 0; i < 400 && idle < 8; i++) {
+    for (let i = 0, idle = 0; i < 400 && idle < 8 && !late(); i++) {
       collect();
       const before = pane.scrollTop;
       pane.scrollTop += Math.floor(pane.clientHeight * 0.7);
@@ -84,7 +87,7 @@ enum WhatsAppScripts {
     let ids = order;
     const reached = !stopAt || order.includes(stopAt);
     if (stopAt && reached) ids = order.slice(order.indexOf(stopAt) + 1);
-    return JSON.stringify({ok: true, chat, reached, messages: ids.map(id => seen.get(id))});
+    return JSON.stringify({ok: true, chat, reached, partial: late(), messages: ids.map(id => seen.get(id))});
     """#
 
     /// Finds the open chat: `main` and its title `chat`.
@@ -308,6 +311,7 @@ extension WhatsAppScripts {
         var name: String?
         var kind: String?
         var reached: Bool?
+        var partial: Bool?
         var count: Int?
         var total: Int?
         var messages: [AgentMessage]?
