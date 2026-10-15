@@ -34,6 +34,7 @@ final class AppModel {
     @ObservationIgnored private let stateStore = StateStore()
     @ObservationIgnored private let iconStore = IconStore()
     @ObservationIgnored private let network = NetworkMonitor()
+    @ObservationIgnored let agent = AgentService()
     @ObservationIgnored var dataStores: [String: WKWebsiteDataStore] = [:]
     @ObservationIgnored private var toastTask: Task<Void, Never>?
     @ObservationIgnored private var pauseTask: Task<Void, Never>?
@@ -74,6 +75,8 @@ final class AppModel {
             state.settings.pause = NotificationPause()
         }
         save()
+        agent.attach(self)
+        agent.apply(enabled: state.settings.agentAccess)
         schedulePauseEnd()
         updateBadges()
         // Every tab loads at launch so background tabs still deliver notifications and unread counts.
@@ -317,6 +320,7 @@ final class AppModel {
         // Unread keeps updating while paused or muted; only the banner is suppressed. The tab is
         // looked up again because `tab` is a snapshot from when its controller was created.
         let current = state.tabs.first { $0.id == tab.id } ?? tab
+        agent.record(title: title, body: body, from: current, state: state)
         guard pause.allows(current, at: Date()) else { return }
         let content = UNMutableNotificationContent()
         content.title = title.isEmpty ? current.displayName : title

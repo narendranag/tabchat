@@ -14,6 +14,8 @@ struct AppSettings: Codable, Equatable, Sendable {
     var serviceOrder: [String] = []
     /// Width share of the left pane in split view.
     var splitRatio = SplitMath.defaultRatio
+    /// Local agents may read the tabs ticked for them (`Tab.agentReadable`). Off by default.
+    var agentAccess = false
 }
 
 /// Files written by older versions lack newer keys; each missing key takes its default.
@@ -27,6 +29,7 @@ extension AppSettings {
         linkTarget = try values.decodeIfPresent(LinkTarget.self, forKey: .linkTarget) ?? .defaultBrowser
         hiddenServices = try values.decodeIfPresent([String].self, forKey: .hiddenServices) ?? []
         serviceOrder = try values.decodeIfPresent([String].self, forKey: .serviceOrder) ?? []
+        agentAccess = try values.decodeIfPresent(Bool.self, forKey: .agentAccess) ?? false
         splitRatio = try SplitMath.clamp(values.decodeIfPresent(Double.self, forKey: .splitRatio) ?? SplitMath.defaultRatio)
     }
 }

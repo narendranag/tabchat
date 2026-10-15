@@ -13,6 +13,8 @@ struct SettingsView: View {
                 .tabItem { Label("Sleep", systemImage: "moon.zzz") }
             LinkSettings()
                 .tabItem { Label("Links", systemImage: "link") }
+            AgentSettings()
+                .tabItem { Label("Agents", systemImage: "terminal") }
         }
         .frame(width: 460, height: 420)
         .onAppear { model.refreshLoginItem() }
@@ -129,5 +131,44 @@ private struct LinkSettings: View {
         }
         .formStyle(.grouped)
         .onAppear { browsers = Browsers.installed() }
+    }
+}
+
+private struct AgentSettings: View {
+    @Environment(AppModel.self) private var model
+
+    var body: some View {
+        let on = model.state.settings.agentAccess
+        Form {
+            Section {
+                Toggle("Let local agents read chosen services", isOn: Binding(
+                    get: { on }, set: { model.setAgentAccess($0) }
+                ))
+                Text("Agents on this Mac (Claude Code and others) can then read the services ticked below "
+                    + "through the tabchat-agent command: unread counts, notifications and what the page shows. "
+                    + "Read only: they cannot send, click or open chats. Any program running as you can use it.")
+                    .font(.caption).foregroundStyle(.secondary)
+                if let error = model.agent.lastError {
+                    Text(error).font(.caption).foregroundStyle(.red)
+                }
+            }
+            Section("Readable by agents") {
+                ForEach(model.tabs.filter { !$0.isEphemeral }) { tab in
+                    Toggle(tab.displayName, isOn: Binding(
+                        get: { tab.agentReadable }, set: { model.setAgentReadable(tab.id, $0) }
+                    ))
+                }
+            }
+            .disabled(!on)
+            Section {
+                Button("Show Call Log") {
+                    NSWorkspace.shared.activateFileViewerSelecting([AgentLog().fileURL])
+                }
+                Text("Each call is logged with the program, the service and how many items it read, never "
+                    + "the content. Kept 30 days.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+        }
+        .formStyle(.grouped)
     }
 }

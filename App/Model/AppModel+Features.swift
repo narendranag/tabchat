@@ -222,3 +222,17 @@ extension AppModel {
         }
     }
 }
+
+// MARK: Agent API
+
+extension AppModel {
+    func setAgentAccess(_ on: Bool) {
+        mutate { $0.settings.agentAccess = on }
+        agent.apply(enabled: on)
+    }
+
+    func setAgentReadable(_ id: UUID, _ readable: Bool) {
+        guard let index = state.tabs.firstIndex(where: { $0.id == id }) else { return }
+        mutate { $0.tabs[index].agentReadable = readable }
+    }
+}

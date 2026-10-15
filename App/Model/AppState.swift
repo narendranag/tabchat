@@ -3,6 +3,8 @@ import Foundation
 /// Everything that is saved to disk. `schemaVersion` lets a later release migrate old files.
 /// Version 2 added `settings` and `Tab.muted`. Version 3 added `split`, sleep (`Tab.allowSleep`, `Tab.lastURL`,
 /// the sleep setting) and the link, card-order and split-ratio settings.
+/// The agent keys (`settings.agentAccess`, `Tab.agentReadable`) came without a version bump: they default to off,
+/// and an older Tabchat must still open the file (it refuses newer versions) rather than reset the tabs.
 struct AppState: Codable, Equatable, Sendable {
     static let currentVersion = 3
 

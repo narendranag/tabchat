@@ -13,6 +13,8 @@ struct Tab: Codable, Identifiable, Hashable, Sendable {
     var allowSleep = true
     /// Where a sleeping tab was when it slept (or a duplicate was made); the next load starts there.
     var lastURL: String?
+    /// Local agents may read this tab while agent access is on. Off by default; never for incognito tabs.
+    var agentReadable = false
     /// Incognito and temporary tabs live for this run only: they are never written to `state.json`.
     var incognito = false
     var temporary = false
@@ -47,7 +49,7 @@ enum TabPalette {
 /// `incognito` and `temporary` are deliberately not coded.
 extension Tab {
     enum CodingKeys: String, CodingKey {
-        case id, serviceId, profileId, customName, customURL, colorHex, muted, allowSleep, lastURL
+        case id, serviceId, profileId, customName, customURL, colorHex, muted, allowSleep, lastURL, agentReadable
     }
 
     init(from decoder: Decoder) throws {
@@ -62,5 +64,6 @@ extension Tab {
         allowSleep = try values.decodeIfPresent(Bool.self, forKey: .allowSleep)
             ?? ServiceCatalog.allowsSleepByDefault(serviceId: serviceId)
         lastURL = try values.decodeIfPresent(String.self, forKey: .lastURL)
+        agentReadable = try values.decodeIfPresent(Bool.self, forKey: .agentReadable) ?? false
     }
 }

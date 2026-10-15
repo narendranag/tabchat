@@ -27,6 +27,13 @@ targets:
       - path: App
         excludes:
           - "Resources/*.entitlements"
+      - path: Shared
+    dependencies:
+      # The agent CLI ships inside the app: Tabchat.app/Contents/MacOS/tabchat-agent.
+      - target: tabchat-agent
+        embed: true
+        copy:
+          destination: executables
     resources:
       - path: App/Resources/Assets.xcassets
     entitlements:
@@ -47,6 +54,16 @@ targets:
         INFOPLIST_KEY_NSMicrophoneUsageDescription: Tabchat needs the microphone for calls in the sites you open.
         INFOPLIST_KEY_NSHumanReadableCopyright: Fork of MMV2408/tabchat, MIT licence.
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+  tabchat-agent:
+    type: tool
+    platform: macOS
+    sources:
+      - path: Tools/tabchat-agent
+      - path: Shared
+    settings:
+      base:
+        PRODUCT_NAME: tabchat-agent
+        PRODUCT_BUNDLE_IDENTIFIER: com.narendranag.tabchat.agent
   TabchatTests:
     type: bundle.unit-test
     platform: macOS
