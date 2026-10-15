@@ -10,7 +10,7 @@
 
 ## Next
 
-- [ ] Agent API: videos and every photo of an album in `download` #agent-api
+- [ ] Agent API: videos in `download` (no chat with a video tried yet); albums holding more photos than they show #agent-api
 - [ ] LinkedIn messages: add LinkedIn as a service (linkedin.com/messaging) and give it agent readers (`chats`, `messages`) like WhatsApp's — Narendra asked 2026-10-15. LinkedIn restricts accounts over automation more than most, so start read-only and check its terms in `brief/agent-api.md` before any actions #agent-api
 - [ ] Agent API: an agent recipe for contact details → `~/marain/crm` via its `crm` CLI (in that brain) #agent-api
 
@@ -25,6 +25,8 @@
 - [ ] Signed, notarized `.dmg` from GitHub Actions + Sparkle updates (needs an Apple Developer ID — costs money, Narendra decides)
 
 ## Done
+
+- [x] Agent API: albums download every photo they show (your own media through the viewer's menu); `history` fetches older messages after a restart; `open` waits for WhatsApp to load — live-checked 2026-10-15
 
 - [x] Agent API: `open` reaches your own chat ("<name>" or "<name> (You)") and skips address-book contacts not on WhatsApp — live-checked 2026-10-15
 

@@ -60,10 +60,14 @@ extension WhatsAppScripts {
       if (button) { button.click(); return done(); }
       const menu = open && open.querySelector('button[aria-label="Menu"]');
       if (menu && i >= 10) {
-        // The menu opens on a pointer press, not on a bare click.
+        // The menu opens on a primary mouse press at the button, not on a bare click.
+        const box = menu.getBoundingClientRect();
+        const at = {clientX: box.left + box.width / 2, clientY: box.top + box.height / 2};
         for (const type of ["pointerdown", "mousedown", "pointerup", "mouseup", "click"]) {
-          const Event = type.startsWith("pointer") ? PointerEvent : MouseEvent;
-          menu.dispatchEvent(new Event(type, {bubbles: true, cancelable: true, view: window}));
+          const down = type.endsWith("down");
+          const init = {bubbles: true, cancelable: true, composed: true, view: window, button: 0, buttons: down ? 1 : 0,
+            detail: 1, ...at, pointerId: 1, pointerType: "mouse", isPrimary: true};
+          menu.dispatchEvent(type.startsWith("pointer") ? new PointerEvent(type, init) : new MouseEvent(type, init));
         }
         for (let j = 0; j < 30; j++) {
           await new Promise(r => setTimeout(r, 100));

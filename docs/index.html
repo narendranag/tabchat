@@ -786,28 +786,37 @@ document viewer <code>media-viewer-modal</code> with
 <code>data-virtualized="true"</code>; <code>messages</code> reports them
 as <code>rendered: false</code>; <code>download</code> scrolls them into
 view first.</li>
-<li><code>open</code> clicks the chat in the list if WhatsApp has drawn
-it; otherwise it types the name into the search box
-(<code>chat-list-search-container</code> in <code>#side</code>, a plain
-text field, never the message box), opens the result with exactly that
-name, and clears the search. Live-checked 2026-10-15.</li>
+<li><code>open</code> waits up to ten seconds for WhatsApp to load, then
+clicks the chat in the list if WhatsApp has drawn it; otherwise it types
+the name into the search box (<code>chat-list-search-container</code> in
+<code>#side</code>, a plain text field, never the message box), opens
+the result with exactly that name, and clears the search. Live-checked
+2026-10-15.</li>
 <li><code>history</code> scrolls the message list (the nearest scrolling
 ancestor of the first message) up <code>screens</code> screens, waiting
 for WhatsApp to load more, then back down, keeping each message the
 first time it is drawn, placed right after the known message drawn
-before it (WhatsApp keeps some rows drawn while scrolling). It only
-scrolls, and ends at the newest message. It is in the actions tier
-because scrolling back makes WhatsApp fetch older messages. Timers are
-slowed in a tab that isn't on screen, so it is quicker with the WhatsApp
-tab selected.</li>
+before it (WhatsApp keeps some rows drawn while scrolling). When
+scrolling loads nothing it presses WhatsApp's own "Click here to get
+older messages from your phone" (after a restart WhatsApp keeps only the
+newest messages). It only scrolls, and ends at the newest message. It is
+in the actions tier because scrolling back makes WhatsApp fetch older
+messages. Timers are slowed in a tab that isn't on screen, so it is
+quicker with the WhatsApp tab selected.</li>
 <li><code>download</code> closes any viewer still open, then clicks the
 document thumb, or for a photo or video the <code>image-thumb</code>,
 <code>video-content</code> or <code>blob:</code> image, and presses
 <code>Download</code> in the viewer. It checks that the saved file has
 the document's name (allowing the <code> 1</code> added for a duplicate)
 and answers <code>ok: false</code> with the path when it doesn't. Photos
-are live-checked (<code>image-thumb</code>, 2026-10-15); an album
-downloads its first photo; videos are not checked yet.</li>
+are live-checked (<code>image-thumb</code>, 2026-10-15). An album
+(<code>image-album</code>, labelled "Media album 4 photos") gives one
+pass per photo it shows: <code>files</code> lists them,
+<code>note</code> says when it holds more than it shows. For your own
+media the viewer has no Download button; it is the <code>Download</code>
+menu item under the viewer's <code>Menu</code>, which opens only on a
+primary pointer press at the button. Only an item named exactly
+"Download" is pressed. Videos are not checked yet.</li>
 <li>WhatsApp stamps text messages with their day but not documents or
 photos. <code>day</code> is the divider above the message in the list
 ("Today", "Friday", "27/09/2026"; English only). <code>date</code> comes

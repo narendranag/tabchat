@@ -83,19 +83,25 @@ Written against WhatsApp Web's `data-testid` hooks, learned with `inspect` on 20
 - Direction comes from the status tick in `msg-meta` (the `message-in/out` classes are gone).
 - Messages scrolled out of view are drawn as `data-virtualized="true"`; `messages` reports them as
   `rendered: false`; `download` scrolls them into view first.
-- `open` clicks the chat in the list if WhatsApp has drawn it; otherwise it types the name into the
+- `open` waits up to ten seconds for WhatsApp to load, then clicks the chat in the list if WhatsApp has drawn it; otherwise it types the name into the
   search box (`chat-list-search-container` in `#side`, a plain text field, never the message box),
   opens the result with exactly that name, and clears the search. Live-checked 2026-10-15.
 - `history` scrolls the message list (the nearest scrolling ancestor of the first message) up
   `screens` screens, waiting for WhatsApp to load more, then back down, keeping each message the
   first time it is drawn, placed right after the known message drawn before it (WhatsApp keeps some
-  rows drawn while scrolling). It only scrolls, and ends at the newest message. It is in the actions tier
+  rows drawn while scrolling). When scrolling loads nothing it presses WhatsApp's own "Click here
+  to get older messages from your phone" (after a restart WhatsApp keeps only the newest messages). It only scrolls, and ends at the newest message. It is in the actions tier
   because scrolling back makes WhatsApp fetch older messages. Timers are slowed in a tab that isn't on
   screen, so it is quicker with the WhatsApp tab selected.
 - `download` closes any viewer still open, then clicks the document thumb, or for a photo or video
   the `image-thumb`, `video-content` or `blob:` image, and presses `Download` in the viewer. It
   checks that the saved file has the document's name (allowing the ` 1` added for a duplicate) and
-  answers `ok: false` with the path when it doesn't. Photos are live-checked (`image-thumb`, 2026-10-15); an album downloads its first photo; videos are not checked yet.
+  answers `ok: false` with the path when it doesn't. Photos are live-checked (`image-thumb`, 2026-10-15).
+  An album (`image-album`, labelled "Media album 4 photos") gives one pass per photo it shows: `files`
+  lists them, `note` says when it holds more than it shows. For your own media the viewer has no
+  Download button; it is the `Download` menu item under the viewer's `Menu`, which opens only on a
+  primary pointer press at the button. Only an item named exactly "Download" is pressed. Videos are
+  not checked yet.
 - WhatsApp stamps text messages with their day but not documents or photos. `day` is the divider
   above the message in the list ("Today", "Friday", "27/09/2026"; English only). `date` comes from
   the stamp, else from `day` (weekday names count back from today), else from the dated messages on
