@@ -87,6 +87,7 @@ Written against WhatsApp Web's `data-testid` hooks, learned with `inspect` on 20
 - `open` waits up to ten seconds for WhatsApp to load, then clicks the chat in the list if WhatsApp has drawn it; otherwise it types the name into the
   search box (`chat-list-search-container` in `#side`, a plain text field, never the message box),
   opens the result with exactly that name, and clears the search. Live-checked 2026-10-15.
+- `history` stops after 90 seconds with a `note` (a tab not on screen runs its timers slowly).
 - `history` scrolls the message list (the nearest scrolling ancestor of the first message) up
   `screens` screens, waiting for WhatsApp to load more, then back down, keeping each message the
   first time it is drawn, placed right after the known message drawn before it (WhatsApp keeps some
@@ -132,6 +133,21 @@ Written against WhatsApp Web's `data-testid` hooks, learned with `inspect` on 20
 Each script is tested in XCTest against an invented page (`Tests/AgentTests.swift`,
 `Tests/AgentActionTests.swift`). When WhatsApp changes its page, a script returns
 `{"ok": false, "reason": …}` rather than a guess; fix the selectors with `inspect` in a debug build.
+
+## Discord readers
+
+Read only (`App/Agent/DiscordScripts.swift`); Discord's terms forbid automating a user account, so
+there are no Discord actions. Written against attributes Discord keeps while its class names change
+(checked live 2026-10-15):
+
+- `chats`: the links `a[href^="/channels/@me/"]` in `nav[aria-label*="Private"]`, labelled
+  "<name> (direct message)" or "(group message)", optionally prefixed "unread,"; the channel id
+  from the link is `key`, a stable id; `group` from the label; unread from the number badge.
+- `messages`: `ol[data-list-id="chat-messages"] li[id^="chat-messages-"]`; the id is the last part;
+  the author is `[id^="message-username-"] [data-text]`, carried to follow-on messages; `stamp` is
+  `time[datetime]` (ISO) and `date` its local day; text is `[id^="message-content-"]` outside the
+  quoted reply (`message-reply-context-`); attachments under `message-accessories-` give `document`
+  (file name) or `media`. "Joined" notices have no author. Direction is not shown.
 
 ## Live checks
 

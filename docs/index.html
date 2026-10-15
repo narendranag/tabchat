@@ -809,6 +809,8 @@ the name into the search box (<code>chat-list-search-container</code> in
 <code>#side</code>, a plain text field, never the message box), opens
 the result with exactly that name, and clears the search. Live-checked
 2026-10-15.</li>
+<li><code>history</code> stops after 90 seconds with a <code>note</code>
+(a tab not on screen runs its timers slowly).</li>
 <li><code>history</code> scrolls the message list (the nearest scrolling
 ancestor of the first message) up <code>screens</code> screens, waiting
 for WhatsApp to load more, then back down, keeping each message the
@@ -883,6 +885,29 @@ are quarantined.</li>
 page, a script returns <code>{"ok": false, "reason": …}</code> rather
 than a guess; fix the selectors with <code>inspect</code> in a debug
 build.</p>
+<h2 id="agent-api-discord-readers">Discord readers</h2>
+<p>Read only (<code>App/Agent/DiscordScripts.swift</code>); Discord's
+terms forbid automating a user account, so there are no Discord actions.
+Written against attributes Discord keeps while its class names change
+(checked live 2026-10-15):</p>
+<ul>
+<li><code>chats</code>: the links <code>a[href^="/channels/@me/"]</code>
+in <code>nav[aria-label*="Private"]</code>, labelled "<name> (direct
+message)" or "(group message)", optionally prefixed "unread,"; the
+channel id from the link is <code>key</code>, a stable id;
+<code>group</code> from the label; unread from the number badge.</li>
+<li><code>messages</code>:
+<code>ol[data-list-id="chat-messages"] li[id^="chat-messages-"]</code>;
+the id is the last part; the author is
+<code>[id^="message-username-"] [data-text]</code>, carried to follow-on
+messages; <code>stamp</code> is <code>time[datetime]</code> (ISO) and
+<code>date</code> its local day; text is
+<code>[id^="message-content-"]</code> outside the quoted reply
+(<code>message-reply-context-</code>); attachments under
+<code>message-accessories-</code> give <code>document</code> (file name)
+or <code>media</code>. "Joined" notices have no author. Direction is not
+shown.</li>
+</ul>
 <h2 id="agent-api-live-checks">Live checks</h2>
 <p>Run against the debug build, with the services ticked in Settings →
 Agents:</p>
@@ -893,7 +918,7 @@ $TA inspect --tab &lt;id&gt; --selector &#39;#main&#39;</code></pre>
 <p>Never paste real chat content, names or numbers into the repo, tests
 or issues.</p>
 </article>
-    <nav class="toc" aria-label="On this page"><div class="toc-title">On this page</div><a href="#agent-api-shape">Shape</a><a href="#agent-api-calls">Calls</a><a href="#agent-api-permissions">Permissions</a><a href="#agent-api-whatsapp-scripts">WhatsApp scripts</a><a href="#agent-api-live-checks">Live checks</a></nav>
+    <nav class="toc" aria-label="On this page"><div class="toc-title">On this page</div><a href="#agent-api-shape">Shape</a><a href="#agent-api-calls">Calls</a><a href="#agent-api-permissions">Permissions</a><a href="#agent-api-whatsapp-scripts">WhatsApp scripts</a><a href="#agent-api-discord-readers">Discord readers</a><a href="#agent-api-live-checks">Live checks</a></nav>
   </div>
   <footer class="pager"><a class="prev" href="#building">&larr; Building</a><span></span></footer>
 </section>

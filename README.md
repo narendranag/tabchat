@@ -43,8 +43,8 @@ agents may read and whether they may also act.
 | `draft` | act | Type a message into a chat and stop there; you send it when you want |
 | `send` | act | Send one urgent message, after you click Send in Tabchat's own dialog |
 
-Reading works on every service through `page`; the chat-aware calls and the actions are WhatsApp
-only so far. **Agents never send on their own:** a draft waits for your Return, and `send` waits for
+Reading works on every service through `page`. `chats` and `messages` work on WhatsApp and Discord
+(Discord read only: its terms forbid automating a user account); the actions are WhatsApp only. **Agents never send on their own:** a draft waits for your Return, and `send` waits for
 your click in a Tabchat dialog showing the recipient and the whole message. One message at a time,
 never bulk or scheduled. Opening a chat marks it read, and the sender sees that.
 
@@ -113,8 +113,8 @@ use [the original](https://github.com/MMV2408/tabchat).
 
 ## Still to do
 
-- **More services for agents**: chat lists, messages and actions for Discord, Teams and Outlook
-  (they are readable through `page` today)
+- **More services for agents**: chat lists and messages for Teams and Outlook (readable through
+  `page` today)
 - **Videos and albums**: downloads save documents and photos; videos are unchecked and an album gives its first photo
 - **Notarised build** and automatic updates (needs a paid Apple Developer ID)
 - **Unread for every service**: Reddit and GitHub don't put a count in their page titles

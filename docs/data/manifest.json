@@ -311,6 +311,11 @@
         },
         {
           "level": 2,
+          "title": "Discord readers",
+          "anchor": "discord-readers"
+        },
+        {
+          "level": 2,
           "title": "Live checks",
           "anchor": "live-checks"
         }

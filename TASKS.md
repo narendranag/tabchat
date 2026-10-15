@@ -19,13 +19,15 @@
 
 - [ ] Feed `is_group` for WhatsApp notifications, once a reliable marker is found on the live page (the CRM asked; absent until then) #agent-api
 
-- [ ] Agent API: Discord, Teams, Outlook readers and a `messages` call, if the proof holds #agent-api
+- [ ] Agent API: Teams and Outlook readers (`chats`, `messages`), when there are tabs for them #agent-api
 
 - [ ] Unread counts for Reddit and GitHub (per-service script; their titles carry no count) #mac
 - [ ] Intel (x86_64) builds, if anyone asks #mac
 - [ ] Signed, notarized `.dmg` from GitHub Actions + Sparkle updates (needs an Apple Developer ID — costs money, Narendra decides)
 
 ## Done
+
+- [x] Discord readers (read only): DM list with stable channel ids, messages with ISO times; fixes from the CRM's run (chats --since timeout, history on fresh chats, local --since, 90 s history budget) — live-checked 2026-10-15
 
 - [x] LinkedIn as a built-in service (Messaging, own sign-in, stays loaded): unread count from its title live-checked; notifications go to the feed; no message reader (the CRM reads LinkedIn through opencli) — 2026-10-15
 
