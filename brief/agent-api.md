@@ -179,5 +179,15 @@ Discord, Teams, Outlook readers and the `messages` call follow only if both step
 | Prototype | Build both proof steps on branch `agent-api`, in the public repo, off by default, made-up fixtures only; nothing merged or released without Narendra's word |
 | Auth | **Socket file permissions only** (`0600`, Narendra's user). No tokens: any process running as Narendra can read every tab that is switched on for agents. Which tabs are readable is set per tab in Settings; the call log records the client's process name instead of a token name |
 
+| Content (later the same day) | Agents see names, previews and messages, not only counts — Narendra wants agents to act on who and what (download a contact's files, update the CRM) |
+| Actions tier | Second per-tab switch, off by default: open a chat, open contact info, download attachments. **Never send.** Opening a chat sends read receipts — accepted. Each action logged and shown in Tabchat |
+| Downloads | `~/Downloads/Tabchat/<service>/<contact>/`, quarantined |
+| CRM | `~/marain/crm`, written by the agent with that repo's `crm` CLI; Tabchat only hands over name, number and "about" |
+
+Live test, 2026-10-15 (test build on mini): `tabs` scoping, `page` on GitHub and the call log worked;
+the WhatsApp chat-list reader, written blind against an invented fixture, read 17 of 17 rendered chats
+with name, preview and time on the first try (one 116 badge is a muted chat, which WhatsApp leaves
+out of the title count). One bug found live and fixed: accepted sockets inherited non-blocking mode.
+
 What this changes above: the "Auth" bullet's tokens and the sops entry are dropped; the per-tab
 switch and the log stay.

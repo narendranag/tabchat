@@ -11,8 +11,8 @@
 
 ## Next
 
-- [ ] Agent API proof step 1: socket server, per-tab switch, call log, notification feed ring buffer, `tabchat-agent tabs|feed|mcp` (branch `agent-api`) #agent-api
-- [ ] Agent API proof step 2: WhatsApp chat-list reader in an isolated content world, fixture test; Narendra runs one live `--counts-only` check #agent-api
+- [ ] Agent API actions tier: `messages`, `open`, `contact`, `download` for WhatsApp, with a per-tab switch #agent-api
+- [ ] Agent API: an agent recipe for contact details → `~/marain/crm` via its `crm` CLI (in that brain) #agent-api
 - [ ] Agent API: decide on merging `agent-api` after the proof — Narendra decides #agent-api
 
 - [ ] Delete the `.verify` leftovers from phase 2's test launch (`~/Library/*/com.narendranag.tabchat.verify*`, 129 MB) — Narendra decides #mac
@@ -27,6 +27,8 @@
 - [ ] Signed, notarized `.dmg` from GitHub Actions + Sparkle updates (needs an Apple Developer ID — costs money, Narendra decides)
 
 ## Done
+
+- [x] Agent API proof: socket, `tabchat-agent tabs|feed|chats|page|mcp`, per-tab switch, call log; live WhatsApp chat list read 17/17 (branch `agent-api`) — 2026-10-15
 
 - [x] Agent API exploration and decisions: `brief/agent-api.md` — 2026-10-15
 

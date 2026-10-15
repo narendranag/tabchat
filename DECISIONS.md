@@ -16,3 +16,7 @@
 - [mini] [2026-10-15] Agent API reads Outlook and Teams through DOM readers like every other service, not Microsoft Graph — Narendra's call: one mechanism for all; the employer's IT/DLP risk for work data is accepted.
 - [mini] [2026-10-15] Agent API auth is the socket's file permissions only (no per-agent tokens); readable tabs are chosen per tab in Settings — simplest, and any process running as Narendra can already read WebKit's cookie files.
 - [mini] [2026-10-15] Smallest proof built in public on branch `agent-api` (notification feed over the socket, then a WhatsApp chat-list reader with an invented fixture); nothing merged or released without Narendra's word.
+- [mini] [2026-10-15] Agents may see chat content (names, previews, messages) of the tabs ticked for them, not only counts — Narendra wants agents to act on who and what. Content still never enters the repo, fixtures or logs.
+- [mini] [2026-10-15] Second permission tier, "actions", per tab and off by default: an agent may open a chat, open contact info and download attachments. Never send. Opening a chat sends read receipts; accepted. Each action is logged and shown in Tabchat as it happens — UI actions in the official client, no outgoing messages, so ban risk stays low.
+- [mini] [2026-10-15] Agent downloads go to `~/Downloads/Tabchat/<service>/<contact>/`, quarantined like any download.
+- [mini] [2026-10-15] Contact details go to the personal CRM `~/marain/crm` through its own `crm` CLI, run by the agent; Tabchat only hands over name, number and "about" and never writes `crm.db`.
