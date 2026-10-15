@@ -168,3 +168,15 @@ extension AgentActionTests {
         XCTAssertEqual(opened.chat, "Grace Example")
     }
 }
+
+extension AgentActionTests {
+    func testSinceAcceptsLocalTimesAndDates() throws {
+        XCTAssertNotNil(AgentResponder.isoDate("2026-10-01T00:00:00Z"))
+        XCTAssertNotNil(AgentResponder.isoDate("2026-10-01T00:00:00.000+05:30"))
+        let local = try XCTUnwrap(AgentResponder.isoDate("2026-10-01T09:30:00"))
+        XCTAssertEqual(Calendar.current.component(.hour, from: local), 9)
+        XCTAssertNotNil(AgentResponder.isoDate("2026-10-01T09:30"))
+        XCTAssertNotNil(AgentResponder.isoDate("2026-10-01"))
+        XCTAssertNil(AgentResponder.isoDate("yesterday"))
+    }
+}

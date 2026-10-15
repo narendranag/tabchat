@@ -10,7 +10,11 @@ enum PageReaders {
 
     /// Chat-list readers by service id. A service without one answers "no reader".
     static func chatList(serviceId: String) -> String? {
-        serviceId == "whatsapp" ? whatsAppChatList : nil
+        switch serviceId {
+        case "whatsapp": whatsAppChatList
+        case "discord": DiscordScripts.chats
+        default: nil
+        }
     }
 
     /// WhatsApp Web's chat list: rows in `#pane-side`; the first `span[title]` is the chat's name,

@@ -65,7 +65,8 @@ func send(_ request: AgentRequest) -> AgentResponse {
     }
     // Actions wait for WhatsApp: a download up to a minute, history a few seconds a screen.
     // `send` waits for your answer in Tabchat (up to 5 minutes).
-    let acting = [.open, .download, .contact, .history, .draft].contains(request.call)
+    // `chats --since` scrolls the whole list, which takes longer than a read.
+    let acting = [.open, .download, .contact, .history, .draft].contains(request.call) || request.since != nil
     var timeout = timeval(tv_sec: request.call == .send ? 360 : acting ? 120 : 15, tv_usec: 0)
     setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, socklen_t(MemoryLayout<timeval>.size))
     guard let line = try? AgentWire.line(request) else { return .failure("could not encode the request") }

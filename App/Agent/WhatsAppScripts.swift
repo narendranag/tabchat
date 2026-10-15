@@ -13,6 +13,17 @@ enum WhatsAppScripts {
     /// Scrolls the open chat up `screens` screens (WhatsApp loads earlier messages as you go), then back
     /// down, reading each message once it is drawn. Scrolling is all it does: nothing is clicked.
     static let history = prelude + reader + #"""
+    // A chat just opened may take a moment to draw; after a restart it may show only WhatsApp's
+    // "get older messages from your phone", with no message yet. Wait, then press that once.
+    const pause = ms => new Promise(r => setTimeout(r, ms));
+    for (let i = 0; i < 30 && !main.querySelector("[data-id]"); i++) await pause(100);
+    if (!main.querySelector("[data-id]")) {
+      const button = Array.from(main.querySelectorAll("button")).find(b => /older messages/i.test(b.innerText || ""));
+      if (button) {
+        button.click();
+        for (let i = 0; i < 50 && !main.querySelector("[data-id]"); i++) await pause(100);
+      }
+    }
     const first = main.querySelector("[data-id]");
     if (!first) return JSON.stringify({ok: true, chat, messages: []});
     // The message list's scroll area: the nearest ancestor that scrolls, even if a short chat

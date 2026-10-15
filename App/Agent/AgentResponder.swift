@@ -25,14 +25,24 @@ enum AgentResponder {
         }
     }
 
-    /// An ISO 8601 time, with or without fractional seconds, or a bare date (taken as local midnight).
+    /// An ISO 8601 time, with or without fractional seconds; a local time with no zone
+    /// ("2026-10-01T00:00:00" or "…T00:00"); or a bare date (local midnight).
     static func isoDate(_ text: String) -> Date? {
         let full = ISO8601DateFormatter()
         let fractional = ISO8601DateFormatter()
         fractional.formatOptions.insert(.withFractionalSeconds)
-        let day = DateFormatter()
-        day.dateFormat = "yyyy-MM-dd"
-        return full.date(from: text) ?? fractional.date(from: text) ?? day.date(from: text)
+        if let date = full.date(from: text) ?? fractional.date(from: text) {
+            return date
+        }
+        let local = DateFormatter()
+        local.locale = Locale(identifier: "en_US_POSIX")
+        for format in ["yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd'T'HH:mm", "yyyy-MM-dd"] {
+            local.dateFormat = format
+            if let date = local.date(from: text) {
+                return date
+            }
+        }
+        return nil
     }
 
     /// The message a `draft` or `send` carries, trimmed, or why it can't be used.

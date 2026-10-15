@@ -105,6 +105,10 @@ struct AgentChat: Codable, Equatable, Sendable {
     var unread: Int
     /// The day the list's time label stands for ("3:38 pm" is today), as WhatsApp writes dates.
     var date: String?
+    /// A stable id for the chat where the service shows one (Discord's channel id); WhatsApp shows none.
+    var key: String?
+    /// A group conversation, where the service says so.
+    var group: Bool?
 }
 
 struct AgentChatCounts: Codable, Equatable, Sendable {

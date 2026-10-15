@@ -132,8 +132,7 @@ final class AgentService {
                 #endif
             }
             if request.call == .messages {
-                guard tab.serviceId == "whatsapp" else { return .failure("no message reader for \(tab.serviceId) yet; use page") }
-                return try await WhatsAppScripts.messagesResponse(json: PageReaders.run(WhatsAppScripts.messages, in: webView))
+                return try await Self.messages(serviceId: tab.serviceId, webView: webView)
             }
             if request.call == .page {
                 let json = try await PageReaders.run(
@@ -187,6 +186,18 @@ final class AgentService {
             "sinceMs": midnight.timeIntervalSince1970 * 1000, "dayFirst": order.hasPrefix("d")
         ], in: webView)
         return PageReaders.chatsResponse(json: json, countsOnly: request.countsOnly ?? false, readOnly: request.readOnly ?? false)
+    }
+
+    /// The open conversation's messages, for the services that have a reader.
+    private static func messages(serviceId: String, webView: WKWebView) async throws -> AgentResponse {
+        switch serviceId {
+        case "whatsapp":
+            try await WhatsAppScripts.messagesResponse(json: PageReaders.run(WhatsAppScripts.messages, in: webView))
+        case "discord":
+            try await DiscordScripts.messagesResponse(json: PageReaders.run(DiscordScripts.messages, in: webView))
+        default:
+            .failure("no message reader for \(serviceId) yet; use page")
+        }
     }
 
     private static func itemCount(_ response: AgentResponse) -> Int {

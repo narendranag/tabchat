@@ -212,7 +212,7 @@ final class AgentTests: XCTestCase {
     func testReaderFailureIsReportedNotGuessed() {
         let response = PageReaders.chatsResponse(json: #"{"ok":false,"reason":"no chat list on screen"}"#, countsOnly: false)
         XCTAssertEqual(response, .failure("no chat list on screen"))
-        XCTAssertNil(PageReaders.chatList(serviceId: "discord"))
+        XCTAssertNil(PageReaders.chatList(serviceId: "teams"))
     }
 
     // MARK: Socket
