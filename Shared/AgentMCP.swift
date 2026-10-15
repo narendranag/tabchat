@@ -70,7 +70,7 @@ enum AgentMCP {
             ),
             Tool(
                 name: "tabchat_open",
-                description: "Action: open the chat with this exact name from the chat list on screen (WhatsApp). "
+                description: "Action: open the chat with this exact name (WhatsApp), searching for it if it is not on screen. "
                     + "Marks it read; the sender sees that. Needs the tab's actions switch. Never sends.",
                 call: .open,
                 schema: [

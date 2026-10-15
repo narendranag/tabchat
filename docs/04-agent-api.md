@@ -51,7 +51,7 @@ compiled into both the app and the `tabchat-agent` tool, which the app bundle ca
 | `chats` | read | `tab` (WhatsApp) | chat list; `countsOnly` gives numbers only |
 | `messages` | read | `tab` (WhatsApp) | open chat: id, direction, sender, stamp, time, day, date, text, document, media, rendered |
 | `page` | read | `tab` | url, title, visible text (≤20,000 characters) |
-| `open` | act | `tab`, `chat` | opens a chat from the rendered chat list |
+| `open` | act | `tab`, `chat` | opens the chat with that exact name, from the list or through search |
 | `contact` | act | `tab` | name, phone, about of the open chat |
 | `download` | act | `tab`, `message` | `file: {path, bytes}` for the saved document, photo or video |
 | `history` | act | `tab`, optional `screens` (1–20, default 3) | messages read while scrolling back and down again |
@@ -80,6 +80,9 @@ Written against WhatsApp Web's `data-testid` hooks, learned with `inspect` on 20
 - Direction comes from the status tick in `msg-meta` (the `message-in/out` classes are gone).
 - Messages scrolled out of view are drawn as `data-virtualized="true"`; `messages` reports them as
   `rendered: false`; `download` scrolls them into view first.
+- `open` clicks the chat in the list if WhatsApp has drawn it; otherwise it types the name into the
+  search box (`chat-list-search-container` in `#side`, a plain text field, never the message box),
+  opens the result with exactly that name, and clears the search. Live-checked 2026-10-15.
 - `history` scrolls the message list (the nearest scrolling ancestor of the first message) up
   `screens` screens, waiting for WhatsApp to load more, then back down, keeping each message the
   first time it is drawn, placed right after the known message drawn before it (WhatsApp keeps some

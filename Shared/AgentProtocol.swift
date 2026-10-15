@@ -16,7 +16,7 @@ enum AgentCall: String, Codable, Sendable, CaseIterable {
     case inspect
     /// The visible messages of the chat open in the tab (read).
     case messages
-    /// Actions tier: open the chat named `chat` (it must be in the rendered chat list). Sends read receipts.
+    /// Actions tier: open the chat named `chat`, through WhatsApp's search if it isn't drawn. Sends read receipts.
     case open
     /// Actions tier: download the document, photo or video in message `message` of the open chat.
     case download

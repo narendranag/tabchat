@@ -710,7 +710,8 @@ document, media, rendered</td>
 <td><code>open</code></td>
 <td>act</td>
 <td><code>tab</code>, <code>chat</code></td>
-<td>opens a chat from the rendered chat list</td>
+<td>opens the chat with that exact name, from the list or through
+search</td>
 </tr>
 <tr>
 <td><code>contact</code></td>
@@ -772,6 +773,11 @@ document viewer <code>media-viewer-modal</code> with
 <code>data-virtualized="true"</code>; <code>messages</code> reports them
 as <code>rendered: false</code>; <code>download</code> scrolls them into
 view first.</li>
+<li><code>open</code> clicks the chat in the list if WhatsApp has drawn
+it; otherwise it types the name into the search box
+(<code>chat-list-search-container</code> in <code>#side</code>, a plain
+text field, never the message box), opens the result with exactly that
+name, and clears the search. Live-checked 2026-10-15.</li>
 <li><code>history</code> scrolls the message list (the nearest scrolling
 ancestor of the first message) up <code>screens</code> screens, waiting
 for WhatsApp to load more, then back down, keeping each message the

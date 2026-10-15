@@ -142,23 +142,52 @@ enum WhatsAppScripts {
 
     """#
 
-    /// Opens the chat named `name` from the rendered chat list and waits until its header shows.
+    /// Opens the chat named `name` and waits until its header shows. A chat that is not in the chat
+    /// list on screen is looked up with WhatsApp's search box (in `#side`, never the message box), and
+    /// the search is cleared again afterwards. Only an exact name match is opened.
     static let open = #"""
-    const rows = Array.from(document.querySelectorAll('#pane-side [role="row"], #pane-side [role="listitem"]'));
-    const row = rows.find(r => {
-      const t = r.querySelector('[data-testid="cell-frame-title"] span[title], span[title]');
-      return t && t.getAttribute("title") === name;
-    });
-    if (!row) return JSON.stringify({ok: false, reason: "that chat is not in the chat list on screen"});
+    const wait = ms => new Promise(r => setTimeout(r, ms));
+    const findRow = () => Array.from(document.querySelectorAll('#pane-side [role="row"], #pane-side [role="listitem"]'))
+      .find(r => {
+        const t = r.querySelector('[data-testid="cell-frame-title"] span[title]');
+        return t && t.getAttribute("title") === name;
+      });
+    const search = document.querySelector('#side [data-testid="chat-list-search-container"] input[type="text"]');
+    const type = text => {
+      search.focus();
+      search.select();
+      if (!(document.activeElement === search && document.execCommand("insertText", false, text))) {
+        Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set.call(search, text);
+        search.dispatchEvent(new Event("input", {bubbles: true}));
+      }
+    };
+    let row = findRow(), searched = false;
+    if (!row && search && !search.closest("#main, footer")) {
+      searched = true;
+      type(name);
+      for (let i = 0; i < 50 && !row; i++) { await wait(100); row = findRow(); }
+    }
+    const clear = async () => {
+      if (!searched) return;
+      type("");
+      await wait(200);
+      search.blur();
+    };
+    if (!row) {
+      await clear();
+      const reason = searched ? "no chat with that exact name" : "that chat is not in the chat list on screen";
+      return JSON.stringify({ok: false, reason});
+    }
     const target = row.querySelector('[data-testid="cell-frame-container"]') || row;
-    for (const type of ["mousedown", "mouseup", "click"]) {
-      target.dispatchEvent(new MouseEvent(type, {bubbles: true, cancelable: true, view: window}));
+    for (const kind of ["mousedown", "mouseup", "click"]) {
+      target.dispatchEvent(new MouseEvent(kind, {bubbles: true, cancelable: true, view: window}));
     }
     for (let i = 0; i < 50; i++) {
       const h = document.querySelector('#main [data-testid="conversation-info-header-chat-title"]');
-      if (h && h.textContent.trim() === name) return JSON.stringify({ok: true, chat: name});
-      await new Promise(r => setTimeout(r, 100));
+      if (h && h.textContent.trim() === name) { await clear(); return JSON.stringify({ok: true, chat: name}); }
+      await wait(100);
     }
+    await clear();
     return JSON.stringify({ok: false, reason: "the chat did not open"});
     """#
 

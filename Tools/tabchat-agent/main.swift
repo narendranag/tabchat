@@ -17,7 +17,7 @@ Settings → Agents). Nothing here sends a message.
   messages --tab ID             the visible messages of the chat open in the tab
 
 Actions (only for tabs with "actions" ticked; never sends; opening a chat sends read receipts):
-  open --tab ID --chat NAME     open a chat from the chat list on screen
+  open --tab ID --chat NAME     open the chat with that exact name (searches if needed)
   download --tab ID --message ID  download the document, photo or video in that message
                                 → ~/Downloads/Tabchat/<service>/<contact>/; replies with file.path, file.bytes
   history --tab ID [--screens N]  scroll the open chat back N screens (default 3, at most 20)

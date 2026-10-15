@@ -35,7 +35,7 @@ agents may read and whether they may also act.
 | `chats` | read | The chat list on screen: name, last message, time, unread |
 | `messages` | read | The messages of the open chat: sender, time, text, attached documents |
 | `page` | read | The visible text of whatever page a service shows (any site) |
-| `open` | act | Open a chat from the chat list |
+| `open` | act | Open a chat by its exact name (searching for it if it's far down the list) |
 | `contact` | act | The open chat's name, phone number and "About" |
 | `download` | act | Download a document, photo or video from a message to `~/Downloads/Tabchat/<service>/<contact>/` |
 | `history` | act | Scroll the open chat back and read earlier messages |
@@ -110,8 +110,7 @@ use [the original](https://github.com/MMV2408/tabchat).
 
 - **More services for agents**: chat lists, messages and actions for Discord, Teams and Outlook
   (they are readable through `page` today)
-- **Opening chats** that aren't in the visible part of the list; photo and video downloads are new and
-  not yet checked against the live page
+- **Videos and albums**: downloads save documents and photos; videos are unchecked and an album gives its first photo
 - **Notarised build** and automatic updates (needs a paid Apple Developer ID)
 - **Unread for every service**: Reddit and GitHub don't put a count in their page titles
 - **Intel Macs**: Apple Silicon only for now

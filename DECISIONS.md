@@ -25,3 +25,4 @@
 - [mini] [2026-10-15] GitHub repo renamed `narendranag/tabchat` → `narendranag/tabchat-for-agents`, description rewritten for the agent API — Narendra's call; GitHub redirects the old URLs, the app and bundle id keep the name Tabchat.
 - [mini] [2026-10-15] Earlier messages are reached with a `history` action (scroll back, read on the way down), not a read call — scrolling back makes WhatsApp fetch older messages, so it sits behind the actions switch like the other calls that change what the page shows.
 - [mini] [2026-10-15] `download` answers `ok: false` when the saved file's name isn't the document's — a wrong file reported as success is worse than a retry.
+- [mini] [2026-10-15] `open` may type a chat's name into WhatsApp's search box — the only typing any action does; it is guarded to the search field in `#side` (never the message box), opens only an exact name match, and clears the search after.

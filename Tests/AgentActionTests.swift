@@ -6,6 +6,7 @@ import XCTest
 final class AgentActionTests: XCTestCase {
     private static let fixture = """
     <html><head><title>WhatsApp</title></head><body>
+    <div id="side"><div data-testid="chat-list-search-container"><input type="text" value=""></div></div>
     <div id="pane-side"><div role="grid">
       <div role="row"><div data-testid="cell-frame-container"><div data-testid="cell-frame-title">
         <span title="Ada Example">Ada Example</span></div></div></div>
@@ -33,6 +34,19 @@ final class AgentActionTests: XCTestCase {
     </div>
     <script>
       document.querySelector("header").setAttribute("data-testid", "conversation-info-header");
+      // The search box: shows the matching chats in place of the list, as WhatsApp does.
+      const grid = document.querySelector("#pane-side [role=grid]");
+      const list = grid.innerHTML;
+      const row = n => '<div role="row"><div data-testid="cell-frame-container"><div data-testid="cell-frame-title">'
+        + '<span title="' + n + '">' + n + '</span></div></div></div>';
+      document.querySelector("#side input").addEventListener("input", e => {
+        const q = e.target.value.toLowerCase();
+        grid.innerHTML = q ? ["Grace Example", "Grace Sample"].filter(n => n.toLowerCase().includes(q)).map(row).join("") : list;
+      });
+      document.getElementById("pane-side").addEventListener("click", e => {
+        const title = e.target.closest("[data-testid=cell-frame-container]")?.querySelector("span[title]");
+        if (title) document.querySelector("[data-testid=conversation-info-header-chat-title]").textContent = title.title;
+      });
       document.querySelector("header").addEventListener("click", () => {
         const d = document.createElement("div");
         d.setAttribute("data-testid", "chat-info-drawer");
@@ -234,14 +248,26 @@ final class AgentActionTests: XCTestCase {
     }
 
     @MainActor
-    func testOpenRefusesAChatNotOnScreen() async throws {
+    func testOpenFindsAChatThroughSearchAndClearsIt() async throws {
         let webView = try await loadFixture()
         let result = try await WhatsAppScripts.decode(PageReaders.run(
+            WhatsAppScripts.open,
+            arguments: ["name": "Grace Sample"],
+            in: webView
+        ))
+        XCTAssertTrue(result.ok, result.reason ?? "")
+        let header = try await webView.evaluateJavaScript(
+            "document.querySelector('[data-testid=conversation-info-header-chat-title]').textContent"
+        ) as? String
+        XCTAssertEqual(header, "Grace Sample")
+        let search = try await webView.evaluateJavaScript("document.querySelector('#side input').value") as? String
+        XCTAssertEqual(search, "")
+        let missing = try await WhatsAppScripts.decode(PageReaders.run(
             WhatsAppScripts.open,
             arguments: ["name": "Grace"],
             in: webView
         ))
-        XCTAssertEqual(result.reason, "that chat is not in the chat list on screen")
+        XCTAssertEqual(missing.reason, "no chat with that exact name")
     }
 
     @MainActor
