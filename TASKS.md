@@ -10,7 +10,7 @@
 
 ## Next
 
-- [ ] Agent API: `history` can end without the newest messages of a chat (seen once, 2026-10-15); videos and every photo of an album in `download` #agent-api
+- [ ] Agent API: videos and every photo of an album in `download` #agent-api
 - [ ] Agent API: `open` for chats not in the visible list (search) #agent-api
 - [ ] Agent API: quarantine xattr shows an empty agent name (`0081;ts;;uuid`) #agent-api
 - [ ] Agent API: an agent recipe for contact details → `~/marain/crm` via its `crm` CLI (in that brain) #agent-api
