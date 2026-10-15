@@ -14,7 +14,8 @@ final class AgentDownloadSlot {
         self.directory = directory
     }
 
-    /// Marks the file as downloaded from the internet, so Gatekeeper checks it before it opens.
+    /// Marks the file as downloaded from the internet, so Gatekeeper checks it before it opens. The
+    /// xattr's agent field stays empty; macOS keeps the agent name with the event, keyed by its id.
     static func quarantine(_ url: URL, source: URL?) {
         var properties: [String: Any] = [
             kLSQuarantineTypeKey as String: kLSQuarantineTypeWebDownload as String,

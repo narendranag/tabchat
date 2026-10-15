@@ -12,7 +12,6 @@
 
 - [ ] Agent API: videos and every photo of an album in `download` #agent-api
 - [ ] Agent API: `open` for chats not in the visible list (search) #agent-api
-- [ ] Agent API: quarantine xattr shows an empty agent name (`0081;ts;;uuid`) #agent-api
 - [ ] Agent API: an agent recipe for contact details → `~/marain/crm` via its `crm` CLI (in that brain) #agent-api
 
 - [ ] Delete the `.verify` leftovers from phase 2's test launch (`~/Library/*/com.narendranag.tabchat.verify*`, 129 MB) — Narendra decides #mac
@@ -27,6 +26,8 @@
 - [ ] Signed, notarized `.dmg` from GitHub Actions + Sparkle updates (needs an Apple Developer ID — costs money, Narendra decides)
 
 ## Done
+
+- [x] Quarantine "empty agent name" is not a bug: the xattr's name field stays empty, but macOS records Tabchat as the agent in the quarantine events database (read back through `quarantineProperties`) — 2026-10-15
 
 - [x] Agent API: dates from WhatsApp's day dividers; photo download live-checked — 2026-10-15
 
