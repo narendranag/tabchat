@@ -56,7 +56,8 @@ extension AgentService {
         }
         if send {
             model.reveal(tab.id)
-            guard await confirmSend(chat, text, client) else {
+            let ask = AgentSendRequest(service: tab.displayName, chat: chat, text: text, client: client)
+            guard await confirmSend(ask) else {
                 return .failure("not sent: the message was cancelled in Tabchat")
             }
         }

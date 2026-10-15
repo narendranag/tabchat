@@ -2,7 +2,7 @@ import Foundation
 
 /// The agent API's wire format, shared by the app (server) and `tabchat-agent` (client).
 /// One connection carries one request line and one response line, both JSON. Read-only by design:
-/// there is no call that sends, clicks or navigates. See `brief/agent-api.md`.
+/// no read call clicks or navigates, and nothing is sent without the owner. See `brief/agent-api.md`.
 enum AgentCall: String, Codable, Sendable, CaseIterable {
     /// Tabs switched on for agents, with their unread counts.
     case tabs

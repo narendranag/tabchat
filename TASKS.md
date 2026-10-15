@@ -18,13 +18,15 @@
 ## Later
 
 - [ ] Agent API: Discord, Teams, Outlook readers and a `messages` call, if the proof holds #agent-api
-- [ ] Agent API: draft-only sending (agent fills the compose box, Narendra presses Return) — separate decision #agent-api
+- [ ] Agent API: `open` on your own "Message yourself" chat (its header doesn't match the search title) #agent-api
 
 - [ ] Unread counts for Reddit and GitHub (per-service script; their titles carry no count) #mac
 - [ ] Intel (x86_64) builds, if anyone asks #mac
 - [ ] Signed, notarized `.dmg` from GitHub Actions + Sparkle updates (needs an Apple Developer ID — costs money, Narendra decides)
 
 ## Done
+
+- [x] Agent API: `draft` and `send` (confirm sheet in Tabchat) for WhatsApp; names with emoji; search lists near misses — live-checked 2026-10-15
 
 - [x] Agent API: `open` finds chats far down the list through WhatsApp's search box, and clears it — live-checked 2026-10-15
 

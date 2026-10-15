@@ -3,7 +3,8 @@
 Your chat apps in one Mac window — WhatsApp, Discord, Teams, Outlook, GitHub and any website —
 **and readable by the AI agents on your Mac**. Ask Claude Code (or any local agent) what came in on
 WhatsApp, to pull the PDFs a contact sent you, or to update your CRM with a contact's number.
-Nothing leaves your Mac except through the agents you run, and nothing is ever sent from your accounts.
+Nothing leaves your Mac except through the agents you run, and nothing is sent from your accounts
+unless you click Send yourself.
 
 TabChat for Agents is an independent community port of [MMV2408/tabchat](https://github.com/MMV2408/tabchat);
 it is not affiliated with or endorsed by the original project.
@@ -39,9 +40,13 @@ agents may read and whether they may also act.
 | `contact` | act | The open chat's name, phone number and "About" |
 | `download` | act | Download a document, photo or video from a message to `~/Downloads/Tabchat/<service>/<contact>/` |
 | `history` | act | Scroll the open chat back and read earlier messages |
+| `draft` | act | Type a message into a chat and stop there; you send it when you want |
+| `send` | act | Send one urgent message, after you click Send in Tabchat's own dialog |
 
 Reading works on every service through `page`; the chat-aware calls and the actions are WhatsApp
-only so far. **There is no send.** Opening a chat marks it read, and the sender sees that.
+only so far. **Agents never send on their own:** a draft waits for your Return, and `send` waits for
+your click in a Tabchat dialog showing the recipient and the whole message. One message at a time,
+never bulk or scheduled. Opening a chat marks it read, and the sender sees that.
 
 ### Using it
 
@@ -54,7 +59,7 @@ $TA messages --tab <id>
 $TA download --tab <id> --message <message-id>
 ```
 
-The same calls are MCP tools: `tabchat_tabs`, `tabchat_feed`, `tabchat_chats`, `tabchat_page`, `tabchat_messages`, and the actions `tabchat_open`, `tabchat_contact`, `tabchat_download`, `tabchat_history`.
+The same calls are MCP tools: `tabchat_tabs`, `tabchat_feed`, `tabchat_chats`, `tabchat_page`, `tabchat_messages`, and the actions `tabchat_open`, `tabchat_contact`, `tabchat_download`, `tabchat_draft`, `tabchat_send`, `tabchat_history`.
 Register it once in Claude Code:
 
 ```sh
@@ -115,7 +120,7 @@ use [the original](https://github.com/MMV2408/tabchat).
 - **Unread for every service**: Reddit and GitHub don't put a count in their page titles
 - **Intel Macs**: Apple Silicon only for now
 
-Not planned: sending messages from agents, and iMessage (no web version).
+Not planned: sending without your click, bulk or scheduled sending, and iMessage (no web version).
 
 ## Building
 

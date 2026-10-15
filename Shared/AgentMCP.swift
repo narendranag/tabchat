@@ -71,7 +71,7 @@ enum AgentMCP {
             Tool(
                 name: "tabchat_open",
                 description: "Action: open the chat with this exact name (WhatsApp), searching for it if it is not on screen. "
-                    + "Marks it read; the sender sees that. Needs the tab's actions switch. Never sends.",
+                    + "Marks it read; the sender sees that. Needs the tab's actions switch.",
                 call: .open,
                 schema: [
                     "type": "object",

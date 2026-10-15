@@ -143,11 +143,11 @@ sidebar of service icons, all sharing the system's own web engine
 only, targeting users who want a single native app instead of bouncing
 between browsers and standalone clients.</p>
 <p>It also lets local AI agents read those services and act in them
-(open a chat, read contact details, download documents — never send)
-through a Unix socket, a CLI and MCP: see <a href="#agent-api">04
-Agent API</a>. TabChat for Agents is an independent community port of
-MMV2408/tabchat; it is not affiliated with or endorsed by the original
-project.</p>
+(open a chat, read contact details, download files, write drafts, send
+after a confirm click) through a Unix socket, a CLI and MCP: see <a
+href="#agent-api">04 Agent API</a>. TabChat for Agents is an
+independent community port of MMV2408/tabchat; it is not affiliated with
+or endorsed by the original project.</p>
 <p><strong>Status:</strong> v0.1.1 released (2026-10-13); the agent API
 is built and live-tested on WhatsApp (2026-10-15). What's left is in the
 root <code>README.md</code> ("Still to do") and
@@ -310,8 +310,8 @@ start-at-login via <code>SMAppService</code>, uses system theme
 (light/dark).</li>
 <li><strong>Agents read what you can see:</strong> Agents get the
 services through the official web clients you are signed in to,
-read-only by default, never sending — the lowest-risk route to chats
-that have no personal-account API.</li>
+read-only by default, sending only when the owner clicks Send — the
+lowest-risk route to chats that have no personal-account API.</li>
 </ol>
 <h2 id="overview-whats-built-v011">What's built (v0.1.1)</h2>
 <ul>
@@ -727,6 +727,18 @@ search</td>
 video</td>
 </tr>
 <tr>
+<td><code>draft</code></td>
+<td>act</td>
+<td><code>tab</code>, <code>text</code>, optional <code>chat</code></td>
+<td>types the message into the chat's box and stops</td>
+</tr>
+<tr>
+<td><code>send</code></td>
+<td>act</td>
+<td><code>tab</code>, <code>text</code>, optional <code>chat</code></td>
+<td>sends one message after the owner clicks Send in Tabchat</td>
+</tr>
+<tr>
 <td><code>history</code></td>
 <td>act</td>
 <td><code>tab</code>, optional <code>screens</code> (1–20, default
@@ -741,8 +753,9 @@ video</td>
 </tr>
 </tbody>
 </table></div>
-<p>Text from chats is marked <code>"untrusted": true</code>. There is no
-call that sends.</p>
+<p>Text from chats is marked <code>"untrusted": true</code>. Nothing is
+sent without the owner: <code>draft</code> stops at the message box, and
+<code>send</code> waits for a click in Tabchat's own sheet.</p>
 <h2 id="agent-api-permissions">Permissions</h2>
 <ul>
 <li><code>settings.agentAccess</code> — the master switch; off by
@@ -801,7 +814,23 @@ photos. <code>day</code> is the divider above the message in the list
 from the stamp, else from <code>day</code> (weekday names count back
 from today), else from the dated messages on either side when both are
 on the same day; otherwise it is absent.</li>
-<li>The CLI waits up to 120 seconds for actions (15 for reads).</li>
+<li><code>draft</code> and <code>send</code>
+(<code>App/Agent/WhatsAppCompose.swift</code>) type into
+<code>#main footer [contenteditable]</code> with
+<code>insertText</code>/<code>insertLineBreak</code>, never a Return
+key, after checking the open chat is the one named and the box is empty.
+<code>send</code> first shows <code>AgentSendConfirm</code>: a sheet on
+the main window with the program, the recipient and the whole message as
+a bubble; Send needs a click or Cmd+Return (plain Return does nothing),
+and it cancels itself after 5 minutes. Then it clicks
+<code>button[aria-label="Send"]</code> and waits for the box to empty.
+One pending send at a time; at most 4,000 characters. Live-checked
+2026-10-15.</li>
+<li>Names are compared with emoji read back from WhatsApp's
+<code>&lt;img alt&gt;</code>, and a failed search lists the names it
+found.</li>
+<li>The CLI waits up to 120 seconds for actions, 360 for
+<code>send</code>, 15 for reads.</li>
 <li>Downloads go through the tab's <code>WKDownload</code> handling,
 redirected by an <code>AgentDownloadSlot</code> to
 <code>~/Downloads/Tabchat/&lt;service&gt;/&lt;contact&gt;/</code>, and

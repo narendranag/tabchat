@@ -54,10 +54,13 @@ compiled into both the app and the `tabchat-agent` tool, which the app bundle ca
 | `open` | act | `tab`, `chat` | opens the chat with that exact name, from the list or through search |
 | `contact` | act | `tab` | name, phone, about of the open chat |
 | `download` | act | `tab`, `message` | `file: {path, bytes}` for the saved document, photo or video |
+| `draft` | act | `tab`, `text`, optional `chat` | types the message into the chat's box and stops |
+| `send` | act | `tab`, `text`, optional `chat` | sends one message after the owner clicks Send in Tabchat |
 | `history` | act | `tab`, optional `screens` (1–20, default 3) | messages read while scrolling back and down again |
 | `inspect` | debug | `tab`, `selector` | element structure (debug builds only) |
 
-Text from chats is marked `"untrusted": true`. There is no call that sends.
+Text from chats is marked `"untrusted": true`. Nothing is sent without the owner: `draft` stops at the
+message box, and `send` waits for a click in Tabchat's own sheet.
 
 ## Permissions
 
@@ -97,7 +100,16 @@ Written against WhatsApp Web's `data-testid` hooks, learned with `inspect` on 20
   above the message in the list ("Today", "Friday", "27/09/2026"; English only). `date` comes from
   the stamp, else from `day` (weekday names count back from today), else from the dated messages on
   either side when both are on the same day; otherwise it is absent.
-- The CLI waits up to 120 seconds for actions (15 for reads).
+- `draft` and `send` (`App/Agent/WhatsAppCompose.swift`) type into `#main footer [contenteditable]`
+  with `insertText`/`insertLineBreak`, never a Return key, after checking the open chat is the one
+  named and the box is empty. `send` first shows `AgentSendConfirm`: a sheet on the main window with
+  the program, the recipient and the whole message as a bubble; Send needs a click or Cmd+Return
+  (plain Return does nothing), and it cancels itself after 5 minutes. Then it clicks
+  `button[aria-label="Send"]` and waits for the box to empty. One pending send at a time; at most
+  4,000 characters. Live-checked 2026-10-15.
+- Names are compared with emoji read back from WhatsApp's `<img alt>`, and a failed search lists
+  the names it found.
+- The CLI waits up to 120 seconds for actions, 360 for `send`, 15 for reads.
 - Downloads go through the tab's `WKDownload` handling, redirected by an `AgentDownloadSlot` to
   `~/Downloads/Tabchat/<service>/<contact>/`, and are quarantined.
 

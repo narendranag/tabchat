@@ -42,11 +42,14 @@ final class AgentActionTests: XCTestCase {
         + '<span title="' + n + '">' + n + '</span></div></div></div>';
       document.querySelector("#side input").addEventListener("input", e => {
         const q = e.target.value.toLowerCase();
-        grid.innerHTML = q ? ["Grace Example", "Grace Sample"].filter(n => n.toLowerCase().includes(q)).map(row).join("") : list;
+        const names = ["Grace Example", "🐒 Grace Sample"];
+        grid.innerHTML = q ? names.filter(n => n.toLowerCase().includes(q)).map(row).join("") : list;
       });
       document.getElementById("pane-side").addEventListener("click", e => {
         const title = e.target.closest("[data-testid=cell-frame-container]")?.querySelector("span[title]");
-        if (title) document.querySelector("[data-testid=conversation-info-header-chat-title]").textContent = title.title;
+        // Emoji become images in WhatsApp's header.
+        if (title) document.querySelector("[data-testid=conversation-info-header-chat-title]").innerHTML =
+          title.title.replace("🐒", '<img alt="🐒" src="data:,">');
       });
       document.querySelector("header").addEventListener("click", () => {
         const d = document.createElement("div");
@@ -258,14 +261,11 @@ final class AgentActionTests: XCTestCase {
         let webView = try await loadFixture()
         let result = try await WhatsAppScripts.decode(PageReaders.run(
             WhatsAppScripts.open,
-            arguments: ["name": "Grace Sample"],
+            arguments: ["name": "🐒 Grace Sample"],
             in: webView
         ))
         XCTAssertTrue(result.ok, result.reason ?? "")
-        let header = try await webView.evaluateJavaScript(
-            "document.querySelector('[data-testid=conversation-info-header-chat-title]').textContent"
-        ) as? String
-        XCTAssertEqual(header, "Grace Sample")
+        XCTAssertEqual(result.chat, "🐒 Grace Sample")
         let search = try await webView.evaluateJavaScript("document.querySelector('#side input').value") as? String
         XCTAssertEqual(search, "")
         let missing = try await WhatsAppScripts.decode(PageReaders.run(
@@ -273,7 +273,7 @@ final class AgentActionTests: XCTestCase {
             arguments: ["name": "Grace"],
             in: webView
         ))
-        XCTAssertEqual(missing.reason, "no chat with that exact name")
+        XCTAssertEqual(missing.reason, "no chat with that exact name; search found: Grace Example | 🐒 Grace Sample")
     }
 
     @MainActor

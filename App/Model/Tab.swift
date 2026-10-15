@@ -15,7 +15,8 @@ struct Tab: Codable, Identifiable, Hashable, Sendable {
     var lastURL: String?
     /// Local agents may read this tab while agent access is on. Off by default; never for incognito tabs.
     var agentReadable = false
-    /// Agents may also act in this tab (open chats, open contact info, download attachments). Never send.
+    /// Agents may also act in this tab: open chats, read contact info, download attachments, write drafts, and
+    /// send a message once the owner confirms it in Tabchat.
     var agentActions = false
     /// Incognito and temporary tabs live for this run only: they are never written to `state.json`.
     var incognito = false

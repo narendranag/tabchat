@@ -180,6 +180,7 @@ Discord, Teams, Outlook readers and the `messages` call follow only if both step
 | Auth | **Socket file permissions only** (`0600`, Narendra's user). No tokens: any process running as Narendra can read every tab that is switched on for agents. Which tabs are readable is set per tab in Settings; the call log records the client's process name instead of a token name |
 
 | Content (later the same day) | Agents see names, previews and messages, not only counts — Narendra wants agents to act on who and what (download a contact's files, update the CRM) |
+| Drafts and sending (2026-10-15) | Narendra's call, after the read and act tiers proved out: `draft` types a message and stops; `send` sends one message only after he clicks Send in Tabchat's own sheet (recipient and whole text shown, plain Return does nothing, cancels itself after 5 minutes). Never bulk or scheduled. Supersedes "no sending" below |
 | Actions tier | Second per-tab switch, off by default: open a chat, open contact info, download attachments. **Never send.** Opening a chat sends read receipts — accepted. Each action logged and shown in Tabchat |
 | Downloads | `~/Downloads/Tabchat/<service>/<contact>/`, quarantined |
 | CRM | `~/marain/crm`, written by the agent with that repo's `crm` CLI; Tabchat only hands over name, number and "about" |

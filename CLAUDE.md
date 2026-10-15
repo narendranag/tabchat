@@ -2,7 +2,7 @@
 
 WhatsApp, Discord, Teams, Outlook, OneDrive, Brightspace and any website as tabs in one window,
 sharing one browser engine — and readable by local AI agents through a socket, the `tabchat-agent`
-CLI and MCP (read tier and actions tier, never send). For Narendra, on his Macs. Renamed from
+CLI and MCP (read tier and actions tier; drafts, and sends only after Narendra clicks Send in Tabchat). For Narendra, on his Macs. Renamed from
 "Tabchat (Mac)" on 2026-10-15; the app and bundle id (`com.narendranag.tabchat`) keep the old
 name so sign-ins survive; the repo became `narendranag/tabchat-for-agents` (GitHub redirects old links). It is an independent community port of MMV2408/tabchat
 (Mike asked for that line in the README).

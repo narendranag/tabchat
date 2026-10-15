@@ -20,7 +20,7 @@ answers:
 TabChat for Agents (the app is still called Tabchat) is a native macOS app that brings WhatsApp, Discord, Teams, Outlook, OneDrive, Brightspace, Reddit, X, GitHub and any website into one window via a sidebar of service icons, all sharing the system's own web engine (WKWebView). Rewritten from scratch in Swift, macOS 14+, Apple Silicon only, targeting users who want a single native app instead of bouncing between browsers and standalone clients.
 
 It also lets local AI agents read those services and act in them (open a chat, read contact
-details, download documents — never send) through a Unix socket, a CLI and MCP: see
+details, download files, write drafts, send after a confirm click) through a Unix socket, a CLI and MCP: see
 [04 Agent API](04-agent-api.md). TabChat for Agents is an independent community port of
 MMV2408/tabchat; it is not affiliated with or endorsed by the original project.
 

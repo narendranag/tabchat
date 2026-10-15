@@ -14,8 +14,8 @@ final class AgentService {
     @ObservationIgnored private var server: AgentSocketServer?
     /// A `send` is waiting for the owner; a second one is refused until it is answered.
     @ObservationIgnored var sendPending = false
-    /// Asks the owner to confirm a `send` (chat, text, program); replaced in tests.
-    @ObservationIgnored var confirmSend: @MainActor (String, String, String) async -> Bool = AgentSendConfirm.ask
+    /// Asks the owner to confirm a `send`; replaced in tests.
+    @ObservationIgnored var confirmSend: @MainActor (AgentSendRequest) async -> Bool = AgentSendConfirm.ask
     private let log: AgentLog
     private let socketURL: URL
 

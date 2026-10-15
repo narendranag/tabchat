@@ -68,7 +68,13 @@ enum WhatsAppScripts {
     const main = document.querySelector("#main");
     if (!main) return JSON.stringify({ok: false, reason: "no chat open"});
     const header = main.querySelector('[data-testid="conversation-info-header-chat-title"]');
-    const chat = header ? header.textContent.trim() : "";
+    // WhatsApp draws emoji as <img alt="🐒">; read them back so names match the chat list's titles.
+    const label = el => {
+      const copy = el.cloneNode(true);
+      copy.querySelectorAll("img[alt]").forEach(img => img.replaceWith(img.getAttribute("alt")));
+      return copy.textContent.trim();
+    };
+    const chat = header ? label(header) : "";
 
     """#
 
@@ -146,6 +152,12 @@ enum WhatsAppScripts {
     /// list on screen is looked up with WhatsApp's search box (in `#side`, never the message box), and
     /// the search is cleared again afterwards. Only an exact name match is opened.
     static let open = #"""
+    // WhatsApp draws emoji as <img alt="🐒">; read them back so names match the chat list's titles.
+    const label = el => {
+      const copy = el.cloneNode(true);
+      copy.querySelectorAll("img[alt]").forEach(img => img.replaceWith(img.getAttribute("alt")));
+      return copy.textContent.trim();
+    };
     const wait = ms => new Promise(r => setTimeout(r, ms));
     const findRow = () => Array.from(document.querySelectorAll('#pane-side [role="row"], #pane-side [role="listitem"]'))
       .find(r => {
@@ -174,8 +186,12 @@ enum WhatsAppScripts {
       search.blur();
     };
     if (!row) {
+      // Name the near misses (at most five), so the caller can retry with the exact name.
+      const found = searched ? Array.from(document.querySelectorAll('#pane-side [data-testid="cell-frame-title"] span[title]'))
+        .map(t => t.getAttribute("title")).filter((t, i, all) => t && all.indexOf(t) === i).slice(0, 5) : [];
       await clear();
-      const reason = searched ? "no chat with that exact name" : "that chat is not in the chat list on screen";
+      const reason = !searched ? "that chat is not in the chat list on screen"
+        : "no chat with that exact name" + (found.length ? "; search found: " + found.join(" | ") : "");
       return JSON.stringify({ok: false, reason});
     }
     const target = row.querySelector('[data-testid="cell-frame-container"]') || row;
@@ -184,7 +200,7 @@ enum WhatsAppScripts {
     }
     for (let i = 0; i < 50; i++) {
       const h = document.querySelector('#main [data-testid="conversation-info-header-chat-title"]');
-      if (h && h.textContent.trim() === name) { await clear(); return JSON.stringify({ok: true, chat: name}); }
+      if (h && label(h) === name) { await clear(); return JSON.stringify({ok: true, chat: name}); }
       await wait(100);
     }
     await clear();
@@ -231,43 +247,6 @@ enum WhatsAppScripts {
       await new Promise(r => setTimeout(r, 100));
     }
     return JSON.stringify({ok: false, reason: "the viewer did not open"});
-    """#
-
-    /// Types `text` into the open chat's message box (`#main footer`, never the search box), line by
-    /// line with line breaks, never Return. With `send`, then clicks WhatsApp's Send button and waits
-    /// for the box to empty. Refuses when the open chat isn't `chat` or the box already holds text.
-    static let compose = #"""
-    const wait = ms => new Promise(r => setTimeout(r, ms));
-    const header = document.querySelector('#main [data-testid="conversation-info-header-chat-title"]');
-    if (!header) return JSON.stringify({ok: false, reason: "no chat open"});
-    if (chat && header.textContent.trim() !== chat) return JSON.stringify({ok: false, reason: "a different chat is open"});
-    const box = document.querySelector('#main footer [contenteditable="true"]');
-    if (!box || box.closest("#side")) return JSON.stringify({ok: false, reason: "no message box in the open chat"});
-    if (box.innerText.trim()) return JSON.stringify({ok: false, reason: "the message box already has text; clear it first"});
-    box.focus();
-    if (document.activeElement !== box && !box.contains(document.activeElement)) {
-      return JSON.stringify({ok: false, reason: "could not focus the message box"});
-    }
-    text.split(/\r?\n/).forEach((line, i) => {
-      if (i) document.execCommand("insertLineBreak");
-      if (line) document.execCommand("insertText", false, line);
-    });
-    await wait(150);
-    const flat = s => s.replace(/\s+/g, " ").trim();
-    if (flat(box.innerText) !== flat(text)) {
-      return JSON.stringify({ok: false, reason: "the message box does not hold the text as given; check it in Tabchat"});
-    }
-    if (!send) return JSON.stringify({ok: true, chat: header.textContent.trim()});
-    const icon = document.querySelector('#main footer button[aria-label="Send"], #main footer [data-icon="wds-ic-send-filled"], '
-      + '#main footer [data-icon="send"]');
-    const button = icon && (icon.closest("button") || icon);
-    if (!button) return JSON.stringify({ok: false, reason: "no Send button; the text is left in the message box"});
-    button.click();
-    for (let i = 0; i < 50; i++) {
-      await wait(100);
-      if (!box.innerText.trim()) return JSON.stringify({ok: true, chat: header.textContent.trim()});
-    }
-    return JSON.stringify({ok: false, reason: "the message may not have gone; check the chat in Tabchat"});
     """#
 
     /// The open chat's contact info: opens the panel from the chat header if needed, reads the name,

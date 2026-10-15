@@ -35,7 +35,7 @@ independent community port of MMV2408/tabchat, not affiliated with or endorsed b
 3. **Unified notifications:** Notifications arrive in one place, respect your Focus modes, and clicking one opens the right service in the window instead of a new window or tab.
 4. **Deep macOS integration:** The app lives in the menu bar when closed, updates Dock and menu bar badges, supports start-at-login via `SMAppService`, uses system theme (light/dark).
 5. **Agents read what you can see:** Agents get the services through the official web clients you are
-   signed in to, read-only by default, never sending — the lowest-risk route to chats that have no
+   signed in to, read-only by default, sending only when the owner clicks Send — the lowest-risk route to chats that have no
    personal-account API.
 
 ## What's built (v0.1.1)
