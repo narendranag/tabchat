@@ -90,6 +90,8 @@ struct AgentMessage: Codable, Equatable, Sendable {
     var time: String
     var text: String
     var document: AgentDocument?
+    /// False for messages WhatsApp has not drawn (scrolled out of view): only the id is known.
+    var rendered = true
 }
 
 struct AgentContact: Codable, Equatable, Sendable {

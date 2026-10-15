@@ -22,8 +22,10 @@ final class AgentActionTests: XCTestCase {
           <span title="4 pages">4 pages</span><span data-testid="type" title="PDF">PDF</span><span title="10 kB">10 kB</span>
         </div>
         <div data-testid="msg-meta">1:04 pm</div></div></div></div>
-      <div role="row"><div data-id="MSG3"><div class="message-out">
-        <span data-testid="selectable-text">Thanks</span><div data-testid="msg-meta">1:05 pm</div></div></div></div>
+      <div role="row"><div data-id="MSG3"><div>
+        <span data-testid="selectable-text">Thanks</span><div data-testid="msg-meta">1:05 pm
+          <svg><title>wds-ic-read</title></svg></div></div></div></div>
+      <div role="row"><div data-id="MSG4"><div data-virtualized="true"></div></div></div>
     </div>
     <script>
       document.querySelector("header").setAttribute("data-testid", "conversation-info-header");
@@ -71,10 +73,11 @@ final class AgentActionTests: XCTestCase {
                 text: "Here is the summary", document: nil
             ),
             AgentMessage(
-                id: "MSG2", direction: "in", sender: "", stamp: "", time: "1:04 pm", text: "",
+                id: "MSG2", direction: "in", sender: "Ada Example", stamp: "", time: "1:04 pm", text: "",
                 document: AgentDocument(name: "Test plan.pdf", type: "PDF", details: "4 pages • PDF • 10 kB")
             ),
-            AgentMessage(id: "MSG3", direction: "out", sender: "", stamp: "", time: "1:05 pm", text: "Thanks", document: nil)
+            AgentMessage(id: "MSG3", direction: "out", sender: "", stamp: "", time: "1:05 pm", text: "Thanks", document: nil),
+            AgentMessage(id: "MSG4", direction: "", sender: "", stamp: "", time: "", text: "", document: nil, rendered: false)
         ])
     }
 
@@ -110,7 +113,7 @@ final class AgentActionTests: XCTestCase {
             arguments: ["id": "NOPE"],
             in: webView
         ))
-        XCTAssertEqual(missing.reason, "that message is not on screen")
+        XCTAssertEqual(missing.reason, "that message is not in the open chat")
     }
 
     @MainActor

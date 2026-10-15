@@ -12,18 +12,28 @@ enum WhatsAppScripts {
     const header = main.querySelector('[data-testid="conversation-info-header-chat-title"]');
     const chat = header ? header.textContent.trim() : "";
     const messages = Array.from(main.querySelectorAll("[data-id]")).map(el => {
+      const id = el.getAttribute("data-id") || "";
+      if (el.querySelector('[data-virtualized="true"]')) {
+        return {id, direction: "", sender: "", stamp: "", time: "", text: "", document: null, rendered: false};
+      }
       let sender = "", stamp = "";
       const pre = el.querySelector("[data-pre-plain-text]");
       if (pre) {
         const m = (pre.getAttribute("data-pre-plain-text") || "").match(/^\[([^\]]*)\]\s*(.*?):\s*$/);
         if (m) { stamp = m[1]; sender = m[2]; }
       }
-      const out = !!(el.closest(".message-out") || el.querySelector(".message-out"));
-      const incoming = !!(el.closest(".message-in") || el.querySelector(".message-in"));
+      // Outgoing bubbles carry a status tick (sent, delivered, read) in their meta; incoming ones do not.
+      const ticks = Array.from(el.querySelectorAll('[data-testid="msg-meta"] svg title, [data-testid="msg-meta"] [data-icon]'))
+        .map(t => t.textContent + " " + (t.getAttribute("data-icon") || "")).join(" ");
+      const out = /check|read|deliver|clock|pending|sent/i.test(ticks) || !!el.querySelector(".message-out");
+      const incoming = !out;
       if (!sender) {
         const label = el.querySelector('[aria-label$=":"]');
         if (label) sender = label.getAttribute("aria-label").slice(0, -1);
       }
+      // A one-to-one chat's incoming messages are the contact's.
+      const group = !!main.querySelector('[data-testid="conversation-info-header"] [title*=","]');
+      if (!sender && incoming && !group) sender = chat;
       const textEl = el.querySelector('[data-testid="selectable-text"]')
         || el.querySelector('[data-testid="document-caption selectable-text"]');
       let document = null;
@@ -37,10 +47,11 @@ enum WhatsAppScripts {
       const meta = el.querySelector('[data-testid="msg-meta"]');
       const recalled = !!el.querySelector('[data-testid="recalled"]');
       return {
-        id: el.getAttribute("data-id") || "",
+        id,
+        rendered: true,
         direction: out ? "out" : (incoming ? "in" : ""),
         sender, stamp,
-        time: meta ? meta.textContent.trim() : "",
+        time: meta ? ((meta.textContent.match(/\d{1,2}[:.]\d{2}(\s?[ap]\.?m\.?)?/i) || [""])[0]) : "",
         text: textEl ? textEl.innerText : (recalled ? "(deleted)" : ""),
         document
       };
@@ -70,8 +81,15 @@ enum WhatsAppScripts {
 
     /// Opens the document in message `id` and presses the viewer's Download button.
     static let download = #"""
-    const msg = Array.from(document.querySelectorAll("#main [data-id]")).find(el => el.getAttribute("data-id") === id);
-    if (!msg) return JSON.stringify({ok: false, reason: "that message is not on screen"});
+    const find = () => Array.from(document.querySelectorAll("#main [data-id]")).find(el => el.getAttribute("data-id") === id);
+    let msg = find();
+    if (!msg) return JSON.stringify({ok: false, reason: "that message is not in the open chat"});
+    // Scrolled out of view: bring it back so WhatsApp draws it.
+    for (let i = 0; i < 30 && msg.querySelector('[data-virtualized="true"]'); i++) {
+      msg.scrollIntoView({block: "center"});
+      await new Promise(r => setTimeout(r, 100));
+      msg = find() || msg;
+    }
     const thumb = msg.querySelector('[data-testid="document-thumb"]');
     if (!thumb) return JSON.stringify({ok: false, reason: "that message has no document (only documents for now)"});
     const m = (thumb.getAttribute("title") || "").match(/^View "(.*)"$/);
