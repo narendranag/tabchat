@@ -11,7 +11,6 @@
 ## Next
 
 - [ ] Agent API: videos in `download` (no chat with a video tried yet); albums holding more photos than they show #agent-api
-- [ ] LinkedIn in Tabchat, complementary to the CRM (`~/marain/crm/docs/10-relationship-manager.md`, final): the CRM reads LinkedIn message text through `opencli` in the Agent Chrome profile, so Tabchat adds LinkedIn as a tab with unread counts and its notifications in `tabchat_feed` (the hourly activity signal), not a second message reader — Narendra asked 2026-10-15 #agent-api
 - [ ] Agent API: an agent recipe for contact details → `~/marain/crm` via its `crm` CLI (in that brain) #agent-api
 
 - [ ] Delete the `.verify` leftovers from phase 2's test launch (`~/Library/*/com.narendranag.tabchat.verify*`, 129 MB) — Narendra decides #mac
@@ -27,6 +26,8 @@
 - [ ] Signed, notarized `.dmg` from GitHub Actions + Sparkle updates (needs an Apple Developer ID — costs money, Narendra decides)
 
 ## Done
+
+- [x] LinkedIn as a built-in service (Messaging, own sign-in, stays loaded): unread count from its title live-checked; notifications go to the feed; no message reader (the CRM reads LinkedIn through opencli) — 2026-10-15
 
 - [x] Agent API for the CRM's nightly run: `status`, `chats --since --read-only`, `open --if-read`, `history --until`, feed `chat` — live-checked 2026-10-15
 

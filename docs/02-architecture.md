@@ -64,7 +64,7 @@ Tests/                       XCTest, one file per model type (77 tests)
 ## Services, profiles and tabs
 
 - A **service** is a catalog entry: WhatsApp, Discord, Teams, Outlook (work), Outlook (personal),
-  OneDrive, Brightspace (asks for the school's address), Reddit, X, GitHub, or a custom website.
+  OneDrive, LinkedIn, Brightspace (asks for the school's address), Reddit, X, GitHub, or a custom website.
 - A **profile** is one sign-in, backed by one persistent `WKWebsiteDataStore`. Teams, Outlook
   (work), OneDrive and Brightspace share the "Microsoft (work)" profile by default; "Add another
   account" creates a new profile.

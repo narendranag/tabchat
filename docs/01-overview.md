@@ -41,7 +41,7 @@ independent community port of MMV2408/tabchat, not affiliated with or endorsed b
 ## What's built (v0.1.1)
 
 - Sidebar of service icons with unread badges; drag to reorder; right-click menu
-- Services: WhatsApp, Discord, Teams, Outlook (work and personal), OneDrive, Brightspace, Reddit, X, GitHub, custom sites
+- Services: WhatsApp, Discord, Teams, Outlook (work and personal), OneDrive, LinkedIn, Brightspace, Reddit, X, GitHub, custom sites
 - Multiple accounts per service, each with its own sign-in; Teams, Outlook (work), OneDrive and Brightspace share one Microsoft sign-in by default
 - One WKWebsiteDataStore per sign-in; sign-ins survive restart
 - Unread counts on each tab, the Dock and the menu bar
