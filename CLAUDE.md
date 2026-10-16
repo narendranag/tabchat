@@ -22,8 +22,8 @@ This brain follows the fleet's standard: how projects are built is in
 
 ## Status
 
-**v0.4.1 released** (2026-10-16, ManageBac `feedback`: teacher annotations via the viewer; v0.4.0 the same day, ManageBac read-only `get` for the school brain; v0.3.0 the same day, LinkedIn readers and profiles for the CRM; v0.2.0 2026-10-15, the agent API). **Paused** at Narendra's word
-on 2026-10-15; pick up from `TASKS.md`. A from-scratch native Swift
+**v0.4.1 released** (2026-10-16, ManageBac `feedback`: teacher annotations via the viewer; v0.4.0 the same day, ManageBac read-only `get` for the school brain; v0.3.0 the same day, LinkedIn readers and profiles for the CRM; v0.2.0 2026-10-15, the agent API). **On standby** (paused 2026-10-15 at Narendra's word;
+since 2026-10-16 it serves the CRM and school brains); pick up from `TASKS.md`. A from-scratch native Swift
 app (macOS 14+, Apple Silicon, sidebar, English only); all six phases of `brief/mac-rewrite.md` are
 built. Upstream's Linux code is on the `Linux` branch; `main` holds only the Mac app. CI (lint →
 test → build on `macos-26`, Xcode 26.6) runs on every push. Upstream was told
