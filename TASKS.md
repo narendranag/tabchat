@@ -37,7 +37,7 @@
 
 ## Done
 
-- [x] v0.4.2: `tabchatInputSecondsAgo` and `owner-active` count only the owner's hardware input; `agentInputSecondsAgo`; `retryAfter` on `owner-active` and `rate` — released, installed on mini, CRM told — 2026-10-16
+- [x] v0.4.2: `tabchatInputSecondsAgo` and `owner-active` count only the owner's hardware input; `agentInputSecondsAgo`; `retryAfter` on `owner-active` and `rate` — released, installed on mini, CRM told; its X refresh then read 26 profiles with no owner-active wall — 2026-10-16
 - [x] Deleted the merged `linkedin-readers` (local and origin) and `managebac` branches, at Narendra's yes — 2026-10-16
 - [x] v0.4.1: ManageBac `feedback`: teacher annotations through the PSPDFKit viewer, read-only in a hidden view; annotated PDF with --save — 2026-10-16
 - [x] v0.4.0: ManageBac service and paced read-only `get` (pages under /parent, files from ManageBac storage), live-checked; school-68 told — 2026-10-16
