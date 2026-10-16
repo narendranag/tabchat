@@ -5,10 +5,11 @@
 
 ## Now
 
+- [ ] **Resume here:** nothing half done; v0.4.1 is live on mini. Next: when school-68 sends a task path whose viewer has real annotations, run `tabchat-agent feedback --tab 5EF82128-8ECE-4E1D-8509-23911974BE93 --path <it>` and check the fields against `docs/04-agent-api.md` (ManageBac). Otherwise wait for Narendra or a peer brief.
 
 - Standby since 2026-10-16: v0.4.1 released and installed on mini; nothing half done. Tabchat serves the CRM (WhatsApp backfill just after 00:05, 01:35, 03:05 IST: ask it before any install 00:00–03:20) and school-68 (ManageBac sync 08:00 and 16:30 IST). Check with the CRM session before restarting Tabchat.
 
-- [ ] (owner) Delete the merged `origin/linkedin-readers` branch, pushed by mistake 2026-10-16 — needs Narendra's yes #git
+- [ ] (owner) Delete the merged branches: `linkedin-readers` (local and origin, pushed by mistake 2026-10-16) and the local `managebac` — needs Narendra's yes #git
 
 - [ ] Post the Reddit comment (draft in `brief/reddit-comment.md`, from Narendra's account) #community
 - [ ] Install v0.1.1 on air from the release dmg (air was unreachable 2026-10-13; mini done) #mac
