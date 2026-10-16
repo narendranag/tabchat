@@ -22,7 +22,7 @@ This brain follows the fleet's standard: how projects are built is in
 
 ## Status
 
-**v0.2.0 released** (2026-10-15, the agent API; v0.1.1 was 2026-10-13). **Paused** at Narendra's word
+**v0.3.0 released** (2026-10-16, LinkedIn readers and profiles for the CRM; v0.2.0 2026-10-15, the agent API). **Paused** at Narendra's word
 on 2026-10-15; pick up from `TASKS.md`. A from-scratch native Swift
 app (macOS 14+, Apple Silicon, sidebar, English only); all six phases of `brief/mac-rewrite.md` are
 built. Upstream's Linux code is on the `Linux` branch; `main` holds only the Mac app. CI (lint →

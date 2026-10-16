@@ -98,7 +98,7 @@ macOS 14 Sonoma or later, Apple Silicon.
 ## Download
 
 Get the latest `Tabchat-<version>.dmg` from [Releases](https://github.com/narendranag/tabchat-for-agents/releases/latest).
-v0.2.0 is the first release with the agent API; v0.1.x is the app without it. Your services and sign-ins
+v0.3.0 adds LinkedIn messaging and LinkedIn/X profiles for agents; v0.2.0 was the first release with the agent API; v0.1.x is the app without it. Your services and sign-ins
 carry over when you replace the app.
 
 The build is **not notarised** yet: the first time, drag it to Applications, then right-click it →

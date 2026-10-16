@@ -32,3 +32,4 @@
 - [mini] [2026-10-16] LinkedIn messaging readers (`chats`, `messages`, `open`, `history`) and a read-only `profile` for LinkedIn and X, at the owner's request through the CRM session — supersedes "not a second LinkedIn message reader": opencli's LinkedIn navigation failed about half the time. Reads only; nothing likes, follows, connects or sends.
 - [mini] [2026-10-16] `profile` loads in a hidden web view sharing the tab's sign-in, never in the owner's tab; Tabchat itself enforces one load a minute and waits while the owner uses Tabchat (`owner-active`) — the account's safety shouldn't depend on every caller's discipline.
 - [mini] [2026-10-16] Every failure carries a `code` (`checkpoint`, `signed-out`, `rate`, `owner-active`, …), CLI exit 3 for stop-for-the-day and 75 for try-later — the CRM's request, so callers stop on checkpoints instead of retrying.
+- [mini] [2026-10-16] v0.3.0 released (LinkedIn readers, profile, error codes) — Narendra's call ("Release it").

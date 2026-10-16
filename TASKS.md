@@ -5,7 +5,6 @@
 
 ## Now
 
-- [ ] LinkedIn readers + `profile` for the CRM (branch `linkedin-readers`): built and fixture-tested; live: chats, messages, history, X profile ✓. Narendra to live-check `open --chat <thread id>` (auto mode blocked it for Claude); release v0.3.0 (his call); reply to the CRM session with the result #agent-api 📅 2026-10-16
 
 - Paused 2026-10-15 at Narendra's word (v0.2.0 released). Pick up from Next; check with the CRM session before restarting Tabchat.
 
@@ -13,6 +12,8 @@
 - [ ] Install v0.1.1 on air from the release dmg (air was unreachable 2026-10-13; mini done) #mac
 
 ## Next
+
+- [ ] Live-check LinkedIn `open --chat <thread id>` (Narendra; auto mode blocks Claude from opening threads) #agent-api
 
 - [ ] Agent API: videos in `download` (no chat with a video tried yet); albums holding more photos than they show #agent-api
 - [ ] Agent API: an agent recipe for contact details → `~/marain/crm` via its `crm` CLI (in that brain) #agent-api
@@ -30,6 +31,8 @@
 - [ ] Signed, notarized `.dmg` from GitHub Actions + Sparkle updates (needs an Apple Developer ID — costs money, Narendra decides)
 
 ## Done
+
+- [x] v0.3.0 released: LinkedIn messaging readers and `profile` for LinkedIn and X, error codes (live-checked except `open` by thread id) — 2026-10-16
 
 - [x] v0.2.0 released: the agent API (GitHub release with the dmg) — 2026-10-15
 
