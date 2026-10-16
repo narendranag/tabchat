@@ -9,7 +9,6 @@
 
 - Standby since 2026-10-16: v0.4.1 released and installed on mini; nothing half done. Tabchat serves the CRM (WhatsApp backfill just after 00:05, 01:35, 03:05 IST: ask it before any install 00:00–03:20) and school-68 (ManageBac sync 08:00 and 16:30 IST). Check with the CRM session before restarting Tabchat.
 
-- [ ] (owner) Delete the merged branches: `linkedin-readers` (local and origin, pushed by mistake 2026-10-16) and the local `managebac` — needs Narendra's yes #git
 
 - [ ] Post the Reddit comment (draft in `brief/reddit-comment.md`, from Narendra's account) #community
 - [ ] Install v0.1.1 on air from the release dmg (air was unreachable 2026-10-13; mini done) #mac
@@ -38,6 +37,7 @@
 
 ## Done
 
+- [x] Deleted the merged `linkedin-readers` (local and origin) and `managebac` branches, at Narendra's yes — 2026-10-16
 - [x] v0.4.1: ManageBac `feedback`: teacher annotations through the PSPDFKit viewer, read-only in a hidden view; annotated PDF with --save — 2026-10-16
 - [x] v0.4.0: ManageBac service and paced read-only `get` (pages under /parent, files from ManageBac storage), live-checked; school-68 told — 2026-10-16
 
