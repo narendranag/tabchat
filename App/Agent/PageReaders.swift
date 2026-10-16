@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import WebKit
 
@@ -165,12 +166,78 @@ enum PageReaders {
         return AgentResponse(ok: true, untrusted: true, page: page)
     }
 
-    /// Runs a reader in the agent world of the page's main frame and returns its JSON string.
+    /// Runs a reader in the agent world of the page's main frame (or in `contentWorld`) and returns its
+    /// JSON string.
     @MainActor
-    static func run(_ script: String, arguments: [String: Any] = [:], in webView: WKWebView) async throws -> String {
+    static func run(
+        _ script: String, arguments: [String: Any] = [:], in webView: WKWebView, contentWorld: WKContentWorld? = nil
+    ) async throws -> String {
         let value = try await webView.callAsyncJavaScript(
-            script, arguments: arguments, in: nil, contentWorld: world
+            script, arguments: arguments, in: nil, contentWorld: contentWorld ?? world
         )
         return value as? String ?? ""
+    }
+
+    struct Timeout: LocalizedError {
+        var errorDescription: String? {
+            "the page did not answer in time"
+        }
+    }
+
+    /// A script run that gives up after `seconds`: a page in a hidden window may never answer.
+    @MainActor
+    static func run(
+        _ script: String, arguments: [String: Any], in webView: WKWebView, seconds: Double,
+        contentWorld: WKContentWorld? = nil
+    ) async throws -> String {
+        final class Once {
+            var done = false
+        }
+        let once = Once()
+        return try await withCheckedThrowingContinuation { continuation in
+            Task { @MainActor in
+                let result = await Swift.Result {
+                    try await run(script, arguments: arguments, in: webView, contentWorld: contentWorld)
+                }
+                if !once.done {
+                    once.done = true
+                    continuation.resume(with: result)
+                }
+            }
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(seconds))
+                if !once.done {
+                    once.done = true
+                    continuation.resume(throwing: Timeout())
+                }
+            }
+        }
+    }
+}
+
+/// A web view that shares a tab's sign-in, in a borderless window that is never shown and sits off
+/// screen (the window keeps WebKit drawing and running timers). It lives for one call.
+@MainActor
+final class HiddenWebView {
+    let webView: WKWebView
+    private let window: NSWindow
+
+    init(dataStore: WKWebsiteDataStore, size: NSSize = NSSize(width: 1280, height: 1400)) {
+        let config = WKWebViewConfiguration()
+        config.websiteDataStore = dataStore
+        config.mediaTypesRequiringUserActionForPlayback = .all
+        let frame = NSRect(origin: .zero, size: size)
+        webView = WKWebView(frame: frame, configuration: config)
+        webView.customUserAgent = safariUserAgent
+        window = NSWindow(contentRect: frame, styleMask: .borderless, backing: .buffered, defer: false)
+        window.isReleasedWhenClosed = false
+        window.contentView = webView
+        window.setFrameOrigin(NSPoint(x: -30000, y: -30000))
+    }
+
+    func close() {
+        webView.stopLoading()
+        window.contentView = nil
+        window.close()
     }
 }

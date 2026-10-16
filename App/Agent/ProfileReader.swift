@@ -51,22 +51,9 @@ enum ProfileReader {
     /// Loads `target` with `dataStore`'s sign-in and reads it. The view lives only for this call.
     @MainActor
     static func read(_ target: Target, dataStore: WKWebsiteDataStore, inspect: String? = nil) async throws -> AgentResponse {
-        let config = WKWebViewConfiguration()
-        config.websiteDataStore = dataStore
-        config.mediaTypesRequiringUserActionForPlayback = .all
-        let frame = NSRect(x: 0, y: 0, width: 1280, height: 1400)
-        let webView = WKWebView(frame: frame, configuration: config)
-        webView.customUserAgent = safariUserAgent
-        // A window keeps WebKit drawing and running timers; it is never shown, and sits off screen.
-        let window = NSWindow(contentRect: frame, styleMask: .borderless, backing: .buffered, defer: false)
-        window.isReleasedWhenClosed = false
-        window.contentView = webView
-        window.setFrameOrigin(NSPoint(x: -30000, y: -30000))
-        defer {
-            webView.stopLoading()
-            window.contentView = nil
-            window.close()
-        }
+        let hidden = HiddenWebView(dataStore: dataStore)
+        let webView = hidden.webView
+        defer { hidden.close() }
         webView.load(URLRequest(url: target.url, timeoutInterval: 30))
         for _ in 0 ..< 300 where webView.isLoading || webView.url == nil {
             try await Task.sleep(for: .milliseconds(100))
@@ -83,13 +70,13 @@ enum ProfileReader {
         }
         #if DEBUG
             if let inspect {
-                let dom = try await run(
+                let dom = try await PageReaders.run(
                     PageReaders.inspect, arguments: ["selector": inspect, "maxDepth": 30], in: webView, seconds: 10
                 )
                 return AgentResponse(ok: true, untrusted: true, dom: dom)
             }
         #endif
-        let json = try await run(
+        let json = try await PageReaders.run(
             script, arguments: ["site": target.site, "max": AgentWire.maxPageCharacters, "mode": "read"],
             in: webView, seconds: 10
         )
@@ -103,41 +90,13 @@ enum ProfileReader {
 
     @MainActor
     private static func probe(_ target: Target, webView: WKWebView) async throws -> Probe {
-        let json = try await run(script, arguments: ["site": target.site, "max": 0, "mode": "probe"], in: webView, seconds: 5)
+        let json = try await PageReaders.run(
+            script,
+            arguments: ["site": target.site, "max": 0, "mode": "probe"],
+            in: webView,
+            seconds: 5
+        )
         return (try? JSONDecoder().decode(Probe.self, from: Data(json.utf8))) ?? Probe()
-    }
-
-    private struct Timeout: LocalizedError {
-        var errorDescription: String? {
-            "the profile page did not answer in time"
-        }
-    }
-
-    /// A script run that gives up after `seconds`: a page in a hidden window may never answer.
-    @MainActor
-    private static func run(
-        _ script: String, arguments: [String: Any], in webView: WKWebView, seconds: Double
-    ) async throws -> String {
-        final class Once {
-            var done = false
-        }
-        let once = Once()
-        return try await withCheckedThrowingContinuation { continuation in
-            Task { @MainActor in
-                let result = await Swift.Result { try await PageReaders.run(script, arguments: arguments, in: webView) }
-                if !once.done {
-                    once.done = true
-                    continuation.resume(with: result)
-                }
-            }
-            Task { @MainActor in
-                try? await Task.sleep(for: .seconds(seconds))
-                if !once.done {
-                    once.done = true
-                    continuation.resume(throwing: Timeout())
-                }
-            }
-        }
     }
 
     private struct ReaderResult: Decodable {
