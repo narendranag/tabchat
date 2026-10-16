@@ -5,7 +5,7 @@
 
 ## Now
 
-- [ ] **Resume here:** v0.4.2 (owner input apart from agent input, `agentInputSecondsAgo`, `retryAfter`) is merged to local `main` with its dmg built; waiting on Narendra to push, release and install on mini (ask the CRM session first; never 00:00–03:20 IST), then tell the CRM session (`agent-relationship-knowledge-manager`). Before that: v0.4.1 is live on mini. Next: when school-68 sends a task path whose viewer has real annotations, run `tabchat-agent feedback --tab 5EF82128-8ECE-4E1D-8509-23911974BE93 --path <it>` and check the fields against `docs/04-agent-api.md` (ManageBac). Otherwise wait for Narendra or a peer brief.
+- [ ] **Resume here:** nothing half done; v0.4.2 (owner input apart from agent input) is live on mini and the CRM session was told. Next: when school-68 sends a task path whose viewer has real annotations, run `tabchat-agent feedback --tab 5EF82128-8ECE-4E1D-8509-23911974BE93 --path <it>` and check the fields against `docs/04-agent-api.md` (ManageBac). Otherwise wait for Narendra or a peer brief.
 
 - Standby since 2026-10-16: v0.4.1 released and installed on mini; nothing half done. Tabchat serves the CRM (WhatsApp backfill just after 00:05, 01:35, 03:05 IST: ask it before any install 00:00–03:20) and school-68 (ManageBac sync 08:00 and 16:30 IST). Check with the CRM session before restarting Tabchat.
 
@@ -37,6 +37,7 @@
 
 ## Done
 
+- [x] v0.4.2: `tabchatInputSecondsAgo` and `owner-active` count only the owner's hardware input; `agentInputSecondsAgo`; `retryAfter` on `owner-active` and `rate` — released, installed on mini, CRM told — 2026-10-16
 - [x] Deleted the merged `linkedin-readers` (local and origin) and `managebac` branches, at Narendra's yes — 2026-10-16
 - [x] v0.4.1: ManageBac `feedback`: teacher annotations through the PSPDFKit viewer, read-only in a hidden view; annotated PDF with --save — 2026-10-16
 - [x] v0.4.0: ManageBac service and paced read-only `get` (pages under /parent, files from ManageBac storage), live-checked; school-68 told — 2026-10-16
