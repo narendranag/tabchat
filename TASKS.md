@@ -35,7 +35,7 @@
 
 ## Done
 
-- [x] ManageBac `feedback`: teacher annotations through the PSPDFKit viewer, read-only in a hidden view; annotated PDF with --save — 2026-10-16
+- [x] v0.4.1: ManageBac `feedback`: teacher annotations through the PSPDFKit viewer, read-only in a hidden view; annotated PDF with --save — 2026-10-16
 - [x] v0.4.0: ManageBac service and paced read-only `get` (pages under /parent, files from ManageBac storage), live-checked; school-68 told — 2026-10-16
 
 - [x] v0.3.0 released: LinkedIn messaging readers and `profile` for LinkedIn and X, error codes (live-checked except `open` by thread id) — 2026-10-16
