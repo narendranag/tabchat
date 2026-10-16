@@ -5,7 +5,7 @@
 
 ## Now
 
-- [ ] **Resume here:** nothing half done; v0.4.1 is live on mini. Next: when school-68 sends a task path whose viewer has real annotations, run `tabchat-agent feedback --tab 5EF82128-8ECE-4E1D-8509-23911974BE93 --path <it>` and check the fields against `docs/04-agent-api.md` (ManageBac). Otherwise wait for Narendra or a peer brief.
+- [ ] **Resume here:** v0.4.2 (owner input apart from agent input, `agentInputSecondsAgo`, `retryAfter`) is merged to local `main` with its dmg built; waiting on Narendra to push, release and install on mini (ask the CRM session first; never 00:00–03:20 IST), then tell the CRM session (`agent-relationship-knowledge-manager`). Before that: v0.4.1 is live on mini. Next: when school-68 sends a task path whose viewer has real annotations, run `tabchat-agent feedback --tab 5EF82128-8ECE-4E1D-8509-23911974BE93 --path <it>` and check the fields against `docs/04-agent-api.md` (ManageBac). Otherwise wait for Narendra or a peer brief.
 
 - Standby since 2026-10-16: v0.4.1 released and installed on mini; nothing half done. Tabchat serves the CRM (WhatsApp backfill just after 00:05, 01:35, 03:05 IST: ask it before any install 00:00–03:20) and school-68 (ManageBac sync 08:00 and 16:30 IST). Check with the CRM session before restarting Tabchat.
 
