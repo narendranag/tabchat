@@ -46,8 +46,8 @@ targets:
         PRODUCT_NAME: Tabchat
         PRODUCT_BUNDLE_IDENTIFIER: com.narendranag.tabchat
         GENERATE_INFOPLIST_FILE: YES
-        MARKETING_VERSION: "0.3.0"
-        CURRENT_PROJECT_VERSION: "4"
+        MARKETING_VERSION: "0.4.0"
+        CURRENT_PROJECT_VERSION: "5"
         INFOPLIST_KEY_CFBundleDisplayName: Tabchat
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.productivity
         INFOPLIST_KEY_NSCameraUsageDescription: Tabchat needs the camera for video calls in the sites you open.

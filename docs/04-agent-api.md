@@ -219,9 +219,12 @@ Tabchat's, not the caller's:
   own `https://<school>.managebac.com` origin; pages only under `/parent`; no `..`, no sign-out paths.
   Returns `fetched`: the URL it ended at, status, content type, title, the text (scripts and styles
   removed, one line per block, ≤ 50,000 characters) and the HTML (≤ 1.5 MB) for the caller to parse.
-- **`get --save`**: one same-origin file through the tab's own download machinery (`startDownload`,
-  its cookies), following redirects to storage hosts; web pages and files over 25 MB are refused before
-  anything is written. Saved to `~/Downloads/Tabchat/managebac/`, quarantined.
+- **`get --save`**: one file through the tab's own download machinery (`startDownload`, its cookies):
+  a path on the school's site, or a signed link on ManageBac's own storage, which is where class
+  materials point (`https://cdn.<region>.managebac.com/uploads/…`, `https://managebac-*.s3.*.amazonaws.com/…`).
+  Web pages and files over 25 MB are refused before anything is written; an expired storage link
+  (400 or 403 from storage) fails alone without stopping the run. Saved to
+  `~/Downloads/Tabchat/managebac/`, quarantined.
 - **Pace and budget** (`ManageBac.Gate`): one request at a time (`busy`), 2–5 s apart with jitter
   (Tabchat waits), at most 40 in any hour (`rate`).
 - **Stops:** a sign-in page (by path, another host, a password form outside `/parent`) or a 401 gives
@@ -230,6 +233,10 @@ Tabchat's, not the caller's:
   No retries.
 - **Kill switch:** unticking the tab in Settings → Agents refuses everything at once.
 - Nothing in the actions tier: ManageBac has no `open`, `download`, `draft` or `send`.
+- Live-checked 2026-10-16: `/parent`, notifications, a class, a task, a unit and a class stream
+  (0.5–3 s each with the pacing), and a `.docx` saved from the CDN. `/parent/notifications` holds no
+  items: the bell's notifications come from a separate Faria service on another host, which `get`
+  does not reach; the class streams carry the same posts and files.
 
 ## Live checks
 

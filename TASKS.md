@@ -22,6 +22,8 @@
 
 ## Later
 
+- [ ] ManageBac notifications hub (another Faria host): only if the class streams aren't enough — a new decision for Narendra #agent-api
+
 - [ ] Feed `is_group` for WhatsApp notifications, once a reliable marker is found on the live page (the CRM asked; absent until then) #agent-api
 
 - [ ] Agent API: Teams and Outlook readers (`chats`, `messages`), when there are tabs for them #agent-api
@@ -31,6 +33,8 @@
 - [ ] Signed, notarized `.dmg` from GitHub Actions + Sparkle updates (needs an Apple Developer ID — costs money, Narendra decides)
 
 ## Done
+
+- [x] v0.4.0: ManageBac service and paced read-only `get` (pages under /parent, files from ManageBac storage), live-checked; school-68 told — 2026-10-16
 
 - [x] v0.3.0 released: LinkedIn messaging readers and `profile` for LinkedIn and X, error codes (live-checked except `open` by thread id) — 2026-10-16
 

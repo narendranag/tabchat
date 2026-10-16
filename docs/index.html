@@ -1037,11 +1037,16 @@ under <code>/parent</code>; no <code>..</code>, no sign-out paths.
 Returns <code>fetched</code>: the URL it ended at, status, content type,
 title, the text (scripts and styles removed, one line per block, ≤
 50,000 characters) and the HTML (≤ 1.5 MB) for the caller to parse.</li>
-<li><strong><code>get --save</code></strong>: one same-origin file
-through the tab's own download machinery (<code>startDownload</code>,
-its cookies), following redirects to storage hosts; web pages and files
-over 25 MB are refused before anything is written. Saved to
-<code>~/Downloads/Tabchat/managebac/</code>, quarantined.</li>
+<li><strong><code>get --save</code></strong>: one file through the tab's
+own download machinery (<code>startDownload</code>, its cookies): a path
+on the school's site, or a signed link on ManageBac's own storage, which
+is where class materials point
+(<code>https://cdn.&lt;region&gt;.managebac.com/uploads/…</code>,
+<code>https://managebac-*.s3.*.amazonaws.com/…</code>). Web pages and
+files over 25 MB are refused before anything is written; an expired
+storage link (400 or 403 from storage) fails alone without stopping the
+run. Saved to <code>~/Downloads/Tabchat/managebac/</code>,
+quarantined.</li>
 <li><strong>Pace and budget</strong> (<code>ManageBac.Gate</code>): one
 request at a time (<code>busy</code>), 2–5 s apart with jitter (Tabchat
 waits), at most 40 in any hour (<code>rate</code>).</li>
@@ -1055,6 +1060,13 @@ hour, with a toast in Tabchat. No retries.</li>
 refuses everything at once.</li>
 <li>Nothing in the actions tier: ManageBac has no <code>open</code>,
 <code>download</code>, <code>draft</code> or <code>send</code>.</li>
+<li>Live-checked 2026-10-16: <code>/parent</code>, notifications, a
+class, a task, a unit and a class stream (0.5–3 s each with the pacing),
+and a <code>.docx</code> saved from the CDN.
+<code>/parent/notifications</code> holds no items: the bell's
+notifications come from a separate Faria service on another host, which
+<code>get</code> does not reach; the class streams carry the same posts
+and files.</li>
 </ul>
 <h2 id="agent-api-live-checks">Live checks</h2>
 <p>Run against the debug build, with the services ticked in Settings →
