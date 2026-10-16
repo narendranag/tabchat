@@ -284,7 +284,7 @@ final class AgentActionTests: XCTestCase {
         let request = AgentRequest(call: .download, tab: tab.id.uuidString)
         XCTAssertEqual(
             AgentResponder.actionTab(for: request, in: state),
-            .failure(.message("actions are off for this tab (Tabchat → Settings → Agents)"))
+            .failure(.coded("actions are off for this tab (Tabchat → Settings → Agents)", .refused))
         )
         state.tabs[0].agentActions = true
         XCTAssertEqual(try AgentResponder.actionTab(for: request, in: state).get().id, tab.id)

@@ -10,9 +10,9 @@ enum AgentResponder {
 
     /// The readable tab a request names, or the error to answer with.
     static func tab(for request: AgentRequest, in state: AppState) -> Result<Tab, AgentError> {
-        guard let id = request.tab else { return .failure(.message("this call needs a tab id")) }
+        guard let id = request.tab else { return .failure(.coded("this call needs a tab id", .refused)) }
         guard let tab = readableTabs(state).first(where: { $0.id.uuidString.caseInsensitiveCompare(id) == .orderedSame })
-        else { return .failure(.message("no readable tab with that id")) }
+        else { return .failure(.coded("no readable tab with that id", .refused)) }
         return .success(tab)
     }
 
@@ -20,7 +20,7 @@ enum AgentResponder {
     static func actionTab(for request: AgentRequest, in state: AppState) -> Result<Tab, AgentError> {
         switch tab(for: request, in: state) {
         case let .success(tab) where tab.agentActions: .success(tab)
-        case .success: .failure(.message("actions are off for this tab (Tabchat → Settings → Agents)"))
+        case .success: .failure(.coded("actions are off for this tab (Tabchat → Settings → Agents)", .refused))
         case let .failure(error): .failure(error)
         }
     }
@@ -49,10 +49,10 @@ enum AgentResponder {
     static func messageText(_ request: AgentRequest) -> Result<String, AgentError> {
         let text = (request.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         if text.isEmpty {
-            return .failure(.message("\(request.call.rawValue) needs --text"))
+            return .failure(.coded("\(request.call.rawValue) needs --text", .refused))
         }
         if text.count > AgentWire.maxMessageCharacters {
-            return .failure(.message("messages are limited to \(AgentWire.maxMessageCharacters) characters"))
+            return .failure(.coded("messages are limited to \(AgentWire.maxMessageCharacters) characters", .refused))
         }
         return .success(text)
     }
@@ -99,7 +99,7 @@ enum AgentResponder {
         if request.tab != nil {
             switch tab(for: request, in: state) {
             case let .success(tab): ids = [tab.id.uuidString]
-            case let .failure(error): return .failure(error.text)
+            case let .failure(error): return .failure(error.text, code: error.code)
             }
         }
         let since = request.sinceSeconds.map { now.addingTimeInterval(-$0) }
@@ -110,10 +110,18 @@ enum AgentResponder {
 
 enum AgentError: Error, Equatable {
     case message(String)
+    case coded(String, AgentErrorCode)
 
     var text: String {
         switch self {
-        case let .message(text): text
+        case let .message(text), let .coded(text, _): text
+        }
+    }
+
+    var code: AgentErrorCode {
+        switch self {
+        case .message: .failed
+        case let .coded(_, code): code
         }
     }
 }

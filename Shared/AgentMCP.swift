@@ -78,7 +78,8 @@ enum AgentMCP {
             ),
             Tool(
                 name: "tabchat_messages",
-                description: "The messages of the chat open in a tab (WhatsApp): id, direction, sender, time, text, "
+                description: "The messages of the chat open in a tab (WhatsApp, Discord, LinkedIn): id, direction, sender, "
+                    + "time, text, "
                     + "attached document, media (image or video). Messages scrolled out of view have rendered=false; "
                     + "tabchat_history reads them. Read-only." + untrustedNote,
                 call: .messages,
@@ -86,14 +87,18 @@ enum AgentMCP {
             ),
             Tool(
                 name: "tabchat_open",
-                description: "Action: open the chat with this exact name (WhatsApp), searching for it if it is not on screen. "
-                    + "Marks it read; the sender sees that. Needs the tab's actions switch.",
+                description: "Action: open the chat with this exact name (WhatsApp), searching for it if it is not on screen, "
+                    + "or a LinkedIn conversation by name or thread id. Marks it read; the sender sees that. "
+                    + "Needs the tab's actions switch.",
                 call: .open,
                 schema: [
                     "type": "object",
                     "properties": [
                         "tab": ["type": "string", "description": "A tab id from tabchat_tabs."],
-                        "chat": ["type": "string", "description": "The chat's name exactly as the chat list shows it."],
+                        "chat": [
+                            "type": "string",
+                            "description": "The chat's name exactly as the chat list shows it (LinkedIn: or its thread id)."
+                        ],
                         "if_read": ["type": "boolean", "description": "Refuse, without opening, if it has unread messages."]
                     ],
                     "required": ["tab", "chat"]
@@ -141,7 +146,7 @@ enum AgentMCP {
             ),
             Tool(
                 name: "tabchat_history",
-                description: "Action: scroll the open chat (WhatsApp) back some screens so earlier messages load, "
+                description: "Action: scroll the open chat (WhatsApp, LinkedIn) back some screens so earlier messages load, "
                     + "and return every message read on the way, oldest first. Only scrolls; ends at the newest "
                     + "message. Needs the tab's actions switch." + untrustedNote,
                 call: .history,
@@ -156,6 +161,22 @@ enum AgentMCP {
                         ]
                     ],
                     "required": ["tab"]
+                ]
+            ),
+            Tool(
+                name: "tabchat_profile",
+                description: "Action: read one LinkedIn (https://www.linkedin.com/in/<slug>) or X (https://x.com/<handle>) "
+                    + "profile in a hidden view that uses the tab's sign-in: name, headline, bio, location, links, X posts "
+                    + "on the first screen, page text. Read only; one a minute; waits while the owner uses Tabchat. "
+                    + "A code of checkpoint means stop for today." + untrustedNote,
+                call: .profile,
+                schema: [
+                    "type": "object",
+                    "properties": [
+                        "tab": ["type": "string", "description": "The LinkedIn or X tab id from tabchat_tabs."],
+                        "url": ["type": "string", "description": "The profile's address."]
+                    ],
+                    "required": ["tab", "url"]
                 ]
             )
         ]
@@ -230,6 +251,7 @@ enum AgentMCP {
         request.since = arguments["since"] as? String
         request.readOnly = arguments["read_only"] as? Bool
         request.ifRead = arguments["if_read"] as? Bool
+        request.url = arguments["url"] as? String
         if let minutes = (arguments["since_minutes"] as? NSNumber)?.doubleValue {
             request.sinceSeconds = minutes * 60
         }

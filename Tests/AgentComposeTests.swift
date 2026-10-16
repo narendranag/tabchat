@@ -70,11 +70,11 @@ extension AgentActionTests {
 
     func testMessageTextIsTrimmedAndBounded() {
         var request = AgentRequest(call: .send)
-        XCTAssertEqual(AgentResponder.messageText(request), .failure(.message("send needs --text")))
+        XCTAssertEqual(AgentResponder.messageText(request), .failure(.coded("send needs --text", .refused)))
         request.text = "  On my way \n"
         XCTAssertEqual(AgentResponder.messageText(request), .success("On my way"))
         request.text = String(repeating: "a", count: AgentWire.maxMessageCharacters + 1)
-        XCTAssertEqual(AgentResponder.messageText(request), .failure(.message("messages are limited to 4000 characters")))
+        XCTAssertEqual(AgentResponder.messageText(request), .failure(.coded("messages are limited to 4000 characters", .refused)))
     }
 }
 

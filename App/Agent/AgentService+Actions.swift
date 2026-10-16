@@ -3,33 +3,47 @@ import WebKit
 
 /// The actions tier: open a chat, download a file, read contact details, write a draft, and send a
 /// message once the owner confirms it in Tabchat. Only for tabs whose "actions" switch is on, and
-/// only WhatsApp for now.
+/// WhatsApp here; LinkedIn and `profile` in `AgentService+LinkedIn.swift`.
 extension AgentService {
     func act(_ request: AgentRequest, model: AppModel, state: AppState, client: String) async -> AgentResponse {
         let tab: Tab
         switch AgentResponder.actionTab(for: request, in: state) {
         case let .success(found): tab = found
-        case let .failure(error): return .failure(error.text)
+        case let .failure(error): return .failure(error.text, code: error.code)
         }
-        guard tab.serviceId == "whatsapp" else { return .failure("actions exist only for WhatsApp so far") }
+        if request.call == .profile {
+            return await profile(request, tab: tab, model: model)
+        }
+        guard ["whatsapp", "linkedin"].contains(tab.serviceId) else {
+            return .failure("actions exist only for WhatsApp and LinkedIn so far", code: .refused)
+        }
         guard let controller = model.controllers[tab.id], !model.sleeping.contains(tab.id) else {
-            return .failure("the tab is asleep or not loaded; select it in Tabchat first")
+            return .failure("the tab is asleep or not loaded; select it in Tabchat first", code: .asleep)
         }
         do {
-            switch request.call {
-            case .open:
-                return try await open(request, controller: controller, model: model)
-            case .download:
-                return try await download(request, tab: tab, controller: controller, model: model)
-            case .contact, .history:
-                return try await read(request, controller: controller, model: model)
-            case .draft, .send:
-                return try await compose(request, tab: tab, controller: controller, model: model, client: client)
-            default:
-                return .failure("not an action")
+            if tab.serviceId == "linkedin" {
+                return try await linkedInAct(request, controller: controller, model: model)
             }
+            return try await whatsAppAct(request, tab: tab, controller: controller, model: model, client: client)
         } catch {
             return .failure("action failed: \(error.localizedDescription)")
+        }
+    }
+
+    private func whatsAppAct(
+        _ request: AgentRequest, tab: Tab, controller: TabController, model: AppModel, client: String
+    ) async throws -> AgentResponse {
+        switch request.call {
+        case .open:
+            try await open(request, controller: controller, model: model)
+        case .download:
+            try await download(request, tab: tab, controller: controller, model: model)
+        case .contact, .history:
+            try await read(request, controller: controller, model: model)
+        case .draft, .send:
+            try await compose(request, tab: tab, controller: controller, model: model, client: client)
+        default:
+            .failure("not an action", code: .refused)
         }
     }
 
@@ -41,7 +55,7 @@ extension AgentService {
         // Refused before anything else, so a second send cannot switch chats under an open dialog.
         let send = request.call == .send
         if send {
-            guard !sendPending else { return .failure("another message is waiting for confirmation in Tabchat") }
+            guard !sendPending else { return .failure("another message is waiting for confirmation in Tabchat", code: .busy) }
             sendPending = true
         }
         defer {
@@ -52,13 +66,13 @@ extension AgentService {
         let text: String, chat: String
         switch try await composeTarget(request, controller: controller, model: model) {
         case let .success(target): (text, chat) = target
-        case let .failure(error): return .failure(error.text)
+        case let .failure(error): return .failure(error.text, code: error.code)
         }
         if send {
             model.reveal(tab.id)
             let ask = AgentSendRequest(service: tab.displayName, chat: chat, text: text, client: client)
             guard await confirmSend(ask) else {
-                return .failure("not sent: the message was cancelled in Tabchat")
+                return .failure("not sent: the message was cancelled in Tabchat", code: .refused)
             }
         }
         let result = try await WhatsAppScripts.decode(PageReaders.run(
@@ -117,7 +131,7 @@ extension AgentService {
     }
 
     private func open(_ request: AgentRequest, controller: TabController, model: AppModel) async throws -> AgentResponse {
-        guard let name = request.chat, !name.isEmpty else { return .failure("open needs --chat NAME") }
+        guard let name = request.chat, !name.isEmpty else { return .failure("open needs --chat NAME", code: .refused) }
         model.showToast("Agent opening \(name)")
         let result = try await WhatsAppScripts.decode(
             PageReaders.run(
@@ -135,8 +149,8 @@ extension AgentService {
     private func download(
         _ request: AgentRequest, tab: Tab, controller: TabController, model: AppModel
     ) async throws -> AgentResponse {
-        guard let id = request.message, !id.isEmpty else { return .failure("download needs --message ID") }
-        guard controller.agentDownload == nil else { return .failure("another agent download is running") }
+        guard let id = request.message, !id.isEmpty else { return .failure("download needs --message ID", code: .refused) }
+        guard controller.agentDownload == nil else { return .failure("another agent download is running", code: .busy) }
         let chat = try await WhatsAppScripts.decode(PageReaders.run(WhatsAppScripts.messages, in: controller.webView)).chat ?? ""
         let base = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask)[0]
         let folder = AgentResponder.downloadFolder(base: base, service: tab.serviceId, contact: chat)
@@ -152,7 +166,7 @@ extension AgentService {
             case let .failure(error):
                 // Keep what an album already gave; fail only when nothing was saved.
                 guard files.isEmpty else { break items }
-                return .failure(error.text)
+                return .failure(error.text, code: error.code)
             }
             index += 1
         }

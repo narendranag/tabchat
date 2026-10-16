@@ -42,7 +42,7 @@ final class AgentTests: XCTestCase {
     func testUnreadableTabIsRefused() throws {
         let (state, _, discord) = try state()
         let request = AgentRequest(call: .page, tab: discord.id.uuidString)
-        XCTAssertEqual(AgentResponder.tab(for: request, in: state), .failure(.message("no readable tab with that id")))
+        XCTAssertEqual(AgentResponder.tab(for: request, in: state), .failure(.coded("no readable tab with that id", .refused)))
     }
 
     func testTabsReportsUnreadAndLoaded() throws {
@@ -123,7 +123,7 @@ final class AgentTests: XCTestCase {
             [
                 "tabchat_tabs", "tabchat_status", "tabchat_feed", "tabchat_chats", "tabchat_page",
                 "tabchat_messages", "tabchat_open", "tabchat_contact", "tabchat_download",
-                "tabchat_draft", "tabchat_send", "tabchat_history"
+                "tabchat_draft", "tabchat_send", "tabchat_history", "tabchat_profile"
             ]
         )
     }

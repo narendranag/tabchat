@@ -19,6 +19,8 @@ final class AgentService {
     /// The owner's last keyboard or mouse input in Tabchat, for `status`.
     @ObservationIgnored private var lastInput: Date?
     @ObservationIgnored private var inputMonitor: Any?
+    /// When the last `profile` load started: one a minute at most.
+    @ObservationIgnored var lastProfileLoad: Date?
     /// Asks the owner to confirm a `send`; replaced in tests.
     @ObservationIgnored var confirmSend: @MainActor (AgentSendRequest) async -> Bool = AgentSendConfirm.ask
     private let log: AgentLog
@@ -81,7 +83,7 @@ final class AgentService {
             request = decoded
             response = await answer(decoded, client: client)
         } catch {
-            response = .failure("bad request: expected one JSON object such as {\"call\":\"tabs\"}")
+            response = .failure("bad request: expected one JSON object such as {\"call\":\"tabs\"}", code: .refused)
         }
         log.append(AgentLog.Entry(
             time: Date(), client: client, call: request?.call.rawValue ?? "invalid",
@@ -92,9 +94,9 @@ final class AgentService {
     }
 
     func answer(_ request: AgentRequest, client: String = "An agent") async -> AgentResponse {
-        guard let model else { return .failure("Tabchat is starting") }
+        guard let model else { return .failure("Tabchat is starting", code: .asleep) }
         let state = model.state
-        guard state.settings.agentAccess else { return .failure("agent access is off in Tabchat's settings") }
+        guard state.settings.agentAccess else { return .failure("agent access is off in Tabchat's settings", code: .refused) }
         switch request.call {
         case .tabs:
             let loaded = Set(model.controllers.keys).subtracting(model.sleeping)
@@ -105,7 +107,7 @@ final class AgentService {
             return status(model: model, state: state)
         case .chats, .page, .inspect, .messages:
             return await read(request, model: model, state: state)
-        case .open, .download, .contact, .history, .draft, .send:
+        case .open, .download, .contact, .history, .draft, .send, .profile:
             return await act(request, model: model, state: state, client: client)
         }
     }
@@ -114,10 +116,10 @@ final class AgentService {
         let tab: Tab
         switch AgentResponder.tab(for: request, in: state) {
         case let .success(found): tab = found
-        case let .failure(error): return .failure(error.text)
+        case let .failure(error): return .failure(error.text, code: error.code)
         }
         guard let webView = model.controllers[tab.id]?.webView, !model.sleeping.contains(tab.id) else {
-            return .failure("the tab is asleep or not loaded; select it in Tabchat first")
+            return .failure("the tab is asleep or not loaded; select it in Tabchat first", code: .asleep)
         }
         do {
             if request.call == .inspect {
@@ -128,8 +130,11 @@ final class AgentService {
                     )
                     return AgentResponse(ok: true, untrusted: true, dom: dom)
                 #else
-                    return .failure("inspect is only in debug builds")
+                    return .failure("inspect is only in debug builds", code: .refused)
                 #endif
+            }
+            if tab.serviceId == "linkedin", request.call == .chats || request.call == .messages {
+                return try await linkedInRead(request, tab: tab, webView: webView, state: state)
             }
             if request.call == .messages {
                 return try await Self.messages(serviceId: tab.serviceId, webView: webView)
@@ -144,7 +149,7 @@ final class AgentService {
                 return try await chatsSince(since, request: request, tab: tab, webView: webView, state: state)
             }
             guard let script = PageReaders.chatList(serviceId: tab.serviceId) else {
-                return .failure("no chat-list reader for \(tab.serviceId) yet; use page")
+                return .failure("no chat-list reader for \(tab.serviceId) yet; use page", code: .refused)
             }
             let json = try await PageReaders.run(script, in: webView)
             return PageReaders.chatsResponse(
@@ -153,6 +158,13 @@ final class AgentService {
         } catch {
             return .failure("reader failed: \(error.localizedDescription)")
         }
+    }
+
+    /// The owner typed or clicked in Tabchat in the last two minutes and it is in front. LinkedIn and X
+    /// actions wait until they stop; WhatsApp's callers check `status` themselves.
+    var ownerActive: Bool {
+        guard NSApp.isActive, MainWindow.shared.window?.isKeyWindow == true, let lastInput else { return false }
+        return Date().timeIntervalSince(lastInput) < 120
     }
 
     private func status(model: AppModel, state: AppState) -> AgentResponse {
@@ -175,11 +187,11 @@ final class AgentService {
     private func chatsSince(
         _ since: String, request: AgentRequest, tab: Tab, webView: WKWebView, state: AppState
     ) async throws -> AgentResponse {
-        guard tab.serviceId == "whatsapp" else { return .failure("chats --since is WhatsApp only so far") }
+        guard tab.serviceId == "whatsapp" else { return .failure("chats --since is WhatsApp and LinkedIn only", code: .refused) }
         if case let .failure(error) = AgentResponder.actionTab(for: request, in: state) {
-            return .failure(error.text)
+            return .failure(error.text, code: error.code)
         }
-        guard let date = AgentResponder.isoDate(since) else { return .failure("--since takes an ISO 8601 time") }
+        guard let date = AgentResponder.isoDate(since) else { return .failure("--since takes an ISO 8601 time", code: .refused) }
         let midnight = Calendar.current.startOfDay(for: date)
         let order = DateFormatter.dateFormat(fromTemplate: "ddMMyyyy", options: 0, locale: .current) ?? "dd"
         let json = try await PageReaders.run(PageReaders.whatsAppChatListSince, arguments: [
@@ -196,13 +208,14 @@ final class AgentService {
         case "discord":
             try await DiscordScripts.messagesResponse(json: PageReaders.run(DiscordScripts.messages, in: webView))
         default:
-            .failure("no message reader for \(serviceId) yet; use page")
+            .failure("no message reader for \(serviceId) yet; use page", code: .refused)
         }
     }
 
     private static func itemCount(_ response: AgentResponse) -> Int {
         response.tabs?.count ?? response.feed?.count ?? response.chats?.count ?? response.counts?.chats
             ?? response.messages?
-            .count ?? ([response.page != nil, response.file != nil, response.contact != nil].contains(true) ? 1 : 0)
+            .count ?? ([response.page != nil, response.file != nil, response.contact != nil, response.profile != nil]
+                .contains(true) ? 1 : 0)
     }
 }
