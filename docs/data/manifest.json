@@ -326,6 +326,11 @@
         },
         {
           "level": 2,
+          "title": "ManageBac",
+          "anchor": "managebac"
+        },
+        {
+          "level": 2,
           "title": "Live checks",
           "anchor": "live-checks"
         }

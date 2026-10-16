@@ -59,6 +59,7 @@ compiled into both the app and the `tabchat-agent` tool, which the app bundle ca
 | `send` | act | `tab`, `text`, optional `chat` | sends one message after the owner clicks Send in Tabchat |
 | `history` | act | `tab`, optional `screens` (1–20, default 3), `until` | messages read while scrolling back and down again; with `until`, only newer ones, and `reached` says whether it got there |
 | `profile` | act | `tab` (LinkedIn or X), `url` | `profile`: name, headline, bio, location, links, X `posts`, text; one a minute |
+| `get` | read | `tab` (ManageBac), `path`, optional `save` | `fetched`: url, status, contentType, title, text, html; with `save`, `file`: path, bytes, name, contentType |
 | `inspect` | debug | `tab`, `selector` | element structure (debug builds only) |
 
 Every failure carries a `code`: `checkpoint` or `signed-out` (stop for the day; the CLI exits 3),
@@ -203,6 +204,32 @@ profile give `checkpoint`; "doesn't exist" or "suspended" give `not-found`. The 
 slowly in a window that is never shown, so the waiting is done in Swift (a `probe` script every
 250 ms, each script run with a deadline), not in the page. Live-checked 2026-10-16 on the owner's own
 profiles: X in 2.2 s (four posts), LinkedIn in 1.2 s (name, headline, location).
+
+## ManageBac
+
+Read only, and the one reader that makes requests of its own (`App/Agent/ManageBac.swift`,
+`AgentService+ManageBac.swift`). The owner asked for it on 2026-10-16 for the school brain's sync
+(08:00 and 16:30 IST on mini), knowing ManageBac's terms forbid automated access; so the limits are
+Tabchat's, not the caller's:
+
+- **Service:** `managebac`, built in, asks for the school's address (`https://<school>.managebac.com`),
+  its own sign-in, stays loaded. The repo never holds a school's address.
+- **`get --tab ID --path PATH`** (read tier): one `fetch(path, {method: "GET", credentials: "include"})`
+  run in the tab's agent world, so the visible tab never moves and it works off screen. Only the tab's
+  own `https://<school>.managebac.com` origin; pages only under `/parent`; no `..`, no sign-out paths.
+  Returns `fetched`: the URL it ended at, status, content type, title, the text (scripts and styles
+  removed, one line per block, ≤ 50,000 characters) and the HTML (≤ 1.5 MB) for the caller to parse.
+- **`get --save`**: one same-origin file through the tab's own download machinery (`startDownload`,
+  its cookies), following redirects to storage hosts; web pages and files over 25 MB are refused before
+  anything is written. Saved to `~/Downloads/Tabchat/managebac/`, quarantined.
+- **Pace and budget** (`ManageBac.Gate`): one request at a time (`busy`), 2–5 s apart with jitter
+  (Tabchat waits), at most 40 in any hour (`rate`).
+- **Stops:** a sign-in page (by path, another host, a password form outside `/parent`) or a 401 gives
+  `signed-out` with an error starting `loggedOut:`; a 403, 429, Cloudflare challenge, 5xx or network
+  error gives `checkpoint`. Either stops every ManageBac request for an hour, with a toast in Tabchat.
+  No retries.
+- **Kill switch:** unticking the tab in Settings → Agents refuses everything at once.
+- Nothing in the actions tier: ManageBac has no `open`, `download`, `draft` or `send`.
 
 ## Live checks
 

@@ -772,6 +772,15 @@ whether it got there</td>
 <code>posts</code>, text; one a minute</td>
 </tr>
 <tr>
+<td><code>get</code></td>
+<td>read</td>
+<td><code>tab</code> (ManageBac), <code>path</code>, optional
+<code>save</code></td>
+<td><code>fetched</code>: url, status, contentType, title, text, html;
+with <code>save</code>, <code>file</code>: path, bytes, name,
+contentType</td>
+</tr>
+<tr>
 <td><code>inspect</code></td>
 <td>debug</td>
 <td><code>tab</code>, <code>selector</code></td>
@@ -1007,6 +1016,46 @@ never shown, so the waiting is done in Swift (a <code>probe</code>
 script every 250 ms, each script run with a deadline), not in the page.
 Live-checked 2026-10-16 on the owner's own profiles: X in 2.2 s (four
 posts), LinkedIn in 1.2 s (name, headline, location).</p>
+<h2 id="agent-api-managebac">ManageBac</h2>
+<p>Read only, and the one reader that makes requests of its own
+(<code>App/Agent/ManageBac.swift</code>,
+<code>AgentService+ManageBac.swift</code>). The owner asked for it on
+2026-10-16 for the school brain's sync (08:00 and 16:30 IST on mini),
+knowing ManageBac's terms forbid automated access; so the limits are
+Tabchat's, not the caller's:</p>
+<ul>
+<li><strong>Service:</strong> <code>managebac</code>, built in, asks for
+the school's address
+(<code>https://&lt;school&gt;.managebac.com</code>), its own sign-in,
+stays loaded. The repo never holds a school's address.</li>
+<li><strong><code>get --tab ID --path PATH</code></strong> (read tier):
+one <code>fetch(path, {method: "GET", credentials: "include"})</code>
+run in the tab's agent world, so the visible tab never moves and it
+works off screen. Only the tab's own
+<code>https://&lt;school&gt;.managebac.com</code> origin; pages only
+under <code>/parent</code>; no <code>..</code>, no sign-out paths.
+Returns <code>fetched</code>: the URL it ended at, status, content type,
+title, the text (scripts and styles removed, one line per block, ≤
+50,000 characters) and the HTML (≤ 1.5 MB) for the caller to parse.</li>
+<li><strong><code>get --save</code></strong>: one same-origin file
+through the tab's own download machinery (<code>startDownload</code>,
+its cookies), following redirects to storage hosts; web pages and files
+over 25 MB are refused before anything is written. Saved to
+<code>~/Downloads/Tabchat/managebac/</code>, quarantined.</li>
+<li><strong>Pace and budget</strong> (<code>ManageBac.Gate</code>): one
+request at a time (<code>busy</code>), 2–5 s apart with jitter (Tabchat
+waits), at most 40 in any hour (<code>rate</code>).</li>
+<li><strong>Stops:</strong> a sign-in page (by path, another host, a
+password form outside <code>/parent</code>) or a 401 gives
+<code>signed-out</code> with an error starting <code>loggedOut:</code>;
+a 403, 429, Cloudflare challenge, 5xx or network error gives
+<code>checkpoint</code>. Either stops every ManageBac request for an
+hour, with a toast in Tabchat. No retries.</li>
+<li><strong>Kill switch:</strong> unticking the tab in Settings → Agents
+refuses everything at once.</li>
+<li>Nothing in the actions tier: ManageBac has no <code>open</code>,
+<code>download</code>, <code>draft</code> or <code>send</code>.</li>
+</ul>
 <h2 id="agent-api-live-checks">Live checks</h2>
 <p>Run against the debug build, with the services ticked in Settings →
 Agents:</p>
@@ -1017,7 +1066,7 @@ $TA inspect --tab &lt;id&gt; --selector &#39;#main&#39;</code></pre>
 <p>Never paste real chat content, names or numbers into the repo, tests
 or issues.</p>
 </article>
-    <nav class="toc" aria-label="On this page"><div class="toc-title">On this page</div><a href="#agent-api-shape">Shape</a><a href="#agent-api-calls">Calls</a><a href="#agent-api-permissions">Permissions</a><a href="#agent-api-whatsapp-scripts">WhatsApp scripts</a><a href="#agent-api-discord-readers">Discord readers</a><a href="#agent-api-linkedin-readers">LinkedIn readers</a><a href="#agent-api-profiles">Profiles</a><a href="#agent-api-live-checks">Live checks</a></nav>
+    <nav class="toc" aria-label="On this page"><div class="toc-title">On this page</div><a href="#agent-api-shape">Shape</a><a href="#agent-api-calls">Calls</a><a href="#agent-api-permissions">Permissions</a><a href="#agent-api-whatsapp-scripts">WhatsApp scripts</a><a href="#agent-api-discord-readers">Discord readers</a><a href="#agent-api-linkedin-readers">LinkedIn readers</a><a href="#agent-api-profiles">Profiles</a><a href="#agent-api-managebac">ManageBac</a><a href="#agent-api-live-checks">Live checks</a></nav>
   </div>
   <footer class="pager"><a class="prev" href="#building">&larr; Building</a><span></span></footer>
 </section>
