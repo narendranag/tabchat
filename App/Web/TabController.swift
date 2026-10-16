@@ -355,6 +355,11 @@ extension TabController: WKDownloadDelegate {
         if let slot = agentDownload, slot.download == nil {
             slot.download = ObjectIdentifier(download)
             slot.source = response.url
+            if let reason = slot.check?(response) {
+                slot.failure = reason
+                completionHandler(nil)
+                return
+            }
             directory = slot.directory
             try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         }
@@ -379,7 +384,8 @@ extension TabController: WKDownloadDelegate {
     func download(_ download: WKDownload, didFailWithError error: Error, resumeData: Data?) {
         downloadNames[ObjectIdentifier(download)] = nil
         if let slot = agentDownload, slot.download == ObjectIdentifier(download) {
-            slot.failure = error.localizedDescription
+            // A file the slot refused is cancelled; keep the slot's reason, not "cancelled".
+            slot.failure = slot.failure ?? error.localizedDescription
         }
         model?.showToast("Download failed: \(error.localizedDescription)")
     }

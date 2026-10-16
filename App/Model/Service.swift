@@ -96,13 +96,22 @@ enum ServiceCatalog {
             defaultProfile: microsoftWork,
             defaultProfileName: "Microsoft (work)",
             asksForURL: true
-        )
+        ),
+        Service(id: "managebac", name: "ManageBac", url: nil, kind: .builtIn, asksForURL: true)
     ]
 
     static let custom = Service(id: "custom", name: "Website", url: nil, kind: .custom, asksForURL: true)
 
     /// Chat and mail tabs must stay loaded to deliver notifications, so they do not sleep unless asked.
-    private static let alwaysOn: Set<String> = ["whatsapp", "discord", "teams", "outlook-work", "outlook-personal", "linkedin"]
+    private static let alwaysOn: Set<String> = [
+        "whatsapp",
+        "discord",
+        "teams",
+        "outlook-work",
+        "outlook-personal",
+        "linkedin",
+        "managebac"
+    ]
 
     static func allowsSleepByDefault(serviceId: String) -> Bool {
         !alwaysOn.contains(serviceId)

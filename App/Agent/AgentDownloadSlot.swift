@@ -9,6 +9,8 @@ final class AgentDownloadSlot {
     var source: URL?
     var finished: URL?
     var failure: String?
+    /// Looks at the response before anything is saved; a reason refuses the file.
+    var check: ((URLResponse) -> String?)?
 
     init(directory: URL) {
         self.directory = directory

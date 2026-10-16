@@ -93,12 +93,20 @@ struct AddServiceSheet: View {
         })
     }
 
+    private func placeholder(_ service: Service) -> String {
+        switch service.id {
+        case "custom": "Address (example.com)"
+        case "managebac": "https://yourschool.managebac.com"
+        default: "https://yourschool.brightspace.com"
+        }
+    }
+
     private func form(for service: Service) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             if service.kind == .custom {
                 TextField("Name", text: $name)
             }
-            TextField(service.kind == .custom ? "Address (example.com)" : "https://yourschool.brightspace.com", text: $address)
+            TextField(placeholder(service), text: $address)
                 .onSubmit { submit(service) }
             incognitoToggle
             HStack {

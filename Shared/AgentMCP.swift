@@ -178,6 +178,23 @@ enum AgentMCP {
                     ],
                     "required": ["tab", "url"]
                 ]
+            ),
+            Tool(
+                name: "tabchat_get",
+                description: "Read only, ManageBac tabs: fetch one page under /parent with the tab's sign-in (url, status, "
+                    + "title, text, html), or with save, one attachment to ~/Downloads/Tabchat/managebac/. Tabchat paces "
+                    + "it (2–5 s apart, 40 an hour) and stops for an hour at a sign-in page (code signed-out) or a "
+                    + "403, 429, challenge or 5xx (code checkpoint): then stop." + untrustedNote,
+                call: .get,
+                schema: [
+                    "type": "object",
+                    "properties": [
+                        "tab": ["type": "string", "description": "The ManageBac tab id from tabchat_tabs."],
+                        "path": ["type": "string", "description": "A path under /parent, or a URL on the tab's site."],
+                        "save": ["type": "boolean", "description": "Save the file instead of returning text."]
+                    ],
+                    "required": ["tab", "path"]
+                ]
             )
         ]
     }
@@ -252,6 +269,8 @@ enum AgentMCP {
         request.readOnly = arguments["read_only"] as? Bool
         request.ifRead = arguments["if_read"] as? Bool
         request.url = arguments["url"] as? String
+        request.path = arguments["path"] as? String
+        request.save = arguments["save"] as? Bool
         if let minutes = (arguments["since_minutes"] as? NSNumber)?.doubleValue {
             request.sinceSeconds = minutes * 60
         }

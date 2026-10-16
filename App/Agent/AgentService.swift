@@ -21,6 +21,8 @@ final class AgentService {
     @ObservationIgnored private var inputMonitor: Any?
     /// When the last `profile` load started: one a minute at most.
     @ObservationIgnored var lastProfileLoad: Date?
+    /// ManageBac's pace, budget and stops.
+    @ObservationIgnored var manageBacGate = ManageBac.Gate()
     /// Asks the owner to confirm a `send`; replaced in tests.
     @ObservationIgnored var confirmSend: @MainActor (AgentSendRequest) async -> Bool = AgentSendConfirm.ask
     private let log: AgentLog
@@ -107,6 +109,8 @@ final class AgentService {
             return status(model: model, state: state)
         case .chats, .page, .inspect, .messages:
             return await read(request, model: model, state: state)
+        case .get:
+            return await manageBac(request, model: model, state: state)
         case .open, .download, .contact, .history, .draft, .send, .profile:
             return await act(request, model: model, state: state, client: client)
         }
@@ -215,7 +219,13 @@ final class AgentService {
     private static func itemCount(_ response: AgentResponse) -> Int {
         response.tabs?.count ?? response.feed?.count ?? response.chats?.count ?? response.counts?.chats
             ?? response.messages?
-            .count ?? ([response.page != nil, response.file != nil, response.contact != nil, response.profile != nil]
-                .contains(true) ? 1 : 0)
+            .count ?? ([
+                response.page != nil,
+                response.file != nil,
+                response.contact != nil,
+                response.profile != nil,
+                response.fetched != nil
+            ]
+            .contains(true) ? 1 : 0)
     }
 }

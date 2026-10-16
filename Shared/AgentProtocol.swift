@@ -36,6 +36,9 @@ enum AgentCall: String, Codable, Sendable, CaseIterable {
     /// Actions tier: load a LinkedIn (`https://www.linkedin.com/in/<slug>`) or X (`https://x.com/<handle>`)
     /// profile in a hidden web view that shares the tab's sign-in, and read its first screen. Nothing else.
     case profile
+    /// Read tier, ManageBac only: one same-origin GET of a parent page (`path`) with the tab's sign-in,
+    /// or with `save`, one attachment to `~/Downloads/Tabchat/managebac/`. Paced and budgeted in Tabchat.
+    case get
 }
 
 struct AgentRequest: Codable, Equatable, Sendable {
@@ -66,6 +69,10 @@ struct AgentRequest: Codable, Equatable, Sendable {
     var text: String?
     /// `profile`: the profile's address.
     var url: String?
+    /// `get`: a path (or same-origin URL) on the tab's site.
+    var path: String?
+    /// `get`: save the response as a file instead of returning its text.
+    var save: Bool?
 }
 
 struct AgentTabInfo: Codable, Equatable, Sendable {
@@ -194,6 +201,22 @@ struct AgentContact: Codable, Equatable, Sendable {
 struct AgentFile: Codable, Equatable, Sendable {
     var path: String
     var bytes: Int
+    /// `get --save`: the file's name and type as the server gave them.
+    var name: String?
+    var contentType: String?
+}
+
+struct AgentFetched: Codable, Equatable, Sendable {
+    /// Where the request ended, after redirects.
+    var url: String
+    var status: Int
+    var contentType: String
+    var title: String
+    /// The page's text, one line per block, at most 50,000 characters.
+    var text: String
+    /// The HTML as served (scripts included), at most 1,500,000 characters; "" for other types.
+    var html: String
+    var truncated: Bool
 }
 
 struct AgentPage: Codable, Equatable, Sendable {
@@ -234,6 +257,8 @@ struct AgentResponse: Codable, Equatable, Sendable {
     var chatProfile: String?
     /// `profile`: the profile read.
     var profile: AgentProfile?
+    /// `get`: the page fetched.
+    var fetched: AgentFetched?
 
     static func failure(_ error: String, code: AgentErrorCode = .failed) -> AgentResponse {
         AgentResponse(ok: false, error: error, code: code.rawValue)
