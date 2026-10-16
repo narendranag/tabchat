@@ -24,7 +24,9 @@ extension AgentService {
         if case let .failure(error) = AgentResponder.actionTab(for: request, in: state) {
             return .failure(error.text, code: error.code)
         }
-        guard !ownerActive else { return Self.ownerActiveFailure }
+        if let refusal = ownerActiveRefusal {
+            return refusal
+        }
         guard let date = AgentResponder.isoDate(since) else { return .failure("--since takes an ISO 8601 time", code: .refused) }
         let day = Calendar.current.dateComponents([.year, .month, .day], from: date)
         let sinceDay = String(format: "%04d-%02d-%02d", day.year ?? 0, day.month ?? 0, day.day ?? 0)
@@ -36,8 +38,15 @@ extension AgentService {
         )
     }
 
-    static var ownerActiveFailure: AgentResponse {
-        .failure("the owner is using Tabchat; try again when they have been away for two minutes", code: .ownerActive)
+    /// The `owner-active` refusal while the owner is using Tabchat, with `retryAfter`; nil otherwise.
+    var ownerActiveRefusal: AgentResponse? {
+        guard let wait = ownerActiveFor else { return nil }
+        var response = AgentResponse.failure(
+            "the owner is using Tabchat; try again in \(wait) s (two minutes after their last input)",
+            code: .ownerActive
+        )
+        response.retryAfter = wait
+        return response
     }
 
     /// `open` and `history` on a LinkedIn tab. Opening a thread may mark it read.
@@ -45,7 +54,9 @@ extension AgentService {
         guard request.call == .open || request.call == .history else {
             return .failure("LinkedIn is read only here: its actions are open, history and profile", code: .refused)
         }
-        guard !ownerActive else { return Self.ownerActiveFailure }
+        if let refusal = ownerActiveRefusal {
+            return refusal
+        }
         let webView = controller.webView
         let now = Date().timeIntervalSince1970 * 1000
         if request.call == .history {
@@ -109,10 +120,14 @@ extension AgentService {
             let name = target.site == "x" ? "an X" : "a LinkedIn"
             return .failure("that profile needs \(name) tab (its sign-in is used)", code: .refused)
         }
-        guard !ownerActive else { return Self.ownerActiveFailure }
+        if let refusal = ownerActiveRefusal {
+            return refusal
+        }
         if let last = lastProfileLoad, Date().timeIntervalSince(last) < 60 {
             let wait = Int((60 - Date().timeIntervalSince(last)).rounded(.up))
-            return .failure("one profile a minute; try again in \(wait) s", code: .rate)
+            var response = AgentResponse.failure("one profile a minute; try again in \(wait) s", code: .rate)
+            response.retryAfter = wait
+            return response
         }
         lastProfileLoad = Date()
         model.showToast("Agent reading a \(target.site == "x" ? "X" : "LinkedIn") profile")

@@ -16,8 +16,10 @@ final class AgentService {
     @ObservationIgnored private var server: AgentSocketServer?
     /// A `send` is waiting for the owner; a second one is refused until it is answered.
     @ObservationIgnored var sendPending = false
-    /// The owner's last keyboard or mouse input in Tabchat, for `status`.
-    @ObservationIgnored private var lastInput: Date?
+    /// The owner's last keyboard or mouse input in Tabchat (hardware only), for `status`.
+    @ObservationIgnored private var lastOwnerInput: Date?
+    /// The last synthetic input (an agent driving the UI), apart from the owner's.
+    @ObservationIgnored private var lastAgentInput: Date?
     @ObservationIgnored private var inputMonitor: Any?
     /// When the last `profile` load started: one a minute at most.
     @ObservationIgnored var lastProfileLoad: Date?
@@ -37,7 +39,10 @@ final class AgentService {
         self.model = model
         let input: NSEvent.EventTypeMask = [.keyDown, .leftMouseDown, .rightMouseDown, .scrollWheel]
         inputMonitor = NSEvent.addLocalMonitorForEvents(matching: input) { [weak self] event in
-            self?.lastInput = Date()
+            switch AgentInput.source(of: event) {
+            case .owner: self?.lastOwnerInput = Date()
+            case .agent: self?.lastAgentInput = Date()
+            }
             return event
         }
         log.trim(now: Date())
@@ -164,11 +169,13 @@ final class AgentService {
         }
     }
 
-    /// The owner typed or clicked in Tabchat in the last two minutes and it is in front. LinkedIn and X
-    /// actions wait until they stop; WhatsApp's callers check `status` themselves.
-    var ownerActive: Bool {
-        guard NSApp.isActive, MainWindow.shared.window?.isKeyWindow == true, let lastInput else { return false }
-        return Date().timeIntervalSince(lastInput) < 120
+    /// While the owner has typed or clicked in Tabchat in the last two minutes and it is in front, the
+    /// seconds until they count as away; nil otherwise. LinkedIn and X actions wait until then;
+    /// WhatsApp's callers check `status` themselves. An agent's synthetic input never counts.
+    var ownerActiveFor: Int? {
+        guard NSApp.isActive, MainWindow.shared.window?.isKeyWindow == true, let lastOwnerInput else { return nil }
+        let left = AgentInput.ownerWindow - Date().timeIntervalSince(lastOwnerInput)
+        return left > 0 ? Int(left.rounded(.up)) : nil
     }
 
     private func status(model: AppModel, state: AppState) -> AgentResponse {
@@ -178,7 +185,8 @@ final class AgentService {
         let window = MainWindow.shared.window
         var response = AgentResponse(ok: true, status: AgentStatus(
             focused: NSApp.isActive && window?.isKeyWindow == true,
-            tabchatInputSecondsAgo: lastInput.map { Date().timeIntervalSince($0) },
+            tabchatInputSecondsAgo: lastOwnerInput.map { Date().timeIntervalSince($0) },
+            agentInputSecondsAgo: lastAgentInput.map { Date().timeIntervalSince($0) },
             macIdleSeconds: idle, selectedTab: selected, sendPending: sendPending
         ))
         response.tabs = AgentResponder.tabs(

@@ -94,8 +94,11 @@ struct AgentTabInfo: Codable, Equatable, Sendable {
 struct AgentStatus: Codable, Equatable, Sendable {
     /// Tabchat is the frontmost app and its main window is focused.
     var focused: Bool
-    /// Seconds since the owner last typed or clicked in Tabchat; nil before the first input.
+    /// Seconds since the owner last typed or clicked in Tabchat; nil before the first input. Only the
+    /// owner's hardware input counts, never an agent's synthetic events.
     var tabchatInputSecondsAgo: Double?
+    /// Seconds since synthetic input (an agent driving Tabchat's UI); nil before the first.
+    var agentInputSecondsAgo: Double?
     /// Seconds since any keyboard or mouse input on this Mac.
     var macIdleSeconds: Double
     /// The tab shown in Tabchat, if an agent may read it.
@@ -308,6 +311,8 @@ struct AgentResponse: Codable, Equatable, Sendable {
     var fetched: AgentFetched?
     /// `feedback`: the teacher's annotations.
     var feedback: AgentFeedback?
+    /// `owner-active` and `rate`: seconds until the call may succeed.
+    var retryAfter: Int?
 
     static func failure(_ error: String, code: AgentErrorCode = .failed) -> AgentResponse {
         AgentResponse(ok: false, error: error, code: code.rawValue)
