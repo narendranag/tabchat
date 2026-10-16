@@ -39,6 +39,10 @@ enum AgentCall: String, Codable, Sendable, CaseIterable {
     /// Read tier, ManageBac only: one same-origin GET of a parent page (`path`) with the tab's sign-in,
     /// or with `save`, one attachment to `~/Downloads/Tabchat/managebac/`. Paced and budgeted in Tabchat.
     case get
+    /// Read tier, ManageBac only: the teacher's annotations on a submitted file, read from the feedback
+    /// viewer (`path` is the task page's `/document_previews/modal/<token>`) loaded read-only in a hidden
+    /// web view. With `save`, also the annotated PDF to `~/Downloads/Tabchat/managebac/`.
+    case feedback
 }
 
 struct AgentRequest: Codable, Equatable, Sendable {
@@ -226,6 +230,49 @@ struct AgentPage: Codable, Equatable, Sendable {
     var truncated: Bool
 }
 
+/// ManageBac `feedback`: what a teacher drew and wrote on a submitted file.
+struct AgentFeedback: Codable, Equatable, Sendable {
+    /// The file's name as the viewer titles it.
+    var name: String
+    var pages: Int
+    /// Each page's size in PDF points, so positions can be read as fractions of the page.
+    var pageSizes: [AgentPageSize]
+    var annotations: [AgentAnnotation]
+    var truncated: Bool
+}
+
+struct AgentPageSize: Codable, Equatable, Sendable {
+    var width: Double
+    var height: Double
+}
+
+struct AgentAnnotation: Codable, Equatable, Sendable {
+    var id: String
+    /// 1 for the first page.
+    var page: Int
+    /// The viewer's kind, without its prefix: highlight, underline, strikeout, squiggle, ink, note, text,
+    /// rectangle, ellipse, line, polygon, polyline, stamp, image.
+    var type: String
+    /// Left, top, width and height in PDF points from the page's top left.
+    var rect: [Double]
+    /// The words written: a note's or text box's text, or the comment attached to a mark.
+    var text: String?
+    /// For highlights, underlines and strike-outs: the words of the page under the mark.
+    var quoted: String?
+    var color: String?
+    var author: String?
+    var created: String?
+    var updated: String?
+    /// Replies in the viewer's comment thread on this annotation, oldest first.
+    var comments: [AgentAnnotationComment]?
+}
+
+struct AgentAnnotationComment: Codable, Equatable, Sendable {
+    var text: String
+    var author: String?
+    var created: String?
+}
+
 struct AgentResponse: Codable, Equatable, Sendable {
     var ok: Bool
     var error: String?
@@ -259,6 +306,8 @@ struct AgentResponse: Codable, Equatable, Sendable {
     var profile: AgentProfile?
     /// `get`: the page fetched.
     var fetched: AgentFetched?
+    /// `feedback`: the teacher's annotations.
+    var feedback: AgentFeedback?
 
     static func failure(_ error: String, code: AgentErrorCode = .failed) -> AgentResponse {
         AgentResponse(ok: false, error: error, code: code.rawValue)

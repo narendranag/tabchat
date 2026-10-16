@@ -195,6 +195,24 @@ enum AgentMCP {
                     ],
                     "required": ["tab", "path"]
                 ]
+            ),
+            Tool(
+                name: "tabchat_feedback",
+                description: "Read only, ManageBac tabs: the teacher's annotations on a submitted file. path is the "
+                    + "/document_previews/modal/<token> from a task page's View Teacher Feedback button "
+                    + "(data-pdf-preview-url-value). Returns feedback.annotations (page, type, rect in PDF points, "
+                    + "text, quoted words, author, comments); with save, also the annotated PDF. Paced and budgeted "
+                    + "like tabchat_get (it counts as two requests), with the same stop codes." + untrustedNote,
+                call: .feedback,
+                schema: [
+                    "type": "object",
+                    "properties": [
+                        "tab": ["type": "string", "description": "The ManageBac tab id from tabchat_tabs."],
+                        "path": ["type": "string", "description": "/document_previews/modal/<token>, from the task page."],
+                        "save": ["type": "boolean", "description": "Also save the annotated PDF."]
+                    ],
+                    "required": ["tab", "path"]
+                ]
             )
         ]
     }

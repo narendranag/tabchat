@@ -28,6 +28,13 @@ final class ManageBacTests: XCTestCase {
             XCTAssertNil(path(refused), refused)
         }
         XCTAssertNil(path("/sessions/sign_out", save: true))
+        XCTAssertEqual(path("/document_previews/modal/eyJmYWtlIjoxfQ--0a1b2c"), "/document_previews/modal/eyJmYWtlIjoxfQ--0a1b2c")
+        for refused in [
+            "/document_previews", "/document_previews/modal/", "/document_previews/modal/a/b",
+            "/document_previews/other/abc", "/document_previews/modal/../../admin"
+        ] {
+            XCTAssertNil(path(refused), refused)
+        }
         let cdn = "https://cdn.ca.managebac.com/uploads/asset/file/1/plan.pdf?Expires=1&Signature=abc"
         XCTAssertEqual(path(cdn, save: true), cdn)
         let bucket = "https://managebac-ca-prod.s3.ca-central-1.amazonaws.com/blobs/a/b?X-Amz-Expires=300"

@@ -39,36 +39,91 @@ extension AgentService {
         if let refusal = manageBacGate.refusal(now: Date()) {
             return refusal
         }
+        // feedback: the modal, the viewer and, with save, the annotated PDF.
+        let needed = request.call == .feedback ? (save ? 3 : 2) : 1
+        guard manageBacGate.left(now: Date()) >= needed else {
+            return .failure("feedback needs \(needed) requests and the ManageBac budget has fewer left", code: .rate)
+        }
         manageBacGate.busy = true
         defer { manageBacGate.busy = false }
-        let pause = manageBacGate.wait(now: Date(), jitter: Double.random(in: 0 ... 1))
-        if pause > 0 {
-            try? await Task.sleep(for: .seconds(pause))
-        }
-        manageBacGate.record(now: Date())
+        await manageBacPace()
         let response: AgentResponse
         let problem: (AgentErrorCode, String)?
-        if save {
+        if request.call == .feedback {
+            (response, problem) = await manageBacFeedback(path: path, origin: origin, controller: controller, save: save)
+        } else if save {
             (response, problem) = await manageBacSave(path: path, origin: origin, controller: controller)
         } else {
-            do {
-                let json = try await PageReaders.run(ManageBac.get, arguments: [
-                    "path": path, "maxText": ManageBac.maxText, "maxHTML": ManageBac.maxHTML
-                ], in: controller.webView)
-                (response, problem) = ManageBac.response(json: json, origin: origin)
-            } catch {
-                // A network error inside the page: stop too, rather than try again.
-                (response, problem) = (
-                    .failure("network: \(error.localizedDescription); stopped for an hour", code: .checkpoint),
-                    (.checkpoint, "network: the request failed")
-                )
-            }
+            (response, problem) = await manageBacGet(path: path, origin: origin, controller: controller)
         }
         if let problem {
             manageBacGate.stop(problem.0, problem.1, now: Date())
             model.showToast("ManageBac reader stopped: \(problem.1)")
         }
         return response
+    }
+
+    /// Waits 2–5 s after the last request, then counts this one.
+    private func manageBacPace() async {
+        let pause = manageBacGate.wait(now: Date(), jitter: Double.random(in: 0 ... 1))
+        if pause > 0 {
+            try? await Task.sleep(for: .seconds(pause))
+        }
+        manageBacGate.record(now: Date())
+    }
+
+    private func manageBacGet(
+        path: String, origin: URL, controller: TabController
+    ) async -> (AgentResponse, (AgentErrorCode, String)?) {
+        do {
+            let json = try await PageReaders.run(ManageBac.get, arguments: [
+                "path": path, "maxText": ManageBac.maxText, "maxHTML": ManageBac.maxHTML
+            ], in: controller.webView)
+            return ManageBac.response(json: json, origin: origin)
+        } catch {
+            // A network error inside the page: stop too, rather than try again.
+            return (
+                .failure("network: \(error.localizedDescription); stopped for an hour", code: .checkpoint),
+                (.checkpoint, "network: the request failed")
+            )
+        }
+    }
+
+    /// The modal (one request), then the viewer in a hidden view (one more), then with `save` the
+    /// annotated PDF (a third). A viewer that fails is that call's failure; it does not stop the run.
+    private func manageBacFeedback(
+        path: String, origin: URL, controller: TabController, save: Bool
+    ) async -> (AgentResponse, (AgentErrorCode, String)?) {
+        guard ManageBac.isFeedbackViewer(path.lowercased()) else {
+            return (.failure("feedback takes the task page's /document_previews/modal/<token>", code: .refused), nil)
+        }
+        let (modal, problem) = await manageBacGet(path: path, origin: origin, controller: controller)
+        guard modal.ok else { return (modal, problem) }
+        guard let viewer = ManageBacFeedback.viewer(modal: modal.fetched?.text ?? "") else {
+            return (.failure("the feedback viewer holds no document (or ManageBac changed it)"), nil)
+        }
+        await manageBacPace()
+        var response: AgentResponse
+        do {
+            response = try await ManageBacFeedback.read(
+                viewer, origin: origin, dataStore: controller.webView.configuration.websiteDataStore
+            )
+        } catch {
+            return (.failure("the feedback viewer failed: \(error.localizedDescription)"), nil)
+        }
+        guard response.ok, save else { return (response, nil) }
+        guard let pdf = viewer.annotatedPDF else {
+            response.note = "the viewer offers no annotated PDF; nothing saved"
+            return (response, nil)
+        }
+        await manageBacPace()
+        let (saved, stop) = await manageBacSave(path: pdf.absoluteString, origin: origin, controller: controller)
+        if saved.ok {
+            response.file = saved.file
+        } else {
+            response.note = "annotations read; the annotated PDF was not saved: \(saved.error ?? "")"
+        }
+        return (response, stop)
     }
 
     /// One attachment, fetched by the tab's own download machinery with its cookies. Redirects to

@@ -60,11 +60,17 @@ enum ManageBac {
               !decoded.split(separator: "/").contains(".."),
               decoded.range(of: #"log_?out|sign_?out"#, options: .regularExpression) == nil
         else { return .failure(refused) }
-        if !save, decoded != "/parent", !decoded.hasPrefix("/parent/") {
+        if !save, decoded != "/parent", !decoded.hasPrefix("/parent/"), !isFeedbackViewer(decoded) {
             return .failure(refused)
         }
         let query = parts.percentEncodedQuery.map { "?" + $0 } ?? ""
         return .success(path + query)
+    }
+
+    /// The teacher-feedback viewer behind a task's "View Teacher Feedback" button, the one page
+    /// outside `/parent` that `get` reads (DECISIONS.md, 2026-10-16).
+    static func isFeedbackViewer(_ decodedPath: String) -> Bool {
+        decodedPath.range(of: #"^/document_previews/modal/[a-z0-9_+=-]+$"#, options: .regularExpression) != nil
     }
 
     /// What a response says about the run: nil when it can go on, else why it must stop.
@@ -139,6 +145,11 @@ enum ManageBac {
         func wait(now: Date, jitter: Double) -> TimeInterval {
             guard let last = times.last else { return 0 }
             return max(0, last.addingTimeInterval(2 + 3 * min(max(jitter, 0), 1)).timeIntervalSince(now))
+        }
+
+        /// Requests the budget still allows this hour.
+        func left(now: Date) -> Int {
+            ManageBac.budget - times.filter { now.timeIntervalSince($0) < ManageBac.window }.count
         }
 
         mutating func record(now: Date) {

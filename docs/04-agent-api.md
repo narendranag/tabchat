@@ -225,6 +225,21 @@ Tabchat's, not the caller's:
   Web pages and files over 25 MB are refused before anything is written; an expired storage link
   (400 or 403 from storage) fails alone without stopping the run. Saved to
   `~/Downloads/Tabchat/managebac/`, quarantined.
+- **`feedback --tab ID --path /document_previews/modal/<token> [--save]`** (`ManageBacFeedback.swift`):
+  the teacher's annotations on a submitted file. A task page's "View Teacher Feedback" button carries
+  the path (`data-pdf-preview-url-value`); `get` may read that one path outside `/parent` too. Its
+  answer is a script naming the document, a short-lived token and the document server
+  (`https://pspdfkit-<region>.prod.faria.co/`, PSPDFKit). Tabchat loads PSPDFKit's own viewer
+  script (`https://assets.prod.faria.co/pspdfkit.js`) into an empty page on the tab's origin, in a
+  hidden view sharing the tab's sign-in; opens the document read-only with auto-save off; reads each
+  page's annotations and comment threads; and closes it. Nothing is ever written back. Returns
+  `feedback`: `name`, `pages`, `pageSizes` (PDF points) and `annotations[]` with `id`, `page` (from 1),
+  `type` (highlight, underline, strikeout, ink, note, text, rectangle…), `rect` (left, top, width,
+  height in points from the top left), `text`, `quoted` (the words under a highlight), `color`,
+  `author`, `created`, `updated` and `comments[]` (`text`, `author`, `created`). `--save` also saves the
+  annotated PDF from the document server. It counts as two requests (three with `--save`) and is
+  refused with `rate` when the hour's budget has fewer left. A viewer that fails is that call's
+  `failed`, not a stop. Approved by the owner on 2026-10-16.
 - **Pace and budget** (`ManageBac.Gate`): one request at a time (`busy`), 2–5 s apart with jitter
   (Tabchat waits), at most 40 in any hour (`rate`).
 - **Stops:** a sign-in page (by path, another host, a password form outside `/parent`) or a 401 gives
@@ -237,6 +252,9 @@ Tabchat's, not the caller's:
   (0.5–3 s each with the pacing), and a `.docx` saved from the CDN. `/parent/notifications` holds no
   items: the bell's notifications come from a separate Faria service on another host, which `get`
   does not reach; the class streams carry the same posts and files.
+- `feedback` live-checked 2026-10-16 on one task: the viewer opened (5 pages, 9–20 s with the pacing)
+  and the annotated PDF saved, but the document server held no annotations or comments for it, so
+  whatever marks that file shows are part of the PDF itself.
 
 ## Live checks
 

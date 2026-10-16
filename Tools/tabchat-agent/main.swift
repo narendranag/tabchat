@@ -56,6 +56,12 @@ for an hour at a sign-in page, 401, 403, 429, challenge page or 5xx):
   get --tab ID --path PATH --save
                                 one attachment → ~/Downloads/Tabchat/managebac/ (≤ 25 MB, quarantined);
                                 replies with file.path, bytes, name, contentType
+  feedback --tab ID --path /document_previews/modal/<token> [--save]
+                                the teacher's annotations on a submitted file (the task page's "View
+                                Teacher Feedback" button, data-pdf-preview-url-value), read from the
+                                viewer in a hidden view: feedback.annotations[] with page, type, rect,
+                                text, quoted, author, comments. --save also saves the annotated PDF.
+                                Counts as two requests.
 
   mcp                           serve the same calls as MCP tools over stdio
 
@@ -89,7 +95,7 @@ func send(_ request: AgentRequest) -> AgentResponse {
     // Actions wait for WhatsApp: a download up to a minute, history a few seconds a screen.
     // `send` waits for your answer in Tabchat (up to 5 minutes).
     // `chats --since` scrolls the whole list, which takes longer than a read.
-    let acting = [.open, .download, .contact, .history, .draft, .profile, .get].contains(request.call)
+    let acting = [.open, .download, .contact, .history, .draft, .profile, .get, .feedback].contains(request.call)
         || request.since != nil
     var timeout = timeval(tv_sec: request.call == .send ? 360 : acting ? 120 : 15, tv_usec: 0)
     setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, socklen_t(MemoryLayout<timeval>.size))

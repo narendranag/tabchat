@@ -13,6 +13,7 @@
 
 ## Next
 
+- [ ] ManageBac `feedback`: live-check on a task whose viewer shows marks drawn in ManageBac (the first example's document server held none) #agent-api
 - [ ] Live-check LinkedIn `open --chat <thread id>` (Narendra; auto mode blocks Claude from opening threads) #agent-api
 
 - [ ] Agent API: videos in `download` (no chat with a video tried yet); albums holding more photos than they show #agent-api
@@ -34,6 +35,7 @@
 
 ## Done
 
+- [x] ManageBac `feedback`: teacher annotations through the PSPDFKit viewer, read-only in a hidden view; annotated PDF with --save — 2026-10-16
 - [x] v0.4.0: ManageBac service and paced read-only `get` (pages under /parent, files from ManageBac storage), live-checked; school-68 told — 2026-10-16
 
 - [x] v0.3.0 released: LinkedIn messaging readers and `profile` for LinkedIn and X, error codes (live-checked except `open` by thread id) — 2026-10-16

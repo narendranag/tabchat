@@ -1047,6 +1047,32 @@ files over 25 MB are refused before anything is written; an expired
 storage link (400 or 403 from storage) fails alone without stopping the
 run. Saved to <code>~/Downloads/Tabchat/managebac/</code>,
 quarantined.</li>
+<li><strong><code>feedback --tab ID --path /document_previews/modal/&lt;token&gt; [--save]</code></strong>
+(<code>ManageBacFeedback.swift</code>): the teacher's annotations on a
+submitted file. A task page's "View Teacher Feedback" button carries the
+path (<code>data-pdf-preview-url-value</code>); <code>get</code> may
+read that one path outside <code>/parent</code> too. Its answer is a
+script naming the document, a short-lived token and the document server
+(<code>https://pspdfkit-&lt;region&gt;.prod.faria.co/</code>, PSPDFKit).
+Tabchat loads PSPDFKit's own viewer script
+(<code>https://assets.prod.faria.co/pspdfkit.js</code>) into an empty
+page on the tab's origin, in a hidden view sharing the tab's sign-in;
+opens the document read-only with auto-save off; reads each page's
+annotations and comment threads; and closes it. Nothing is ever written
+back. Returns <code>feedback</code>: <code>name</code>,
+<code>pages</code>, <code>pageSizes</code> (PDF points) and
+<code>annotations[]</code> with <code>id</code>, <code>page</code> (from
+1), <code>type</code> (highlight, underline, strikeout, ink, note, text,
+rectangle…), <code>rect</code> (left, top, width, height in points from
+the top left), <code>text</code>, <code>quoted</code> (the words under a
+highlight), <code>color</code>, <code>author</code>,
+<code>created</code>, <code>updated</code> and <code>comments[]</code>
+(<code>text</code>, <code>author</code>, <code>created</code>).
+<code>--save</code> also saves the annotated PDF from the document
+server. It counts as two requests (three with <code>--save</code>) and
+is refused with <code>rate</code> when the hour's budget has fewer left.
+A viewer that fails is that call's <code>failed</code>, not a stop.
+Approved by the owner on 2026-10-16.</li>
 <li><strong>Pace and budget</strong> (<code>ManageBac.Gate</code>): one
 request at a time (<code>busy</code>), 2–5 s apart with jitter (Tabchat
 waits), at most 40 in any hour (<code>rate</code>).</li>
@@ -1067,6 +1093,10 @@ and a <code>.docx</code> saved from the CDN.
 notifications come from a separate Faria service on another host, which
 <code>get</code> does not reach; the class streams carry the same posts
 and files.</li>
+<li><code>feedback</code> live-checked 2026-10-16 on one task: the
+viewer opened (5 pages, 9–20 s with the pacing) and the annotated PDF
+saved, but the document server held no annotations or comments for it,
+so whatever marks that file shows are part of the PDF itself.</li>
 </ul>
 <h2 id="agent-api-live-checks">Live checks</h2>
 <p>Run against the debug build, with the services ticked in Settings →
