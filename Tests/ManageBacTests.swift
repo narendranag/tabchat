@@ -28,6 +28,17 @@ final class ManageBacTests: XCTestCase {
             XCTAssertNil(path(refused), refused)
         }
         XCTAssertNil(path("/sessions/sign_out", save: true))
+        let cdn = "https://cdn.ca.managebac.com/uploads/asset/file/1/plan.pdf?Expires=1&Signature=abc"
+        XCTAssertEqual(path(cdn, save: true), cdn)
+        let bucket = "https://managebac-ca-prod.s3.ca-central-1.amazonaws.com/blobs/a/b?X-Amz-Expires=300"
+        XCTAssertEqual(path(bucket, save: true), bucket)
+        XCTAssertNil(path(cdn))
+        for refused in [
+            "https://cdn.ca.managebac.com/assets/app.js", "https://evil-managebac.s3.amazonaws.com/x",
+            "https://managebac-ca-prod.s3.ca-central-1.amazonaws.com.evil.example/x", "http://cdn.ca.managebac.com/uploads/x"
+        ] {
+            XCTAssertNil(path(refused, save: true), refused)
+        }
         XCTAssertTrue(ManageBac.isManageBac(URL(string: "https://example-school.managebac.com/parent")))
         XCTAssertFalse(ManageBac.isManageBac(URL(string: "https://managebac.com.evil.example/")))
         XCTAssertFalse(ManageBac.isManageBac(URL(string: "http://example-school.managebac.com/")))
@@ -47,6 +58,37 @@ final class ManageBacTests: XCTestCase {
         }
         let challenge = "<html><head><title>Just a moment...</title></head></html>"
         XCTAssertEqual(ManageBac.trouble(status: 200, finalURL: page, origin: origin, html: challenge)?.0, .checkpoint)
+    }
+
+    func testFileRefusals() throws {
+        let cdn = try XCTUnwrap(URL(string: "https://cdn.ca.managebac.com/uploads/asset/file/1/plan.pdf"))
+        let login = try XCTUnwrap(URL(string: "https://example-school.managebac.com/login"))
+        XCTAssertNil(ManageBac.fileRefusal(
+            status: 200,
+            mimeType: "application/pdf",
+            url: cdn,
+            expectedLength: 1000,
+            origin: origin
+        ))
+        let expired = ManageBac.fileRefusal(status: 403, mimeType: "application/xml", url: cdn, expectedLength: 0, origin: origin)
+        XCTAssertNotNil(expired)
+        XCTAssertNil(expired?.stop)
+        XCTAssertEqual(
+            ManageBac.fileRefusal(status: 200, mimeType: "text/html", url: login, expectedLength: 0, origin: origin)?.stop?.0,
+            .signedOut
+        )
+        XCTAssertEqual(
+            ManageBac.fileRefusal(status: 429, mimeType: "text/plain", url: origin, expectedLength: 0, origin: origin)?.stop?.0,
+            .checkpoint
+        )
+        let big = ManageBac.fileRefusal(
+            status: 200,
+            mimeType: "application/pdf",
+            url: cdn,
+            expectedLength: 30_000_000,
+            origin: origin
+        )
+        XCTAssertEqual(big?.reason, "the file is larger than 25 MB")
     }
 
     func testGate() {

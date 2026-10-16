@@ -85,25 +85,13 @@ extension AgentService {
         var problem: (AgentErrorCode, String)?
         var type = ""
         slot.check = { response in
-            let http = response as? HTTPURLResponse
             type = response.mimeType ?? ""
-            let html = type.contains("html")
-            if let found = ManageBac.trouble(
-                status: http?.statusCode ?? 200, finalURL: html ? response.url : origin, origin: origin, html: nil
-            ) {
-                problem = found
-                return found.1
-            }
-            if html {
-                return "that address is a web page, not a file; use get without --save"
-            }
-            if let status = http?.statusCode, !(200 ..< 300).contains(status) {
-                return "ManageBac answered \(status)"
-            }
-            if response.expectedContentLength > ManageBac.maxFileBytes {
-                return "the file is larger than 25 MB"
-            }
-            return nil
+            let found = ManageBac.fileRefusal(
+                status: (response as? HTTPURLResponse)?.statusCode ?? 200, mimeType: type, url: response.url,
+                expectedLength: response.expectedContentLength, origin: origin
+            )
+            problem = found?.stop
+            return found?.reason
         }
         controller.agentDownload = slot
         defer { controller.agentDownload = nil }

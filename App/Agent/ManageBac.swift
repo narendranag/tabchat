@@ -20,8 +20,22 @@ enum ManageBac {
         return host.hasSuffix(".managebac.com")
     }
 
+    /// ManageBac's own file storage, where class materials link straight to signed URLs: its CDN's
+    /// `/uploads/` and its S3 buckets (seen live 2026-10-16). Only `save` may go there.
+    static func isStorage(_ parts: URLComponents) -> Bool {
+        guard parts.scheme == "https", parts.port == nil, parts.user == nil, let host = parts.host?.lowercased() else {
+            return false
+        }
+        let cdn = host.range(of: #"^cdn(\.[a-z0-9-]+)?\.managebac\.com$"#, options: .regularExpression) != nil
+            && parts.percentEncodedPath.hasPrefix("/uploads/")
+        let bucket = host
+            .range(of: #"^managebac-[a-z0-9-]+\.s3[.-][a-z0-9.-]*amazonaws\.com$"#, options: .regularExpression) != nil
+        return cdn || bucket
+    }
+
     /// The path a `get` may ask for, on `origin`: a relative path or a same-origin URL, under `/parent`
-    /// for pages (any same-origin path for `save`), no `..`, never a sign-out.
+    /// for pages (any same-origin path for `save`), no `..`, never a sign-out. For `save`, also a full
+    /// URL on ManageBac's storage, returned whole (its signature is in the query).
     static func path(_ raw: String, origin: URL, save: Bool) -> Result<String, AgentError> {
         let refused = AgentError.coded(
             save ? "get --save takes a ManageBac path or URL on the tab's own site"
@@ -30,6 +44,10 @@ enum ManageBac {
         )
         let text = raw.trimmingCharacters(in: .whitespaces)
         guard var parts = URLComponents(string: text) else { return .failure(refused) }
+        if save, parts.host?.lowercased() != origin.host?.lowercased(), isStorage(parts) {
+            parts.fragment = nil
+            return parts.string.map { .success($0) } ?? .failure(refused)
+        }
         if parts.scheme != nil || parts.host != nil {
             guard parts.scheme == "https", parts.host?.lowercased() == origin.host?.lowercased(),
                   parts.port == nil, parts.user == nil, parts.password == nil
@@ -69,6 +87,30 @@ enum ManageBac {
         case 500...: return (.checkpoint, "serverError: ManageBac answered \(status); stopped for an hour")
         default: return nil
         }
+    }
+
+    /// Why a downloaded response may not be saved, and whether that stops the run.
+    static func fileRefusal(
+        status: Int, mimeType: String, url: URL?, expectedLength: Int64, origin: URL
+    ) -> (reason: String, stop: (AgentErrorCode, String)?)? {
+        let html = mimeType.contains("html")
+        // Storage refuses an expired signed link with 400 or 403: that link failed, not the run.
+        if url?.host?.lowercased() != origin.host?.lowercased(), !html, status == 400 || status == 403 {
+            return ("the storage link answered \(status) (signed links expire); get the page again for a fresh one", nil)
+        }
+        if let found = trouble(status: status, finalURL: html ? url : origin, origin: origin, html: nil) {
+            return (found.1, found)
+        }
+        if html {
+            return ("that address is a web page, not a file; use get without --save", nil)
+        }
+        if !(200 ..< 300).contains(status) {
+            return ("ManageBac answered \(status)", nil)
+        }
+        if expectedLength > maxFileBytes {
+            return ("the file is larger than 25 MB", nil)
+        }
+        return nil
     }
 
     /// The pace and budget, kept for the app's life. Pure, so it can be tested.
