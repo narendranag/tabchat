@@ -300,6 +300,11 @@
           "anchor": "calls"
         },
         {
+          "level": 3,
+          "title": "The owner's input and an agent's",
+          "anchor": "the-owners-input-and-an-agents"
+        },
+        {
           "level": 2,
           "title": "Permissions",
           "anchor": "permissions"

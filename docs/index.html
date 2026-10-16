@@ -687,9 +687,9 @@ carries in <code>Contents/MacOS/</code>.</p>
 <td>read</td>
 <td>—</td>
 <td><code>focused</code>, <code>tabchatInputSecondsAgo</code>,
-<code>macIdleSeconds</code>, <code>selectedTab</code>,
-<code>sendPending</code>, tabs with their <code>actions</code>
-switch</td>
+<code>agentInputSecondsAgo</code>, <code>macIdleSeconds</code>,
+<code>selectedTab</code>, <code>sendPending</code>, tabs with their
+<code>actions</code> switch</td>
 </tr>
 <tr>
 <td><code>feed</code></td>
@@ -792,7 +792,36 @@ contentType</td>
 <code>signed-out</code> (stop for the day; the CLI exits 3),
 <code>rate</code>, <code>owner-active</code>, <code>busy</code> or
 <code>asleep</code> (try later; exit 75), <code>refused</code>,
-<code>not-found</code> or <code>failed</code> (exit 1).</p>
+<code>not-found</code> or <code>failed</code> (exit 1).
+<code>owner-active</code> and <code>rate</code> also carry
+<code>retryAfter</code>, the seconds until the call can succeed.</p>
+<h3 id="agent-api-the-owners-input-and-an-agents">The owner's input and
+an agent's</h3>
+<p><code>status</code> tells the owner's hands apart from an agent
+driving Tabchat's UI (<code>App/Agent/AgentInput.swift</code>):</p>
+<ul>
+<li><code>tabchatInputSecondsAgo</code>: seconds since the owner last
+typed, clicked or scrolled in Tabchat. Absent until they have, since
+launch. Only hardware input counts.</li>
+<li><code>agentInputSecondsAgo</code>: the same for synthetic input (UI
+tests, computer use, cliclick, AppleScript). Absent until there is some.
+A reason to wait, but not the owner.</li>
+<li><code>macIdleSeconds</code>: seconds since any input on the Mac, the
+owner's or an agent's.</li>
+<li><code>owner-active</code> (LinkedIn and X actions) counts only the
+owner's input: they used Tabchat, in front, in the last two minutes.
+<code>retryAfter</code> says when those two minutes end.</li>
+</ul>
+<p>The test, measured on macOS 26: keyboard, mouse and trackpad events
+carry source state <code>hidSystemState</code> (1), source process 0 and
+user 0. Every event posted through <code>CGEvent</code> carries the
+posting process's pid and user, whatever source state it chose: System
+Events gives state 0, a private source a random state, and a source made
+with <code>hidSystemState</code> state 1 too, so the pid is what tells
+them apart. An event with a non-zero <code>eventSourceUserData</code>,
+or no <code>CGEvent</code> behind it, is an agent's as well. Not
+measured: XCUITest and computer use, which post through
+<code>CGEvent</code> from their own processes and so carry a pid.</p>
 <p>Text from chats is marked <code>"untrusted": true</code>. Nothing is
 sent without the owner: <code>draft</code> stops at the message box, and
 <code>send</code> waits for a click in Tabchat's own sheet.</p>
@@ -973,7 +1002,8 @@ scrolls the thread up <code>screens</code> screens, reads, and scrolls
 back down; <code>--until</code> as for WhatsApp.</li>
 <li><code>open</code>, <code>history</code>, <code>chats --since</code>
 and <code>profile</code> refuse with <code>owner-active</code> while the
-owner has used Tabchat (in front) in the last two minutes.</li>
+owner has used Tabchat (in front) in the last two minutes; an agent's
+synthetic input doesn't count.</li>
 <li>A checkpoint, authwall or captcha page gives
 <code>code: "checkpoint"</code>; a sign-in page
 <code>signed-out</code>.</li>

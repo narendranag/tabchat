@@ -47,7 +47,7 @@ compiled into both the app and the `tabchat-agent` tool, which the app bundle ca
 | Call | Tier | Needs | Returns |
 | --- | --- | --- | --- |
 | `tabs` | read | — | readable tabs: id, name, service, unread, loaded |
-| `status` | read | — | `focused`, `tabchatInputSecondsAgo`, `macIdleSeconds`, `selectedTab`, `sendPending`, tabs with their `actions` switch |
+| `status` | read | — | `focused`, `tabchatInputSecondsAgo`, `agentInputSecondsAgo`, `macIdleSeconds`, `selectedTab`, `sendPending`, tabs with their `actions` switch |
 | `feed` | read | optional `tab`, `sinceSeconds` | notifications from readable tabs; WhatsApp items carry `chat` |
 | `chats` | read | `tab` (WhatsApp, Discord, LinkedIn); optional `readOnly`, `since` (act) | chat list with `unread` and `date`; `countsOnly` gives numbers only; `since` scrolls the list |
 | `messages` | read | `tab` (WhatsApp, Discord, LinkedIn) | open chat: id, direction, sender, stamp, time, day, date, text, document, media, rendered; LinkedIn adds `profile`, `precision`, and `key`, `chatProfile` on the response |
@@ -64,7 +64,28 @@ compiled into both the app and the `tabchat-agent` tool, which the app bundle ca
 
 Every failure carries a `code`: `checkpoint` or `signed-out` (stop for the day; the CLI exits 3),
 `rate`, `owner-active`, `busy` or `asleep` (try later; exit 75), `refused`, `not-found` or `failed`
-(exit 1).
+(exit 1). `owner-active` and `rate` also carry `retryAfter`, the seconds until the call can succeed.
+
+### The owner's input and an agent's
+
+`status` tells the owner's hands apart from an agent driving Tabchat's UI
+(`App/Agent/AgentInput.swift`):
+
+- `tabchatInputSecondsAgo`: seconds since the owner last typed, clicked or scrolled in Tabchat.
+  Absent until they have, since launch. Only hardware input counts.
+- `agentInputSecondsAgo`: the same for synthetic input (UI tests, computer use, cliclick,
+  AppleScript). Absent until there is some. A reason to wait, but not the owner.
+- `macIdleSeconds`: seconds since any input on the Mac, the owner's or an agent's.
+- `owner-active` (LinkedIn and X actions) counts only the owner's input: they used Tabchat, in
+  front, in the last two minutes. `retryAfter` says when those two minutes end.
+
+The test, measured on macOS 26: keyboard, mouse and trackpad events carry source state
+`hidSystemState` (1), source process 0 and user 0. Every event posted through `CGEvent` carries the
+posting process's pid and user, whatever source state it chose: System Events gives state 0, a
+private source a random state, and a source made with `hidSystemState` state 1 too, so the pid is
+what tells them apart. An event with a non-zero `eventSourceUserData`, or no `CGEvent` behind it,
+is an agent's as well. Not measured: XCUITest and computer use, which post through `CGEvent` from
+their own processes and so carry a pid.
 
 Text from chats is marked `"untrusted": true`. Nothing is sent without the owner: `draft` stops at the
 message box, and `send` waits for a click in Tabchat's own sheet.
@@ -179,7 +200,7 @@ Written against LinkedIn's `msg-*` classes (checked live 2026-10-16):
   not in the list loads its address in the tab. It may mark the thread read. `history` scrolls the
   thread up `screens` screens, reads, and scrolls back down; `--until` as for WhatsApp.
 - `open`, `history`, `chats --since` and `profile` refuse with `owner-active` while the owner has
-  used Tabchat (in front) in the last two minutes.
+  used Tabchat (in front) in the last two minutes; an agent's synthetic input doesn't count.
 - A checkpoint, authwall or captcha page gives `code: "checkpoint"`; a sign-in page `signed-out`.
 - Live-checked 2026-10-16: `chats` (13 rows), `chats --since` (38 rows over 3½ weeks, 5.7 s),
   `messages` (ids, profiles, minute stamps), `history`, `open --chat NAME --if-read`, `owner-active`
