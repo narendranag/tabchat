@@ -50,7 +50,7 @@ enum ProfileReader {
 
     /// Loads `target` with `dataStore`'s sign-in and reads it. The view lives only for this call.
     @MainActor
-    static func read(_ target: Target, dataStore: WKWebsiteDataStore) async throws -> AgentResponse {
+    static func read(_ target: Target, dataStore: WKWebsiteDataStore, inspect: String? = nil) async throws -> AgentResponse {
         let config = WKWebViewConfiguration()
         config.websiteDataStore = dataStore
         config.mediaTypesRequiringUserActionForPlayback = .all
@@ -71,10 +71,73 @@ enum ProfileReader {
         for _ in 0 ..< 300 where webView.isLoading || webView.url == nil {
             try await Task.sleep(for: .milliseconds(100))
         }
-        let json = try await PageReaders.run(
-            script, arguments: ["site": target.site, "max": AgentWire.maxPageCharacters], in: webView
+        // The page's own timers run slowly in a window that is never shown, so the waiting is done here:
+        // up to 15 seconds for the profile (or a checkpoint) to draw, then up to 5 for X's posts.
+        var probe = Probe()
+        for step in 0 ..< 80 {
+            probe = try await Self.probe(target, webView: webView)
+            if probe.ready, probe.posted || step >= 60 {
+                break
+            }
+            try await Task.sleep(for: .milliseconds(250))
+        }
+        #if DEBUG
+            if let inspect {
+                let dom = try await run(
+                    PageReaders.inspect, arguments: ["selector": inspect, "maxDepth": 30], in: webView, seconds: 10
+                )
+                return AgentResponse(ok: true, untrusted: true, dom: dom)
+            }
+        #endif
+        let json = try await run(
+            script, arguments: ["site": target.site, "max": AgentWire.maxPageCharacters, "mode": "read"],
+            in: webView, seconds: 10
         )
         return response(json: json, target: target)
+    }
+
+    private struct Probe: Decodable {
+        var ready = false
+        var posted = false
+    }
+
+    @MainActor
+    private static func probe(_ target: Target, webView: WKWebView) async throws -> Probe {
+        let json = try await run(script, arguments: ["site": target.site, "max": 0, "mode": "probe"], in: webView, seconds: 5)
+        return (try? JSONDecoder().decode(Probe.self, from: Data(json.utf8))) ?? Probe()
+    }
+
+    private struct Timeout: LocalizedError {
+        var errorDescription: String? {
+            "the profile page did not answer in time"
+        }
+    }
+
+    /// A script run that gives up after `seconds`: a page in a hidden window may never answer.
+    @MainActor
+    private static func run(
+        _ script: String, arguments: [String: Any], in webView: WKWebView, seconds: Double
+    ) async throws -> String {
+        final class Once {
+            var done = false
+        }
+        let once = Once()
+        return try await withCheckedThrowingContinuation { continuation in
+            Task { @MainActor in
+                let result = await Swift.Result { try await PageReaders.run(script, arguments: arguments, in: webView) }
+                if !once.done {
+                    once.done = true
+                    continuation.resume(with: result)
+                }
+            }
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(seconds))
+                if !once.done {
+                    once.done = true
+                    continuation.resume(throwing: Timeout())
+                }
+            }
+        }
     }
 
     private struct ReaderResult: Decodable {
@@ -112,10 +175,10 @@ enum ProfileReader {
         return response
     }
 
-    /// Waits up to 15 seconds for the profile to draw, then reads it. Checkpoint, captcha and sign-in
+    /// `mode: "probe"` says whether the profile (or a checkpoint) has drawn; otherwise it reads it. Checkpoint, captcha and
+    /// sign-in
     /// pages answer with a `code` and no text.
     static let script = #"""
-    const wait = ms => new Promise(r => setTimeout(r, ms));
     const clean = t => (t || "").replace(/\s+/g, " ").trim();
     const linkedin = site === "linkedin";
     const blocked = () => {
@@ -135,8 +198,15 @@ enum ProfileReader {
     };
     const missing = () => /this page doesn.t exist|page not found|this account doesn.t exist|account suspended/i
       .test(((document.body && document.body.innerText) || "").slice(0, 3000));
-    const drawn = () => linkedin ? document.querySelector("main h1") : document.querySelector('[data-testid="UserName"]');
-    for (let i = 0; i < 150 && !drawn() && !blocked() && !missing(); i++) await wait(100);
+    // LinkedIn's profile came in two layouts in 2026: the older one with an h1 in the top card's section,
+    // and a newer one built from `componentkey` cards with the name as an h2 in the "Topcard".
+    const topcard = () => document.querySelector('main [componentkey*="Topcard"]');
+    const drawn = () => linkedin ? document.querySelector("main h1") || (topcard() && topcard().querySelector("h2"))
+      : document.querySelector('[data-testid="UserName"]');
+    if (typeof mode !== "undefined" && mode === "probe") {
+      const posted = !linkedin && !!document.querySelector('article[data-testid="tweet"], [data-testid="emptyState"]');
+      return JSON.stringify({ready: !!drawn() || !!blocked() || missing(), posted: linkedin || posted});
+    }
     const why = blocked();
     const siteName = linkedin ? "LinkedIn" : "X";
     if (why === "checkpoint") {
@@ -145,7 +215,9 @@ enum ProfileReader {
     if (why) return JSON.stringify({ok: false, code: why, reason: siteName + " is signed out in Tabchat"});
     if (!drawn()) {
       return missing() ? JSON.stringify({ok: false, code: "not-found", reason: "no such profile"})
-        : JSON.stringify({ok: false, code: "failed", reason: "the profile did not draw within 15 seconds"});
+        : JSON.stringify({ok: false, code: "failed", reason: "the profile did not draw within 15 seconds (page "
+          + location.pathname + ", " + document.querySelectorAll("h1").length + " h1, main: "
+          + !!document.querySelector("main") + ")"});
     }
     const external = href => {
       try {
@@ -157,25 +229,34 @@ enum ProfileReader {
     const unique = list => Array.from(new Set(list.filter(Boolean)));
     let out = {};
     if (linkedin) {
-      const h1 = document.querySelector("main h1");
-      const card = h1.closest("section") || document.querySelector("main");
+      const named = drawn();
+      const card = topcard() || named.closest("section") || document.querySelector("main");
+      const after = Array.from(card.querySelectorAll("p"))
+        .filter(p => named.compareDocumentPosition(p) & Node.DOCUMENT_POSITION_FOLLOWING && clean(p.innerText) !== "·");
+      // The location sits beside "Contact info" in the newer layout.
+      const contact = card.querySelector('a[href*="contact-info"]');
+      const near = contact && contact.closest("p") && contact.closest("p").parentElement.querySelector("p");
+      const place = card.querySelector(".text-body-small.inline.t-black--light, .text-body-small.t-black--light.break-words")
+        || (near && !near.contains(contact) ? near : null);
+      const headline = card.querySelector(".text-body-medium") || after.find(p => clean(p.innerText));
       const about = document.getElementById("about");
-      const aboutSection = about && about.closest("section");
+      const heading = Array.from(document.querySelectorAll("main h2, main h3")).find(h => clean(h.innerText) === "About");
+      const aboutSection = (about && about.closest("section")) || (heading && (heading.closest("section")
+        || heading.closest('[componentkey*="About" i]')));
       const aboutText = aboutSection
         && (aboutSection.querySelector('.inline-show-more-text span[aria-hidden="true"], .inline-show-more-text')
           || aboutSection.querySelector('div.display-flex span[aria-hidden="true"]'));
-      const place = card.querySelector(".text-body-small.inline.t-black--light, .text-body-small.t-black--light.break-words");
+      const aboutAll = aboutSection && !aboutText ? aboutSection.innerText.replace(/^\s*About\s*/, "")
+        .replace(/\s*…\s*(see )?more\s*$/i, "").trim() : "";
       out = {
-        name: clean(h1.innerText),
-        headline: clean((card.querySelector(".text-body-medium") || {}).innerText),
+        name: clean(named.innerText),
+        headline: clean(headline && headline.innerText),
         location: clean(place && place.innerText),
-        bio: aboutText ? aboutText.innerText.trim() : "",
+        bio: aboutText ? aboutText.innerText.trim() : aboutAll,
         links: unique(Array.from(card.querySelectorAll("a[href]")).map(a => external(a.getAttribute("href"))))
       };
     } else {
       // The first screen only: X loads posts as you scroll, and this never scrolls.
-      const posted = () => document.querySelector('article[data-testid="tweet"], [data-testid="emptyState"]');
-      for (let i = 0; i < 50 && !posted(); i++) await wait(100);
       const user = document.querySelector('[data-testid="UserName"]');
       // X shows links as t.co redirects with the real address as their text, cut with "…" when long.
       const shown = a => {

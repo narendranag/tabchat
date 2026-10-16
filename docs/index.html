@@ -641,7 +641,7 @@ Developer Program)</li>
   <header class="doc-meta">
     <div class="chips"><span class="chip status-provisional">provisional</span><span class="chip">developers</span><span class="chip">agents</span></div>
     <p class="summary">How local agents read chats and act in TabChat: the socket, the CLI and MCP, the read and act tiers, the WhatsApp scripts, and the security model.</p>
-    <p class="meta-line">Updated 2026-10-15 &middot; Source <a href="04-agent-api.md">04-agent-api.md</a> &middot; Read first: <a href="#overview">Overview</a>, <a href="#architecture">Architecture</a></p>
+    <p class="meta-line">Updated 2026-10-16 &middot; Source <a href="04-agent-api.md">04-agent-api.md</a> &middot; Read first: <a href="#overview">Overview</a>, <a href="#architecture">Architecture</a></p>
   </header>
   <div class="doc-grid">
     <article><h1 id="agent-api-agent-api">Agent API</h1>
@@ -701,8 +701,8 @@ switch</td>
 <tr>
 <td><code>chats</code></td>
 <td>read</td>
-<td><code>tab</code> (WhatsApp); optional <code>readOnly</code>,
-<code>since</code> (act)</td>
+<td><code>tab</code> (WhatsApp, Discord, LinkedIn); optional
+<code>readOnly</code>, <code>since</code> (act)</td>
 <td>chat list with <code>unread</code> and <code>date</code>;
 <code>countsOnly</code> gives numbers only; <code>since</code> scrolls
 the list</td>
@@ -710,9 +710,11 @@ the list</td>
 <tr>
 <td><code>messages</code></td>
 <td>read</td>
-<td><code>tab</code> (WhatsApp)</td>
+<td><code>tab</code> (WhatsApp, Discord, LinkedIn)</td>
 <td>open chat: id, direction, sender, stamp, time, day, date, text,
-document, media, rendered</td>
+document, media, rendered; LinkedIn adds <code>profile</code>,
+<code>precision</code>, and <code>key</code>, <code>chatProfile</code>
+on the response</td>
 </tr>
 <tr>
 <td><code>page</code></td>
@@ -763,6 +765,13 @@ video</td>
 whether it got there</td>
 </tr>
 <tr>
+<td><code>profile</code></td>
+<td>act</td>
+<td><code>tab</code> (LinkedIn or X), <code>url</code></td>
+<td><code>profile</code>: name, headline, bio, location, links, X
+<code>posts</code>, text; one a minute</td>
+</tr>
+<tr>
 <td><code>inspect</code></td>
 <td>debug</td>
 <td><code>tab</code>, <code>selector</code></td>
@@ -770,6 +779,11 @@ whether it got there</td>
 </tr>
 </tbody>
 </table></div>
+<p>Every failure carries a <code>code</code>: <code>checkpoint</code> or
+<code>signed-out</code> (stop for the day; the CLI exits 3),
+<code>rate</code>, <code>owner-active</code>, <code>busy</code> or
+<code>asleep</code> (try later; exit 75), <code>refused</code>,
+<code>not-found</code> or <code>failed</code> (exit 1).</p>
 <p>Text from chats is marked <code>"untrusted": true</code>. Nothing is
 sent without the owner: <code>draft</code> stops at the message box, and
 <code>send</code> waits for a click in Tabchat's own sheet.</p>
@@ -908,6 +922,91 @@ messages; <code>stamp</code> is <code>time[datetime]</code> (ISO) and
 or <code>media</code>. "Joined" notices have no author. Direction is not
 shown.</li>
 </ul>
+<h2 id="agent-api-linkedin-readers">LinkedIn readers</h2>
+<p>Read only (<code>App/Agent/LinkedInScripts.swift</code>,
+<code>AgentService+LinkedIn.swift</code>): nothing types, likes,
+connects or sends. Asked for by the CRM (2026-10-16) so it can drop its
+Chrome-bridge reads. Written against LinkedIn's <code>msg-*</code>
+classes (checked live 2026-10-16):</p>
+<ul>
+<li><code>chats</code>:
+<code>.msg-conversations-container__conversations-list li.msg-conversation-listitem</code>;
+name from <code>…__participant-names</code>, preview
+<code>.msg-conversation-card__message-snippet</code>, <code>time</code>,
+unread from the badge count or a <code>--unread</code> class.
+<code>date</code> is ISO (<code>2026-10-14</code>), from "3:04 PM"
+(today), "Yesterday", weekday names (the last week), "Oct 14" (this
+year, or last when that is ahead) and "Oct 14, 2025". <strong>The rows
+carry no thread link or profile link</strong>: <code>key</code> and
+<code>profile</code> are absent from <code>chats</code> and come from
+<code>open</code> and <code>messages</code>. <code>chats --since</code>
+scrolls the list (actions tier).</li>
+<li><code>messages</code>:
+<code>.msg-s-message-list-content li.msg-s-message-list__event</code>;
+the day heading (<code>…__time-heading</code>) and the group's sender,
+<code>/in/</code> link and time
+(<code>.msg-s-message-group__meta</code>) carry over to follow-on
+messages; each <code>.msg-s-event-listitem</code> has its
+<code>data-event-urn</code> as a stable <code>id</code>; direction from
+<code>--other</code>. <code>stamp</code> is a full ISO time with the
+local offset when the page gives a day and a time
+(<code>precision: "minute"</code>), else only <code>date</code>
+(<code>precision: "day"</code>). The response carries <code>key</code>
+(from <code>/messaging/thread/&lt;id&gt;/</code>) and
+<code>chatProfile</code> (the header's <code>/in/</code> link). The
+header's name is its <code>h2</code>, read selector by selector (a
+selector list returns the profile link, name and headline together,
+first).</li>
+<li><code>open --chat NAME|THREAD-ID [--if-read]</code> clicks the row
+(scrolling the list to find it); a thread id not in the list loads its
+address in the tab. It may mark the thread read. <code>history</code>
+scrolls the thread up <code>screens</code> screens, reads, and scrolls
+back down; <code>--until</code> as for WhatsApp.</li>
+<li><code>open</code>, <code>history</code>, <code>chats --since</code>
+and <code>profile</code> refuse with <code>owner-active</code> while the
+owner has used Tabchat (in front) in the last two minutes.</li>
+<li>A checkpoint, authwall or captcha page gives
+<code>code: "checkpoint"</code>; a sign-in page
+<code>signed-out</code>.</li>
+<li>Live-checked 2026-10-16: <code>chats</code> (13 rows),
+<code>chats --since</code> (38 rows over 3½ weeks, 5.7 s),
+<code>messages</code> (ids, profiles, minute stamps),
+<code>history</code>, <code>open --chat NAME --if-read</code>,
+<code>owner-active</code> and <code>rate</code>. Not yet live:
+<code>open</code> by thread id.</li>
+</ul>
+<h2 id="agent-api-profiles">Profiles</h2>
+<p><code>profile --tab ID --url URL</code>
+(<code>App/Agent/ProfileReader.swift</code>) takes only
+<code>https://www.linkedin.com/in/&lt;slug&gt;</code> and
+<code>https://x.com/&lt;handle&gt;</code> (normalised; anything else is
+<code>refused</code>), and the LinkedIn or X tab whose sign-in to use,
+with actions ticked. It loads the page in a <strong>hidden web
+view</strong> sharing that tab's website data store, in an off-screen
+window that is never shown, so the owner's tab never moves and need not
+be awake. It waits up to 15 seconds for the profile to draw and reads
+the first screen without scrolling. LinkedIn has two profile layouts:
+the newer one (seen 2026-10-16) is built from <code>componentkey</code>
+cards, the name an <code>h2</code> in the <code>…Topcard</code> card,
+the headline the first paragraph after it, the location the paragraph
+beside "Contact info"; the older one has <code>main h1</code>,
+<code>.text-body-medium</code> and <code>.text-body-small</code> in the
+top card's section. Both are read; external links have LinkedIn's
+<code>/redir/redirect</code> unwrapped. <code>bio</code> (the About
+section) is often empty: LinkedIn draws it lazily below the first
+screen, and <code>profile</code> doesn't scroll. X: X's
+<code>UserName</code>, <code>UserDescription</code>,
+<code>UserLocation</code>, <code>UserUrl</code> and the
+<code>article[data-testid="tweet"]</code> posts on screen (url, ISO
+time, text, <code>pinned</code>/<code>repost</code>). One load a minute
+(<code>rate</code>); X <code>/account/access</code>, Arkose or captcha
+frames, or "unusual activity" without a profile give
+<code>checkpoint</code>; "doesn't exist" or "suspended" give
+<code>not-found</code>. The page's timers run slowly in a window that is
+never shown, so the waiting is done in Swift (a <code>probe</code>
+script every 250 ms, each script run with a deadline), not in the page.
+Live-checked 2026-10-16 on the owner's own profiles: X in 2.2 s (four
+posts), LinkedIn in 1.2 s (name, headline, location).</p>
 <h2 id="agent-api-live-checks">Live checks</h2>
 <p>Run against the debug build, with the services ticked in Settings →
 Agents:</p>
@@ -918,7 +1017,7 @@ $TA inspect --tab &lt;id&gt; --selector &#39;#main&#39;</code></pre>
 <p>Never paste real chat content, names or numbers into the repo, tests
 or issues.</p>
 </article>
-    <nav class="toc" aria-label="On this page"><div class="toc-title">On this page</div><a href="#agent-api-shape">Shape</a><a href="#agent-api-calls">Calls</a><a href="#agent-api-permissions">Permissions</a><a href="#agent-api-whatsapp-scripts">WhatsApp scripts</a><a href="#agent-api-discord-readers">Discord readers</a><a href="#agent-api-live-checks">Live checks</a></nav>
+    <nav class="toc" aria-label="On this page"><div class="toc-title">On this page</div><a href="#agent-api-shape">Shape</a><a href="#agent-api-calls">Calls</a><a href="#agent-api-permissions">Permissions</a><a href="#agent-api-whatsapp-scripts">WhatsApp scripts</a><a href="#agent-api-discord-readers">Discord readers</a><a href="#agent-api-linkedin-readers">LinkedIn readers</a><a href="#agent-api-profiles">Profiles</a><a href="#agent-api-live-checks">Live checks</a></nav>
   </div>
   <footer class="pager"><a class="prev" href="#building">&larr; Building</a><span></span></footer>
 </section>

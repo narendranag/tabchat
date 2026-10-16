@@ -324,7 +324,9 @@ private extension LinkedInScripts {
     const header = () => {
       const box = document.querySelector(
         ".msg-title-bar, .msg-thread__topcard, .msg-overlay-conversation-bubble-header") || document;
-      const title = box.querySelector(".msg-entity-lockup__entity-title, .msg-thread__link-to-profile, h2");
+      // One selector at a time: a list would return the profile link (name and headline) first.
+      const title = box.querySelector(".msg-entity-lockup__entity-title") || box.querySelector("h2")
+        || box.querySelector(".msg-thread__link-to-profile");
       return {
         chat: clean(title && title.innerText),
         chatProfile: profileOf(box.querySelector('a[href*="/in/"]')) || null,

@@ -44,7 +44,7 @@ agents may read and whether they may also act.
 | `send` | act | Send one urgent message, after you click Send in Tabchat's own dialog |
 
 Reading works on every service through `page`. `chats` and `messages` work on WhatsApp and Discord
-(Discord read only: its terms forbid automating a user account); the actions are WhatsApp only. **Agents never send on their own:** a draft waits for your Return, and `send` waits for
+(Discord read only: its terms forbid automating a user account); LinkedIn messaging is read only too (open and history are its actions), and `profile` reads one LinkedIn or X profile a minute in a hidden view; the other actions are WhatsApp only. **Agents never send on their own:** a draft waits for your Return, and `send` waits for
 your click in a Tabchat dialog showing the recipient and the whole message. One message at a time,
 never bulk or scheduled. Opening a chat marks it read, and the sender sees that.
 

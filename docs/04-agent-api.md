@@ -4,7 +4,7 @@ title: Agent API
 order: 4
 summary: "How local agents read chats and act in TabChat: the socket, the CLI and MCP, the read and act tiers, the WhatsApp scripts, and the security model."
 status: provisional
-updated: 2026-10-15
+updated: 2026-10-16
 audience: [developers, agents]
 depends_on: [overview, architecture]
 related: [building]
@@ -49,8 +49,8 @@ compiled into both the app and the `tabchat-agent` tool, which the app bundle ca
 | `tabs` | read | — | readable tabs: id, name, service, unread, loaded |
 | `status` | read | — | `focused`, `tabchatInputSecondsAgo`, `macIdleSeconds`, `selectedTab`, `sendPending`, tabs with their `actions` switch |
 | `feed` | read | optional `tab`, `sinceSeconds` | notifications from readable tabs; WhatsApp items carry `chat` |
-| `chats` | read | `tab` (WhatsApp); optional `readOnly`, `since` (act) | chat list with `unread` and `date`; `countsOnly` gives numbers only; `since` scrolls the list |
-| `messages` | read | `tab` (WhatsApp) | open chat: id, direction, sender, stamp, time, day, date, text, document, media, rendered |
+| `chats` | read | `tab` (WhatsApp, Discord, LinkedIn); optional `readOnly`, `since` (act) | chat list with `unread` and `date`; `countsOnly` gives numbers only; `since` scrolls the list |
+| `messages` | read | `tab` (WhatsApp, Discord, LinkedIn) | open chat: id, direction, sender, stamp, time, day, date, text, document, media, rendered; LinkedIn adds `profile`, `precision`, and `key`, `chatProfile` on the response |
 | `page` | read | `tab` | url, title, visible text (≤20,000 characters) |
 | `open` | act | `tab`, `chat`, optional `ifRead` | opens the chat with that exact name, from the list or through search |
 | `contact` | act | `tab` | name, phone, about of the open chat |
@@ -58,7 +58,12 @@ compiled into both the app and the `tabchat-agent` tool, which the app bundle ca
 | `draft` | act | `tab`, `text`, optional `chat` | types the message into the chat's box and stops |
 | `send` | act | `tab`, `text`, optional `chat` | sends one message after the owner clicks Send in Tabchat |
 | `history` | act | `tab`, optional `screens` (1–20, default 3), `until` | messages read while scrolling back and down again; with `until`, only newer ones, and `reached` says whether it got there |
+| `profile` | act | `tab` (LinkedIn or X), `url` | `profile`: name, headline, bio, location, links, X `posts`, text; one a minute |
 | `inspect` | debug | `tab`, `selector` | element structure (debug builds only) |
+
+Every failure carries a `code`: `checkpoint` or `signed-out` (stop for the day; the CLI exits 3),
+`rate`, `owner-active`, `busy` or `asleep` (try later; exit 75), `refused`, `not-found` or `failed`
+(exit 1).
 
 Text from chats is marked `"untrusted": true`. Nothing is sent without the owner: `draft` stops at the
 message box, and `send` waits for a click in Tabchat's own sheet.
@@ -148,6 +153,56 @@ there are no Discord actions. Written against attributes Discord keeps while its
   `time[datetime]` (ISO) and `date` its local day; text is `[id^="message-content-"]` outside the
   quoted reply (`message-reply-context-`); attachments under `message-accessories-` give `document`
   (file name) or `media`. "Joined" notices have no author. Direction is not shown.
+
+## LinkedIn readers
+
+Read only (`App/Agent/LinkedInScripts.swift`, `AgentService+LinkedIn.swift`): nothing types, likes,
+connects or sends. Asked for by the CRM (2026-10-16) so it can drop its Chrome-bridge reads.
+Written against LinkedIn's `msg-*` classes (checked live 2026-10-16):
+
+- `chats`: `.msg-conversations-container__conversations-list li.msg-conversation-listitem`; name from
+  `…__participant-names`, preview `.msg-conversation-card__message-snippet`, `time`, unread from the
+  badge count or a `--unread` class. `date` is ISO (`2026-10-14`), from "3:04 PM" (today), "Yesterday",
+  weekday names (the last week), "Oct 14" (this year, or last when that is ahead) and "Oct 14, 2025".
+  **The rows carry no thread link or profile link**: `key` and `profile` are absent from `chats`
+  and come from `open` and `messages`. `chats --since` scrolls the list (actions tier).
+- `messages`: `.msg-s-message-list-content li.msg-s-message-list__event`; the day heading
+  (`…__time-heading`) and the group's sender, `/in/` link and time (`.msg-s-message-group__meta`) carry over
+  to follow-on messages; each `.msg-s-event-listitem` has its `data-event-urn` as a stable `id`;
+  direction from `--other`. `stamp` is a full ISO time with the local offset when the page gives a day
+  and a time (`precision: "minute"`), else only `date` (`precision: "day"`). The response carries
+  `key` (from `/messaging/thread/<id>/`) and `chatProfile` (the header's `/in/` link). The header's name
+  is its `h2`, read selector by selector (a selector list returns the profile link, name and
+  headline together, first).
+- `open --chat NAME|THREAD-ID [--if-read]` clicks the row (scrolling the list to find it); a thread id
+  not in the list loads its address in the tab. It may mark the thread read. `history` scrolls the
+  thread up `screens` screens, reads, and scrolls back down; `--until` as for WhatsApp.
+- `open`, `history`, `chats --since` and `profile` refuse with `owner-active` while the owner has
+  used Tabchat (in front) in the last two minutes.
+- A checkpoint, authwall or captcha page gives `code: "checkpoint"`; a sign-in page `signed-out`.
+- Live-checked 2026-10-16: `chats` (13 rows), `chats --since` (38 rows over 3½ weeks, 5.7 s),
+  `messages` (ids, profiles, minute stamps), `history`, `open --chat NAME --if-read`, `owner-active`
+  and `rate`. Not yet live: `open` by thread id.
+
+## Profiles
+
+`profile --tab ID --url URL` (`App/Agent/ProfileReader.swift`) takes only
+`https://www.linkedin.com/in/<slug>` and `https://x.com/<handle>` (normalised; anything else is
+`refused`), and the LinkedIn or X tab whose sign-in to use, with actions ticked. It loads the page in a
+**hidden web view** sharing that tab's website data store, in an off-screen window that is never
+shown, so the owner's tab never moves and need not be awake. It waits up to 15 seconds for the profile
+to draw and reads the first screen without scrolling. LinkedIn has two profile layouts: the newer
+one (seen 2026-10-16) is built from `componentkey` cards, the name an `h2` in the `…Topcard` card,
+the headline the first paragraph after it, the location the paragraph beside "Contact info"; the
+older one has `main h1`, `.text-body-medium` and `.text-body-small` in the top card's section. Both
+are read; external links have LinkedIn's `/redir/redirect` unwrapped. `bio` (the About section) is
+often empty: LinkedIn draws it lazily below the first screen, and `profile` doesn't scroll. X: X's `UserName`, `UserDescription`, `UserLocation`, `UserUrl` and the
+`article[data-testid="tweet"]` posts on screen (url, ISO time, text, `pinned`/`repost`). One load a
+minute (`rate`); X `/account/access`, Arkose or captcha frames, or "unusual activity" without a
+profile give `checkpoint`; "doesn't exist" or "suspended" give `not-found`. The page's timers run
+slowly in a window that is never shown, so the waiting is done in Swift (a `probe` script every
+250 ms, each script run with a deadline), not in the page. Live-checked 2026-10-16 on the owner's own
+profiles: X in 2.2 s (four posts), LinkedIn in 1.2 s (name, headline, location).
 
 ## Live checks
 

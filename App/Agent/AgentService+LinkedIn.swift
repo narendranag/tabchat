@@ -117,7 +117,7 @@ extension AgentService {
         lastProfileLoad = Date()
         model.showToast("Agent reading a \(target.site == "x" ? "X" : "LinkedIn") profile")
         do {
-            return try await ProfileReader.read(target, dataStore: model.dataStore(for: tab))
+            return try await ProfileReader.read(target, dataStore: model.dataStore(for: tab), inspect: request.selector)
         } catch {
             return .failure("profile failed: \(error.localizedDescription)")
         }

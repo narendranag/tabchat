@@ -5,6 +5,8 @@
 
 ## Now
 
+- [ ] LinkedIn readers + `profile` for the CRM (branch `linkedin-readers`): built and fixture-tested; live: chats, messages, history, X profile ✓. Narendra to live-check `open --chat <thread id>` (auto mode blocked it for Claude); release v0.3.0 (his call); reply to the CRM session with the result #agent-api 📅 2026-10-16
+
 - Paused 2026-10-15 at Narendra's word (v0.2.0 released). Pick up from Next; check with the CRM session before restarting Tabchat.
 
 - [ ] Post the Reddit comment (draft in `brief/reddit-comment.md`, from Narendra's account) #community
