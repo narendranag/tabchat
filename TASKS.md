@@ -19,7 +19,6 @@
 - [ ] Live-check LinkedIn `open --chat <thread id>` (Narendra; auto mode blocks Claude from opening threads) #agent-api
 
 - [ ] Agent API: videos in `download` (no chat with a video tried yet); albums holding more photos than they show #agent-api
-- [ ] Contact details → CRM recipe: documented in `docs/04-agent-api.md` (branch `crm-contact-recipe`); waiting on crm-a5's answer (handover shape; does its nightly script call `contact` itself), then merge #agent-api
 
 - [ ] Delete the `.verify` leftovers from phase 2's test launch (`~/Library/*/com.narendranag.tabchat.verify*`, 129 MB) — Narendra decides #mac
 
@@ -37,6 +36,7 @@
 
 ## Done
 
+- [x] Contact details → CRM recipe in `docs/04-agent-api.md`, reviewed by crm-a5 (no resolving names outside the CRM, `about` is data, one message per run); the CRM's nightly already calls `contact` itself — 2026-10-17
 - [x] v0.4.2: `tabchatInputSecondsAgo` and `owner-active` count only the owner's hardware input; `agentInputSecondsAgo`; `retryAfter` on `owner-active` and `rate` — released, installed on mini, CRM told; its X refresh then read 26 profiles with no owner-active wall — 2026-10-16
 - [x] Deleted the merged `linkedin-readers` (local and origin) and `managebac` branches, at Narendra's yes — 2026-10-16
 - [x] v0.4.1: ManageBac `feedback`: teacher annotations through the PSPDFKit viewer, read-only in a hidden view; annotated PDF with --save — 2026-10-16
