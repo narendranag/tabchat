@@ -19,7 +19,7 @@
 - [ ] Live-check LinkedIn `open --chat <thread id>` (Narendra; auto mode blocks Claude from opening threads) #agent-api
 
 - [ ] Agent API: videos in `download` (no chat with a video tried yet); albums holding more photos than they show #agent-api
-- [ ] Agent API: an agent recipe for contact details → `~/marain/crm` via its `crm` CLI (in that brain) #agent-api
+- [ ] Contact details → CRM recipe: documented in `docs/04-agent-api.md` (branch `crm-contact-recipe`); waiting on crm-a5's answer (handover shape; does its nightly script call `contact` itself), then merge #agent-api
 
 - [ ] Delete the `.verify` leftovers from phase 2's test launch (`~/Library/*/com.narendranag.tabchat.verify*`, 129 MB) — Narendra decides #mac
 
