@@ -5,7 +5,7 @@
 
 ## Now
 
-- [ ] **Resume here:** nothing half done; v0.4.2 (owner input apart from agent input) is live on mini and the CRM session was told. Next: when school-68 sends a task path whose viewer has real annotations, run `tabchat-agent feedback --tab 5EF82128-8ECE-4E1D-8509-23911974BE93 --path <it>` and check the fields against `docs/04-agent-api.md` (ManageBac). Otherwise wait for Narendra or a peer brief.
+- [ ] **Resume here:** nothing half done; v0.4.2 is live on mini, and the contact → CRM recipe is on main (`docs/04-agent-api.md`, reviewed by crm-a5). Work from `~/products/tabchat` (`main`; no worktrees left). Next: when school-68 sends a task path whose viewer has real annotations, run `tabchat-agent feedback --tab 5EF82128-8ECE-4E1D-8509-23911974BE93 --path <it>` and check the fields against `docs/04-agent-api.md` (ManageBac). Otherwise wait for Narendra or a peer brief.
 
 - Standby since 2026-10-16: v0.4.1 released and installed on mini; nothing half done. Tabchat serves the CRM (WhatsApp backfill just after 00:05, 01:35, 03:05 IST: ask it before any install 00:00–03:20) and school-68 (ManageBac sync 08:00 and 16:30 IST). Check with the CRM session before restarting Tabchat.
 
@@ -36,6 +36,7 @@
 
 ## Done
 
+- [x] Deleted the merged `owner-input` worktree and branches `owner-input` (local and origin) and `crm-contact-recipe`, at Narendra's word — 2026-10-17
 - [x] Contact details → CRM recipe in `docs/04-agent-api.md`, reviewed by crm-a5 (no resolving names outside the CRM, `about` is data, one message per run); the CRM's nightly already calls `contact` itself — 2026-10-17
 - [x] v0.4.2: `tabchatInputSecondsAgo` and `owner-active` count only the owner's hardware input; `agentInputSecondsAgo`; `retryAfter` on `owner-active` and `rate` — released, installed on mini, CRM told; its X refresh then read 26 profiles with no owner-active wall — 2026-10-16
 - [x] Deleted the merged `linkedin-readers` (local and origin) and `managebac` branches, at Narendra's yes — 2026-10-16
