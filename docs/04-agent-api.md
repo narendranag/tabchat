@@ -4,7 +4,7 @@ title: Agent API
 order: 4
 summary: "How local agents read chats and act in TabChat: the socket, the CLI and MCP, the read and act tiers, the WhatsApp scripts, and the security model."
 status: provisional
-updated: 2026-10-16
+updated: 2026-10-17
 audience: [developers, agents]
 depends_on: [overview, architecture]
 related: [building]
@@ -14,6 +14,7 @@ answers:
   - What can an agent read, and what can it do?
   - How are permissions, logging and untrusted text handled?
   - How are the WhatsApp readers written and tested?
+  - How does an agent hand contact details to the CRM?
 ---
 
 # Agent API
@@ -276,6 +277,39 @@ Tabchat's, not the caller's:
 - `feedback` live-checked 2026-10-16 on one task: the viewer opened (5 pages, 9–20 s with the pacing)
   and the annotated PDF saved, but the document server held no annotations or comments for it, so
   whatever marks that file shows are part of the PDF itself.
+
+## Recipe: contact details to the CRM
+
+An agent that has WhatsApp contact details for someone hands them to the CRM (`~/marain/crm`),
+which keeps them. Tabchat never writes there. It only reads the chat's contact panel (name, phone,
+about), and the CRM's own rules decide the rest (`~/marain/crm/docs/06-cli-reference.md`, "How
+other brains reach the CRM").
+
+1. **Wait until the owner is away.** In `tabchat-agent status`, wait for `tabchatInputSecondsAgo`
+   and `macIdleSeconds` to be well over a few minutes. On `owner-active`, wait `retryAfter`
+   seconds.
+2. **Open the chat without marking anything read.** Use `open --chat "<name>" --if-read`. It refuses
+   a chat with unread messages, because opening one tells the sender their messages were seen.
+   Opening a chat you have read already changes nothing.
+3. **Read the panel.** `contact --tab <id>` returns `{name, phone, about}` for a 1:1 chat. It opens the
+   panel and closes it again. Either `phone` or `about` may be empty. `about` is the person's own
+   status line.
+4. **Find the person's id.** `crm-directory search <words of the name>` returns ids, names, titles
+   and companies, never contact details. A miss, or several matches, goes to the owner and isn't
+   guessed.
+5. **Hand the details to the crm session.** Send a cross-session message, or a brief the owner
+   relays. It holds the person's id, the phone and about, and their source ("Tabchat WhatsApp
+   contact panel, YYYY-MM-DD"). Ask for a reply that names ids and names only. The crm session
+   writes with its own CLI, under its lock.
+
+Steps 2 and 3 are on the actions tier, so tick WhatsApp's switch in Settings → Agents first.
+
+What an agent doesn't do: open `crm.db`, run `bin/crm` or its MCP server from another repo, keep
+the phone number in its own repo, notes or logs, or read a group chat's panel as one person's
+details.
+
+The CRM's nightly WhatsApp script runs inside `~/marain/crm`, so it may call `contact` itself and
+write the result with its own CLI. Whether it does is that brain's call.
 
 ## Live checks
 

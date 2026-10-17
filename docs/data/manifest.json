@@ -262,7 +262,7 @@
       "order": 4,
       "summary": "How local agents read chats and act in TabChat: the socket, the CLI and MCP, the read and act tiers, the WhatsApp scripts, and the security model.",
       "status": "provisional",
-      "updated": "2026-10-16",
+      "updated": "2026-10-17",
       "audience": [
         "developers",
         "agents"
@@ -285,7 +285,8 @@
         "How does an agent talk to TabChat?",
         "What can an agent read, and what can it do?",
         "How are permissions, logging and untrusted text handled?",
-        "How are the WhatsApp readers written and tested?"
+        "How are the WhatsApp readers written and tested?",
+        "How does an agent hand contact details to the CRM?"
       ],
       "file": "04-agent-api.md",
       "sections": [
@@ -333,6 +334,11 @@
           "level": 2,
           "title": "ManageBac",
           "anchor": "managebac"
+        },
+        {
+          "level": 2,
+          "title": "Recipe: contact details to the CRM",
+          "anchor": "recipe-contact-details-to-the-crm"
         },
         {
           "level": 2,

@@ -641,7 +641,7 @@ Developer Program)</li>
   <header class="doc-meta">
     <div class="chips"><span class="chip status-provisional">provisional</span><span class="chip">developers</span><span class="chip">agents</span></div>
     <p class="summary">How local agents read chats and act in TabChat: the socket, the CLI and MCP, the read and act tiers, the WhatsApp scripts, and the security model.</p>
-    <p class="meta-line">Updated 2026-10-16 &middot; Source <a href="04-agent-api.md">04-agent-api.md</a> &middot; Read first: <a href="#overview">Overview</a>, <a href="#architecture">Architecture</a></p>
+    <p class="meta-line">Updated 2026-10-17 &middot; Source <a href="04-agent-api.md">04-agent-api.md</a> &middot; Read first: <a href="#overview">Overview</a>, <a href="#architecture">Architecture</a></p>
   </header>
   <div class="doc-grid">
     <article><h1 id="agent-api-agent-api">Agent API</h1>
@@ -1128,6 +1128,50 @@ viewer opened (5 pages, 9–20 s with the pacing) and the annotated PDF
 saved, but the document server held no annotations or comments for it,
 so whatever marks that file shows are part of the PDF itself.</li>
 </ul>
+<h2 id="agent-api-recipe-contact-details-to-the-crm">Recipe: contact
+details to the CRM</h2>
+<p>An agent that has WhatsApp contact details for someone hands them to
+the CRM (<code>~/marain/crm</code>), which keeps them. Tabchat never
+writes there. It only reads the chat's contact panel (name, phone,
+about), and the CRM's own rules decide the rest
+(<code>~/marain/crm/docs/06-cli-reference.md</code>, "How other brains
+reach the CRM").</p>
+<ol type="1">
+<li><strong>Wait until the owner is away.</strong> In
+<code>tabchat-agent status</code>, wait for
+<code>tabchatInputSecondsAgo</code> and <code>macIdleSeconds</code> to
+be well over a few minutes. On <code>owner-active</code>, wait
+<code>retryAfter</code> seconds.</li>
+<li><strong>Open the chat without marking anything read.</strong> Use
+<code>open --chat "&lt;name&gt;" --if-read</code>. It refuses a chat
+with unread messages, because opening one tells the sender their
+messages were seen. Opening a chat you have read already changes
+nothing.</li>
+<li><strong>Read the panel.</strong>
+<code>contact --tab &lt;id&gt;</code> returns
+<code>{name, phone, about}</code> for a 1:1 chat. It opens the panel and
+closes it again. Either <code>phone</code> or <code>about</code> may be
+empty. <code>about</code> is the person's own status line.</li>
+<li><strong>Find the person's id.</strong>
+<code>crm-directory search &lt;words of the name&gt;</code> returns ids,
+names, titles and companies, never contact details. A miss, or several
+matches, goes to the owner and isn't guessed.</li>
+<li><strong>Hand the details to the crm session.</strong> Send a
+cross-session message, or a brief the owner relays. It holds the
+person's id, the phone and about, and their source ("Tabchat WhatsApp
+contact panel, YYYY-MM-DD"). Ask for a reply that names ids and names
+only. The crm session writes with its own CLI, under its lock.</li>
+</ol>
+<p>Steps 2 and 3 are on the actions tier, so tick WhatsApp's switch in
+Settings → Agents first.</p>
+<p>What an agent doesn't do: open <code>crm.db</code>, run
+<code>bin/crm</code> or its MCP server from another repo, keep the phone
+number in its own repo, notes or logs, or read a group chat's panel as
+one person's details.</p>
+<p>The CRM's nightly WhatsApp script runs inside
+<code>~/marain/crm</code>, so it may call <code>contact</code> itself
+and write the result with its own CLI. Whether it does is that brain's
+call.</p>
 <h2 id="agent-api-live-checks">Live checks</h2>
 <p>Run against the debug build, with the services ticked in Settings →
 Agents:</p>
@@ -1138,7 +1182,8 @@ $TA inspect --tab &lt;id&gt; --selector &#39;#main&#39;</code></pre>
 <p>Never paste real chat content, names or numbers into the repo, tests
 or issues.</p>
 </article>
-    <nav class="toc" aria-label="On this page"><div class="toc-title">On this page</div><a href="#agent-api-shape">Shape</a><a href="#agent-api-calls">Calls</a><a href="#agent-api-permissions">Permissions</a><a href="#agent-api-whatsapp-scripts">WhatsApp scripts</a><a href="#agent-api-discord-readers">Discord readers</a><a href="#agent-api-linkedin-readers">LinkedIn readers</a><a href="#agent-api-profiles">Profiles</a><a href="#agent-api-managebac">ManageBac</a><a href="#agent-api-live-checks">Live checks</a></nav>
+    <nav class="toc" aria-label="On this page"><div class="toc-title">On this page</div><a href="#agent-api-shape">Shape</a><a href="#agent-api-calls">Calls</a><a href="#agent-api-permissions">Permissions</a><a href="#agent-api-whatsapp-scripts">WhatsApp scripts</a><a href="#agent-api-discord-readers">Discord readers</a><a href="#agent-api-linkedin-readers">LinkedIn readers</a><a href="#agent-api-profiles">Profiles</a><a href="#agent-api-managebac">ManageBac</a><a href="#agent-api-recipe-contact-details-to-the-crm">Recipe: contact
+details to the CRM</a><a href="#agent-api-live-checks">Live checks</a></nav>
   </div>
   <footer class="pager"><a class="prev" href="#building">&larr; Building</a><span></span></footer>
 </section>
